@@ -1,1 +1,1 @@
-web: streamlit run frontend/app.py --server.port=8000 --server.address=0.0.0.0
+web: uvicorn backend.main:app --host=0.0.0.0 --port=${PORT:-8000}
