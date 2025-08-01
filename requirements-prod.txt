@@ -1,7 +1,9 @@
-fastapi==0.115.12
-uvicorn==0.34.2
-python-dotenv==1.1.0
-sqlalchemy==2.0.41
-psycopg2-binary==2.9.10
-requests==2.32.3
-python-jose==3.5.0
+fastapi
+uvicorn
+sqlalchemy
+python-dotenv
+openai
+psycopg2-binary
+httpx
+python-jose
+passlib
