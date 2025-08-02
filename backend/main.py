@@ -12,7 +12,9 @@ from backend.models import planos  # importa os modelos que você criou
 from backend.api.planos import router as planos_router
 
 
-Base.metadata.create_all(bind=engine)
+@app.on_event("startup")
+async def startup():
+    Base.metadata.create_all(bind=engine)
 
 
 
