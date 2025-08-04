@@ -270,7 +270,7 @@ def tela_login_personalizada():
     st.set_page_config(layout="wide")
 
     # Caminho da imagem de fundo
-    caminho_imagem = Path("frontend/img/telalogin.jpg")  # ou .png se for o caso
+    caminho_imagem = Path("img/telalogin.jpg")  # ou .png se for o caso
     imagem_base64 = ""
     if caminho_imagem.exists():
         with open(caminho_imagem, "rb") as f:
