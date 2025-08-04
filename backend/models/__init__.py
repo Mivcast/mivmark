@@ -1,10 +1,10 @@
 from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, Boolean, ForeignKey, Numeric, JSON, DateTime
 from sqlalchemy.orm import relationship
-from backend.database import Base
-from backend.models.tokens import TokenAtivacao
-from backend.models.demo import CadastroDemo
-from backend.models.historico_mark import HistoricoMark
-from backend.models.marketing import CardMarketing
+from ..database import Base
+from .tokens import TokenAtivacao
+from .demo import CadastroDemo
+from .historico_mark import HistoricoMark
+from .marketing import CardMarketing
 from datetime import datetime
 
 class Diagnostico(Base):
