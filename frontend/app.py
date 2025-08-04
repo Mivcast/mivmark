@@ -822,6 +822,7 @@ def tela_empresa():
 
 
 def tela_consultoria():
+    import os
     # ⚠️ Verificação de acesso: Admin sempre tem acesso total
     email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
     if email_usuario != "matheus@email.com":
