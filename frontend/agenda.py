@@ -3,7 +3,8 @@ import httpx
 from datetime import datetime, timedelta
 import json
 import streamlit.components.v1 as components
-from frontend.verificar_acesso import usuario_tem_acesso
+from verificar_acesso import usuario_tem_acesso
+
 
 API_URL = "http://127.0.0.1:8000"
 
