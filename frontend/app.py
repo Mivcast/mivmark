@@ -13,7 +13,7 @@ from aplicativos import listar_aplicativos_admin
 from admin.planos import aba_gerenciar_planos
 
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://mivmark-backend.onrender.com"
 
 
 def usuario_tem_acesso(modulo: str) -> bool:
@@ -72,7 +72,7 @@ def tela_inicio():
     headers = {"Authorization": f"Bearer {st.session_state.token}"}
 
     import httpx
-    API_URL = "http://127.0.0.1:8000"
+    API_URL = "https://mivmark-backend.onrender.com"
 
     # Caminhos das imagens
     BASE_DIR = Path(__file__).parent
@@ -455,7 +455,7 @@ def tela_cadastro():
     import streamlit as st
     import httpx
 
-    API_URL = "http://127.0.0.1:8000"
+    API_URL = "https://mivmark-backend.onrender.com"
     st.title("📝 Criar sua conta")
 
     cupons_validos = {
@@ -1554,7 +1554,7 @@ def tela_planos():
     plano_atual = st.session_state.dados_usuario.get("plano_atual", "Gratuito")
     usuario_id = st.session_state.dados_usuario.get("id")
 
-    API_URL = "http://127.0.0.1:8000"
+    API_URL = "https://mivmark-backend.onrender.com"
     try:
         planos = httpx.get(f"{API_URL}/planos/").json()
     except:
