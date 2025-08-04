@@ -374,7 +374,7 @@ def tela_login_personalizada():
     with col2:
         st.markdown('<div class="right">', unsafe_allow_html=True)
 
-        st.image("frontend/img/mivlogo preta.png", width=120)
+        st.image("img/mivlogopreta.png", width=120)
         st.markdown("<h1>Login</h1>", unsafe_allow_html=True)
         st.markdown("<p class='subtitle'>Acesse sua conta para gerenciar seu sistema.</p>", unsafe_allow_html=True)
 
