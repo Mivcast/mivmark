@@ -548,21 +548,21 @@ def tela_cadastro():
             if plano_selecionado == "Gratuito":
                 try:
                     r = httpx.post(f"{API_URL}/cadastro/gratuito", json={
-                            "nome": nome,
-                            "email": email,
-                            "senha": senha
-                        })
-                        if r.status_code == 200:
-                            st.success("✅ Cadastro realizado com sucesso!")
-                            st.markdown("[🔑 Ir para o login](?login=true)")
-                        elif r.status_code == 409:
-                            st.warning("⚠️ E-mail já cadastrado.")
-                        elif r.status_code == 422:
-                            st.warning("⚠️ Dados inválidos. Verifique os campos.")
-                        else:
-                            st.error(f"Erro inesperado: {r.text}")
-                    except Exception as e:
-                        st.error(f"Erro ao conectar: {e}")
+                        "nome": nome,
+                        "email": email,
+                        "senha": senha
+                    })
+                    if r.status_code == 200:
+                        st.success("✅ Cadastro realizado com sucesso!")
+                        st.markdown("[🔑 Ir para o login](?login=true)")
+                    elif r.status_code == 409:
+                        st.warning("⚠️ E-mail já cadastrado.")
+                    elif r.status_code == 422:
+                        st.warning("⚠️ Dados inválidos. Verifique os campos.")
+                    else:
+                        st.error(f"Erro inesperado: {r.text}")
+                except Exception as e:
+                    st.error(f"Erro ao conectar: {e}")
             elif token:
                 try:
                     r = httpx.post(f"{API_URL}/cadastro", json={
