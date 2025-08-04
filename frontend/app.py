@@ -2244,6 +2244,27 @@ def tela_checkout_app(app_id):
 
 # ------------------- INTERFACE PRINCIPAL -------------------
 
+API_URL = "https://mivmark-backend.onrender.com"
+
+def get_headers():
+    """Gera o cabeçalho com token salvo"""
+    return {"Authorization": f"Bearer {st.session_state.get('token', '')}"}
+
+def obter_dados_usuario():
+    """Consulta os dados do usuário logado e salva no session_state"""
+    try:
+        response = httpx.get(f"{API_URL}/minha-conta", headers=get_headers())
+        if response.status_code == 200:
+            st.session_state["dados_usuario"] = response.json()
+        else:
+            st.error("❌ Erro ao obter dados do usuário.")
+            st.session_state["token"] = None
+            st.session_state["dados_usuario"] = {}
+    except Exception as e:
+        st.error(f"❌ Erro ao consultar perfil: {e}")
+        st.session_state["token"] = None
+        st.session_state["dados_usuario"] = {}
+
 def main():
     st.set_page_config(page_title="MARK Sistema IA", layout="wide")
 
