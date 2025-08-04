@@ -76,37 +76,42 @@ def cadastrar_usuario(dados: CadastroSchema):
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     try:
+        print("🔐 Iniciando login com:", form_data.username)
+
         usuario = db.execute(
             select(Usuario).where(Usuario.email == form_data.username)
         ).scalar_one_or_none()
 
         if not usuario:
-            raise HTTPException(status_code=401, detail="Usuário não encontrado.")
+            print("❌ Usuário não encontrado no banco.")
+            raise HTTPException(status_code=401, detail="Credenciais inválidas.")
 
+        print("🔎 Verificando senha...")
         if not pwd_context.verify(form_data.password, usuario.senha_hash):
-            raise HTTPException(status_code=401, detail="Senha incorreta.")
+            print("❌ Senha inválida.")
+            raise HTTPException(status_code=401, detail="Credenciais inválidas.")
 
-        # Geração do token JWT
-        token_payload = {
+        print("✅ Login validado. Gerando token...")
+        token = jwt.encode({
             "sub": str(usuario.id),
             "email": usuario.email,
             "exp": datetime.utcnow() + timedelta(minutes=TEMPO_EXPIRACAO)
-        }
-        token = jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
+        }, SECRET_KEY, algorithm=ALGORITHM)
 
+        print("📤 Token gerado com sucesso.")
         return {
             "access_token": token,
             "token_type": "bearer",
             "email": usuario.email,
             "nome": usuario.nome,
             "tipo_usuario": usuario.tipo_usuario,
-            "plano_atual": usuario.plano_atual or (
-                "Administrador" if usuario.tipo_usuario == "admin" else "Gratuito"
-            )
+            "plano_atual": usuario.plano_atual or ("Administrador" if usuario.tipo_usuario == "admin" else "Gratuito")
         }
 
     except Exception as e:
-        print(f"[ERRO LOGIN]: {e}")
+        import traceback
+        print("🔥 ERRO INTERNO NO LOGIN:")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Erro interno ao processar o login.")
 
 
