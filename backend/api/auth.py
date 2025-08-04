@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from database import get_db  # Importar get_db aqui
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session, sessionmaker
-from import engine
+from database import engine
 from models import Usuario
 from sqlalchemy import select
 from datetime import datetime, timedelta
