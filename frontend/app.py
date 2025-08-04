@@ -430,17 +430,17 @@ def login_usuario(email, senha):
     }
 
     try:
-        response = httpx.post(f"{API_URL}/login", data=data)
-        if response.status_code == 200:
-            token = response.json()["access_token"]
-            st.session_state["token"] = token
-            obter_dados_usuario()
-            return token
-        elif response.status_code == 401:
-            st.error("❌ Email ou senha incorretos.")
+        r = httpx.post(f"{API_URL}/login", data=data)
+        if r.status_code == 200:
+            resposta = r.json()
+            st.success("✅ Login realizado com sucesso!")
+            st.session_state.token = resposta["access_token"]
+            st.session_state.usuario = resposta
+            st.rerun()
         else:
-            st.error(f"Erro no login: {response.text}")
+            st.error(f"Erro no login: {r.json().get('detail', 'Erro desconhecido')}")
     except Exception as e:
+        st.error(f"Erro ao conectar: {e}")
         st.error(f"Erro ao fazer login: {e}")
 
 def get_headers():
