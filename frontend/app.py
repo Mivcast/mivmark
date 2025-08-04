@@ -888,11 +888,7 @@ def tela_consultoria():
     CAMINHO_TOPICOS = CAMINHO_BASE / "data" / "consultoria_topicos_completos.json"
     CAMINHO_SETOR = CAMINHO_BASE / "data" / "topicos_por_setor.json"
 
-    # DEBUG PRÁTICO
-    st.write("🔎 Caminho do arquivo de tópicos:", CAMINHO_TOPICOS)
-    st.write("📁 Arquivo existe?", CAMINHO_TOPICOS.exists())
-    st.write("📂 Diretório atual:", os.getcwd())
-    st.write("📂 Arquivos na pasta data:", list((CAMINHO_BASE / "data").glob("*")))
+
 
 
     try:

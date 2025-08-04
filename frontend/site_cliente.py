@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from verificar_acesso import usuario_tem_acesso
 
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://mivmark-backend.onrender.com"
 
 def tela_site_cliente():
     # ⚠️ Verificação de acesso: Admin sempre tem acesso total

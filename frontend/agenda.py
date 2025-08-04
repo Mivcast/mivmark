@@ -6,7 +6,7 @@ import streamlit.components.v1 as components
 from verificar_acesso import usuario_tem_acesso
 
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://mivmark-backend.onrender.com"
 
 def exibir_calendario_html(eventos):
     eventos_js = json.dumps([
