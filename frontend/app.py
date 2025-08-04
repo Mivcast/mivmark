@@ -885,7 +885,14 @@ def tela_consultoria():
 
     CAMINHO_BASE = Path(__file__).parent.parent  # sobe da pasta frontend/
     CAMINHO_TOPICOS = CAMINHO_BASE / "data" / "consultoria_topicos_completos.json"
-    AMINHO_SETOR = CAMINHO_BASE / "data" / "topicos_por_setor.json"
+    CAMINHO_SETOR = CAMINHO_BASE / "data" / "topicos_por_setor.json"
+
+    # DEBUG PRÁTICO
+    st.write("🔎 Caminho do arquivo de tópicos:", CAMINHO_TOPICOS)
+    st.write("📁 Arquivo existe?", CAMINHO_TOPICOS.exists())
+    st.write("📂 Diretório atual:", os.getcwd())
+    st.write("📂 Arquivos na pasta data:", list((CAMINHO_BASE / "data").glob("*")))
+
 
     try:
         with open(CAMINHO_TOPICOS, "r", encoding="utf-8") as f:
