@@ -74,27 +74,35 @@ def cadastrar_usuario(dados: CadastroSchema):
 
 # Rota de login
 @router.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    db = SessionLocal()
-    usuario = db.execute(select(Usuario).where(Usuario.email == form_data.username)).scalar_one_or_none()
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    try:
+        usuario = db.execute(
+            select(Usuario).where(Usuario.email == form_data.username)
+        ).scalar_one_or_none()
 
-    if not usuario or not pwd_context.verify(form_data.password, usuario.senha_hash):
-        raise HTTPException(status_code=400, detail="Credenciais inválidas.")
+        if not usuario or not pwd_context.verify(form_data.password, usuario.senha_hash):
+            raise HTTPException(status_code=401, detail="Credenciais inválidas.")
 
-    token = jwt.encode({
-        "sub": str(usuario.id),
-        "email": usuario.email,
-        "exp": datetime.utcnow() + timedelta(minutes=TEMPO_EXPIRACAO)
-    }, SECRET_KEY, algorithm=ALGORITHM)
+        token = jwt.encode({
+            "sub": str(usuario.id),
+            "email": usuario.email,
+            "exp": datetime.utcnow() + timedelta(minutes=TEMPO_EXPIRACAO)
+        }, SECRET_KEY, algorithm=ALGORITHM)
 
-    return {
-    "access_token": token,
-    "token_type": "bearer",
-    "email": usuario.email,
-    "nome": usuario.nome,
-    "tipo_usuario": usuario.tipo_usuario,
-    "plano_atual": usuario.plano_atual or ("Administrador" if usuario.tipo_usuario == "admin" else "Gratuito")
-    }
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "email": usuario.email,
+            "nome": usuario.nome,
+            "tipo_usuario": usuario.tipo_usuario,
+            "plano_atual": usuario.plano_atual or (
+                "Administrador" if usuario.tipo_usuario == "admin" else "Gratuito"
+            )
+        }
+
+    except Exception as e:
+        print(f"Erro interno no login: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno ao processar o login.")
 
 # Verifica o token e retorna usuário
 def get_current_user(token: str = Depends(oauth2_scheme)):

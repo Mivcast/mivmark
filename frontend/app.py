@@ -425,9 +425,14 @@ def login_usuario(email, senha):
 
     API_URL = "https://mivmark-backend.onrender.com"
 
+    # Dados no formato esperado por OAuth2PasswordRequestForm
     data = {
         "username": email,
-        "password": senha
+        "password": senha,
+        "grant_type": "",        # obrigatório para compatibilidade
+        "scope": "",
+        "client_id": "",
+        "client_secret": ""
     }
 
     headers = {
@@ -435,17 +440,21 @@ def login_usuario(email, senha):
     }
 
     try:
-        r = httpx.post(f"{API_URL}/login", data=data, headers=headers)  # <- AQUI
+        r = httpx.post(f"{API_URL}/login", data=data, headers=headers)
         if r.status_code == 200:
             resposta = r.json()
             st.success("✅ Login realizado com sucesso!")
             st.session_state.token = resposta["access_token"]
             st.session_state.usuario = resposta
             st.rerun()
+        elif r.status_code == 401 or r.status_code == 400:
+            st.warning(f"⚠️ {r.json().get('detail', 'Credenciais inválidas.')}")
         else:
-            st.error(f"Erro no login: {r.text}")
+            st.error(f"❌ Erro inesperado: {r.text}")
+    except httpx.RequestError as e:
+        st.error(f"🚫 Erro de conexão com o servidor: {e}")
     except Exception as e:
-        st.error(f"Erro ao conectar: {e}")
+        st.error(f"❌ Erro interno no login: {e}")
 
 
 
