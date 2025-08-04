@@ -80,14 +80,19 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             select(Usuario).where(Usuario.email == form_data.username)
         ).scalar_one_or_none()
 
-        if not usuario or not pwd_context.verify(form_data.password, usuario.senha_hash):
-            raise HTTPException(status_code=401, detail="Credenciais inválidas.")
+        if not usuario:
+            raise HTTPException(status_code=401, detail="Usuário não encontrado.")
 
-        token = jwt.encode({
+        if not pwd_context.verify(form_data.password, usuario.senha_hash):
+            raise HTTPException(status_code=401, detail="Senha incorreta.")
+
+        # Geração do token JWT
+        token_payload = {
             "sub": str(usuario.id),
             "email": usuario.email,
             "exp": datetime.utcnow() + timedelta(minutes=TEMPO_EXPIRACAO)
-        }, SECRET_KEY, algorithm=ALGORITHM)
+        }
+        token = jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
 
         return {
             "access_token": token,
@@ -101,25 +106,26 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         }
 
     except Exception as e:
-        print(f"Erro interno no login: {e}")
+        print(f"[ERRO LOGIN]: {e}")
         raise HTTPException(status_code=500, detail="Erro interno ao processar o login.")
 
-# Verifica o token e retorna usuário
+
+# Verifica e retorna usuário com base no token JWT
 def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = int(payload.get("sub"))
-
-        db = SessionLocal()
-        usuario = db.get(Usuario, user_id)
-        if not usuario:
-            raise HTTPException(status_code=401, detail="Usuário não encontrado.")
-        return usuario
-
     except JWTError:
         raise HTTPException(status_code=401, detail="Token inválido ou expirado.")
 
-# Alias para o nome esperado no código: get_usuario_logado
+    db = SessionLocal()
+    usuario = db.get(Usuario, user_id)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuário não encontrado.")
+    return usuario
+
+
+# Alias para reutilização
 def get_usuario_logado(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Usuario:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
