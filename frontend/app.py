@@ -422,15 +422,13 @@ def login_usuario(email, senha):
     """Realiza login e retorna o token"""
     data = {
         "username": email,
-        "password": senha,
-        "grant_type": "",
-        "scope": "",
-        "client_id": "",
-        "client_secret": ""
+        "password": senha
     }
 
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
     try:
-        r = httpx.post(f"{API_URL}/login", json=data)
+        r = httpx.post(f"{API_URL}/login", data=data, headers=headers)
         if r.status_code == 200:
             resposta = r.json()
             st.success("✅ Login realizado com sucesso!")
@@ -438,7 +436,11 @@ def login_usuario(email, senha):
             st.session_state.usuario = resposta
             st.rerun()
         else:
-            st.error(f"Erro no login: {r.json().get('detail', 'Erro desconhecido')}")
+            try:
+                erro = r.json().get("detail", "Erro desconhecido")
+            except Exception:
+                erro = r.text or "Erro desconhecido"
+            st.error(f"Erro no login: {erro}")
     except Exception as e:
         st.error(f"Erro ao conectar: {e}")
 
@@ -457,6 +459,7 @@ def obter_dados_usuario():
             st.session_state["token"] = None
     except Exception as e:
         st.error(f"Erro ao consultar perfil: {e}")
+
 
 # ------------------- CADASTRO E LOGIN -------------------
 
@@ -544,13 +547,15 @@ def tela_cadastro():
         enviar = st.form_submit_button("Cadastrar")
 
         if enviar:
-            if plano_selecionado == "Gratuito":
+            if not nome or not email or not senha:
+                st.warning("⚠️ Preencha todos os campos obrigatórios.")
+            elif plano_selecionado == "Gratuito":
                 try:
                     r = httpx.post(f"{API_URL}/cadastro/gratuito", json={
                         "nome": nome,
                         "email": email,
                         "senha": senha
-                    })
+                    }, timeout=10)
                     if r.status_code == 200:
                         st.success("✅ Cadastro realizado com sucesso!")
                         st.markdown("[🔑 Ir para o login](?login=true)")
@@ -569,12 +574,16 @@ def tela_cadastro():
                         "email": email,
                         "senha": senha,
                         "token_ativacao": token
-                    })
+                    }, timeout=10)
                     if r.status_code == 200:
                         st.success("✅ Cadastro ativado com sucesso!")
                         st.markdown("[🔑 Ir para o login](?login=true)")
                     else:
-                        st.error(f"❌ {r.json().get('detail', 'Erro ao cadastrar.')}")
+                        try:
+                            erro = r.json().get("detail", "Erro ao cadastrar.")
+                        except Exception:
+                            erro = r.text or "Erro ao cadastrar."
+                        st.error(f"❌ {erro}")
                 except Exception as e:
                     st.error(f"Erro ao conectar: {e}")
             else:
@@ -582,7 +591,7 @@ def tela_cadastro():
                     r = httpx.post(f"{API_URL}/api/mercado_pago/criar_preferencia", json={
                         "plano_nome": plano_selecionado,
                         "preco": preco_final
-                    })
+                    }, timeout=10)
                     if r.status_code == 200:
                         pagamento = r.json()
                         st.success("✅ Cadastro iniciado. Finalize o pagamento para receber o token de ativação no e-mail.")
@@ -596,7 +605,6 @@ def tela_cadastro():
     if st.button("👨🏻‍💻 Voltar para login"):
         st.query_params = {"login": "true"}
         st.rerun()
-
 
 
 
