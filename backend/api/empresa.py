@@ -3,10 +3,9 @@ from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from models import Empresa, Usuario
+from models import Empresa, Usuario, CardMarketing
 from api.auth import get_current_user
 from datetime import datetime
-from models import CardMarketing
 
 # ✅ Import para geração do site do cliente
 from backend.api.site_cliente import gerar_site_cliente, DadosSiteCliente
