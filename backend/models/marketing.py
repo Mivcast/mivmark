@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, TIMESTAMP
 from sqlalchemy.orm import relationship
-from backend.database import Base
+from database import Base
 from datetime import datetime
 
 class CardMarketing(Base):

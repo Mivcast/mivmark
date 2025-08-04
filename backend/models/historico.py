@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Text, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from backend.database import Base
+from database import Base
 
 class HistoricoMark(Base):
     __tablename__ = "historico_mark"

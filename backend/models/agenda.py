@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Text, DateTime, Boolean, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from datetime import datetime
-from backend.database import Base
+from database import Base
 import enum
 
 class TipoEventoEnum(str, enum.Enum):
