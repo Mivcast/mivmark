@@ -1,5 +1,5 @@
 import streamlit as st
-from frontend.agenda import tela_agenda  # ✅ Importa a versão visual com calendário
+from agenda import tela_agenda  # ✅ Importa a versão visual com calendário
 from datetime import datetime, timedelta
 
 # ⚙️ A configuração da página deve ser a PRIMEIRA chamada do Streamlit
@@ -8,9 +8,9 @@ st.set_page_config(layout="wide")
 import httpx
 import datetime
 import streamlit.components.v1 as components
-from frontend.site_cliente import tela_site_cliente
-from frontend.aplicativos import listar_aplicativos_admin
-from frontend.admin.planos import aba_gerenciar_planos
+from site_cliente import tela_site_cliente
+from aplicativos import listar_aplicativos_admin
+from admin.planos import aba_gerenciar_planos
 
 
 API_URL = "http://127.0.0.1:8000"
