@@ -422,13 +422,13 @@ def login_usuario(email, senha):
     """Realiza login e retorna o token"""
     data = {
         "username": email,
-        "password": senha
+        "password": senha,
     }
 
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
     try:
-        r = httpx.post(f"{API_URL}/login", data=data, headers=headers)
+        r = httpx.post(f"{API_URL}/login", data=data, headers=headers)  # ATENÇÃO: data, não json
         if r.status_code == 200:
             resposta = r.json()
             st.success("✅ Login realizado com sucesso!")
@@ -436,29 +436,10 @@ def login_usuario(email, senha):
             st.session_state.usuario = resposta
             st.rerun()
         else:
-            try:
-                erro = r.json().get("detail", "Erro desconhecido")
-            except Exception:
-                erro = r.text or "Erro desconhecido"
-            st.error(f"Erro no login: {erro}")
+            st.error(f"Erro no login: {r.json().get('detail', 'Erro desconhecido')}")
     except Exception as e:
         st.error(f"Erro ao conectar: {e}")
 
-def get_headers():
-    """Gera o cabeçalho com token salvo"""
-    return {"Authorization": f"Bearer {st.session_state.get('token', '')}"}
-
-def obter_dados_usuario():
-    """Consulta os dados do usuário logado"""
-    try:
-        response = httpx.get(f"{API_URL}/minha-conta", headers=get_headers())
-        if response.status_code == 200:
-            st.session_state["dados_usuario"] = response.json()
-        else:
-            st.error("Erro ao obter dados do usuário.")
-            st.session_state["token"] = None
-    except Exception as e:
-        st.error(f"Erro ao consultar perfil: {e}")
 
 
 # ------------------- CADASTRO E LOGIN -------------------
