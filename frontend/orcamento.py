@@ -1,5 +1,4 @@
 import streamlit as st
-from docx2pdf import convert
 from datetime import date
 from docx import Document
 import sys
@@ -9,9 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from verificar_acesso import usuario_tem_acesso
 
 
-
 def tela_orcamento(dados_empresa):
-    # ⚠️ Verificação de acesso: Admin sempre tem acesso total
     email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
     if email_usuario != "matheus@email.com":
         if not usuario_tem_acesso("orcamento"):
@@ -70,14 +67,11 @@ def tela_orcamento(dados_empresa):
     prazo_execucao = st.text_input("Prazo para execução do serviço")
     observacoes = st.text_area("Observações adicionais")
 
-    if st.button("💾 Gerar Orçamento (DOCX e PDF)"):
+    if st.button("💾 Gerar Orçamento (DOCX)"):
         salvar_orcamento_docx(dados_empresa, nome_cliente, cpf_cnpj_cliente, endereco_cliente,
                               lista_itens, total_final, desconto, data_orcamento,
                               validade, prazo_execucao, observacoes)
 
-    # -----------------------------------
-    # Histórico de Orçamentos
-    # Histórico de Orçamentos
     st.markdown("---")
     st.subheader("📁 Orçamentos Salvos")
 
@@ -85,7 +79,6 @@ def tela_orcamento(dados_empresa):
     os.makedirs(caminho, exist_ok=True)
     arquivos = sorted(os.listdir(caminho), reverse=True)
 
-    # Filtros
     col1, col2 = st.columns(2)
     with col1:
         nome_filtro = st.text_input("🔍 Filtrar por nome do cliente")
@@ -103,13 +96,12 @@ def tela_orcamento(dados_empresa):
         if len(partes) >= 4:
             _, empresa, cliente, datahora = partes[:4]
             cliente_id = cliente
-            data_str = datahora[:8]  # yyyyMMdd
+            data_str = datahora[:8]
             data_formatada = f"{data_str[:4]}-{data_str[4:6]}-{data_str[6:]}"
         else:
             cliente_id = "desconhecido"
             data_formatada = "0000-00-00"
 
-        # Aplicar filtros
         passou_nome = not nome_filtro or nome_filtro.lower() in cliente_id.lower()
         passou_data = not data_filtro or data_formatada == data_filtro.strftime("%Y-%m-%d")
 
@@ -140,7 +132,6 @@ def tela_orcamento(dados_empresa):
                     st.markdown(f"[📲 Enviar por WhatsApp]({link})")
 
 
-# -----------------------------------
 def salvar_orcamento_docx(empresa, nome_cliente, cpf_cnpj, endereco_cliente,
                           itens, total, desconto, data_orcamento,
                           validade, prazo_execucao, observacoes):
@@ -175,16 +166,8 @@ def salvar_orcamento_docx(empresa, nome_cliente, cpf_cnpj, endereco_cliente,
     os.makedirs(caminho, exist_ok=True)
 
     docx_path = os.path.join(caminho, f"{nome_base}.docx")
-    pdf_path = os.path.join(caminho, f"{nome_base}.pdf")
-
     doc.save(docx_path)
-
-    try:
-        convert(docx_path, pdf_path)
-    except Exception as e:
-        st.warning(f"Erro ao gerar PDF: {e}")
 
     st.success(f"Orçamento salvo com sucesso.")
     st.download_button("📥 Baixar DOCX", data=open(docx_path, "rb"), file_name=os.path.basename(docx_path))
-    if os.path.exists(pdf_path):
-        st.download_button("📥 Baixar PDF", data=open(pdf_path, "rb"), file_name=os.path.basename(pdf_path))
+    st.info("⚠️ Conversão para PDF não disponível neste ambiente.")
