@@ -425,14 +425,11 @@ def login_usuario(email, senha):
 
     API_URL = "https://mivmark-backend.onrender.com"
 
-    # Dados no formato esperado por OAuth2PasswordRequestForm
+    # payload deve estar em formato de formulário (não JSON)
     data = {
         "username": email,
         "password": senha,
-        "grant_type": "",        # obrigatório para compatibilidade
-        "scope": "",
-        "client_id": "",
-        "client_secret": ""
+        "grant_type": "password"  # <-- isso é OBRIGATÓRIO para OAuth2PasswordRequestForm
     }
 
     headers = {
@@ -447,14 +444,11 @@ def login_usuario(email, senha):
             st.session_state.token = resposta["access_token"]
             st.session_state.usuario = resposta
             st.rerun()
-        elif r.status_code == 401 or r.status_code == 400:
-            st.warning(f"⚠️ {r.json().get('detail', 'Credenciais inválidas.')}")
         else:
-            st.error(f"❌ Erro inesperado: {r.text}")
-    except httpx.RequestError as e:
-        st.error(f"🚫 Erro de conexão com o servidor: {e}")
+            st.error(f"Erro no login: {r.text}")
     except Exception as e:
-        st.error(f"❌ Erro interno no login: {e}")
+        st.error(f"Erro ao conectar: {e}")
+
 
 
 
