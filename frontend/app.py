@@ -379,7 +379,7 @@ def tela_login_personalizada():
         st.markdown("<p class='subtitle'>Acesse sua conta para gerenciar seu sistema.</p>", unsafe_allow_html=True)
 
         st.markdown("**E-mail**")
-        email = st.text_input("", placeholder="Digite seu e-mail ou usuário")
+        email = st.text_input("E-mail", placeholder="Digite seu e-mail ou usuário", label_visibility="collapsed")
 
         st.markdown("**Senha**")
         senha = st.text_input("", placeholder="Digite sua senha", type="password")
@@ -420,16 +420,26 @@ def tela_login_personalizada():
 
 def login_usuario(email, senha):
     """Realiza login e retorna o token"""
+    data = {
+        "username": email,
+        "password": senha,
+        "grant_type": "",
+        "scope": "",
+        "client_id": "",
+        "client_secret": ""
+    }
+
     try:
-        response = httpx.post(f"{API_URL}/login", data={"username": email, "password": senha})
+        response = httpx.post(f"{API_URL}/login", data=data)
         if response.status_code == 200:
             token = response.json()["access_token"]
             st.session_state["token"] = token
-            obter_dados_usuario()  # ← Já busca os dados completos após login
-            st.success("✅ Login realizado com sucesso!")
-            st.rerun()
-        else:
+            obter_dados_usuario()
+            return token
+        elif response.status_code == 401:
             st.error("❌ Email ou senha incorretos.")
+        else:
+            st.error(f"Erro no login: {response.text}")
     except Exception as e:
         st.error(f"Erro ao fazer login: {e}")
 
@@ -538,17 +548,21 @@ def tela_cadastro():
             if plano_selecionado == "Gratuito":
                 try:
                     r = httpx.post(f"{API_URL}/cadastro/gratuito", json={
-                        "nome": nome,
-                        "email": email,
-                        "senha": senha
-                    })
-                    if r.status_code == 200:
-                        st.success("✅ Cadastro realizado com sucesso!")
-                        st.markdown("[🔑 Ir para o login](?login=true)")
-                    else:
-                        st.error(f"❌ {r.json().get('detail', 'Erro ao cadastrar.')}")
-                except Exception as e:
-                    st.error(f"Erro ao conectar: {e}")
+                            "nome": nome,
+                            "email": email,
+                            "senha": senha
+                        })
+                        if r.status_code == 200:
+                            st.success("✅ Cadastro realizado com sucesso!")
+                            st.markdown("[🔑 Ir para o login](?login=true)")
+                        elif r.status_code == 409:
+                            st.warning("⚠️ E-mail já cadastrado.")
+                        elif r.status_code == 422:
+                            st.warning("⚠️ Dados inválidos. Verifique os campos.")
+                        else:
+                            st.error(f"Erro inesperado: {r.text}")
+                    except Exception as e:
+                        st.error(f"Erro ao conectar: {e}")
             elif token:
                 try:
                     r = httpx.post(f"{API_URL}/cadastro", json={
