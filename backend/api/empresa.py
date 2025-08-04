@@ -8,7 +8,7 @@ from api.auth import get_current_user
 from datetime import datetime
 
 # ✅ Import para geração do site do cliente
-from backend.api.site_cliente import gerar_site_cliente, DadosSiteCliente
+from api.site_cliente import gerar_site_cliente, DadosSiteCliente
 
 router = APIRouter()
 
