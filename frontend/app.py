@@ -881,10 +881,16 @@ def tela_consultoria():
         st.error(f"Erro ao verificar consultoria: {e}")
         return
 
+    from pathlib import Path
+
+    CAMINHO_BASE = Path(__file__).parent.parent  # sobe da pasta frontend/
+    CAMINHO_TOPICOS = CAMINHO_BASE / "data" / "consultoria_topicos_completos.json"
+    AMINHO_SETOR = CAMINHO_BASE / "data" / "topicos_por_setor.json"
+
     try:
-        with open("data/consultoria_topicos_completos.json", "r", encoding="utf-8") as f:
+        with open(CAMINHO_TOPICOS, "r", encoding="utf-8") as f:
             topicos = json.load(f)
-        with open("data/topicos_por_setor.json", "r", encoding="utf-8") as f:
+        with open(CAMINHO_SETOR, "r", encoding="utf-8") as f:
             por_setor = json.load(f)
     except Exception as e:
         st.error(f"Erro ao carregar arquivos de tópicos: {e}")
