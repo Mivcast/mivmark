@@ -1,0 +1,8 @@
+streamlit
+requests
+python-dotenv
+streamlit-calendar
+streamlit-js-eval
+pandas
+plotly
+pydeck
