@@ -430,7 +430,7 @@ def login_usuario(email, senha):
     }
 
     try:
-        r = httpx.post(f"{API_URL}/login", data=data)
+        r = httpx.post(f"{API_URL}/login", json=data)
         if r.status_code == 200:
             resposta = r.json()
             st.success("✅ Login realizado com sucesso!")
@@ -441,7 +441,6 @@ def login_usuario(email, senha):
             st.error(f"Erro no login: {r.json().get('detail', 'Erro desconhecido')}")
     except Exception as e:
         st.error(f"Erro ao conectar: {e}")
-        st.error(f"Erro ao fazer login: {e}")
 
 def get_headers():
     """Gera o cabeçalho com token salvo"""
