@@ -885,7 +885,7 @@ def tela_consultoria():
 
     CAMINHO_BASE = Path(__file__).parent  # já está dentro do frontend
     CAMINHO_TOPICOS = CAMINHO_BASE / "data" / "consultoria_topicos_completos.json"
-    CAMINHO_SETOR = CAMINHO_BASE / "data" / "topicos_por_setor.json
+    CAMINHO_SETOR = CAMINHO_BASE / "data" / "topicos_por_setor.json"
 
     # DEBUG PRÁTICO
     st.write("🔎 Caminho do arquivo de tópicos:", CAMINHO_TOPICOS)
