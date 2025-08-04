@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, sessionmaker
-from backend.database import engine
-from backend.models import HistoricoMark, Usuario
-from backend.api.auth import get_current_user
+from database import engine
+from models import HistoricoMark, Usuario
+from api.auth import get_current_user
 from datetime import datetime
 
 router = APIRouter()

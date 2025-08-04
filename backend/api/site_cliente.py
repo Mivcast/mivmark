@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from backend.database import SessionLocal
-from backend.models import Empresa
+from database import SessionLocal
+from models import Empresa
 from jinja2 import Template
 import os
 

@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from pydantic import BaseModel
 from typing import List, Optional
-from backend.database import SessionLocal
-from backend.models import Usuario
-from backend.models.curso import Curso, Aula, CompraCurso, ProgressoCurso, CupomDesconto
-from backend.api.auth import get_current_user
+from database import SessionLocal
+from models import Usuario
+from models.curso import Curso, Aula, CompraCurso, ProgressoCurso, CupomDesconto
+from api.auth import get_current_user
 
 router = APIRouter(prefix="/cursos", tags=["Cursos"])
 

@@ -1,16 +1,16 @@
 from fastapi import APIRouter, HTTPException, Depends
-from backend.database import get_db  # Importar get_db aqui
+from database import get_db  # Importar get_db aqui
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session, sessionmaker
-from backend.database import engine
-from backend.models import Usuario
+from import engine
+from models import Usuario
 from sqlalchemy import select
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from backend.models.tokens import TokenAtivacao
-from backend.models.demo import CadastroDemo
+from models.tokens import TokenAtivacao
+from models.demo import CadastroDemo
 
 import secrets
 

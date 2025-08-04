@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
-from backend.models import Usuario, Empresa
-from backend.database import SessionLocal
-from backend.api.auth import get_current_user
+from models import Usuario, Empresa
+from database import SessionLocal
+from api.auth import get_current_user
 from pydantic import BaseModel
 import openai
 import os

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, sessionmaker
-from backend.database import engine
-from backend.models import Pagamento, Usuario
-from backend.models.curso import PagamentoCurso, CompraCurso
-from backend.api.auth import get_current_user
+from database import engine
+from models import Pagamento, Usuario
+from models.curso import PagamentoCurso, CompraCurso
+from api.auth import get_current_user
 from datetime import datetime
 
 router = APIRouter()

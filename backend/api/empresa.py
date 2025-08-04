@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from backend.database import SessionLocal
-from backend.models import Empresa, Usuario
-from backend.api.auth import get_current_user
+from database import SessionLocal
+from models import Empresa, Usuario
+from api.auth import get_current_user
 from datetime import datetime
-from backend.models import CardMarketing
+from models import CardMarketing
 
 # ✅ Import para geração do site do cliente
 from backend.api.site_cliente import gerar_site_cliente, DadosSiteCliente

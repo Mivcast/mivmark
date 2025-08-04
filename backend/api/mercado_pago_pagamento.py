@@ -4,10 +4,10 @@ import httpx
 import secrets
 import random
 import string
-from backend.database import SessionLocal
-from backend.models.tokens import TokenAtivacao
-from backend.models import Usuario
-from backend.utils.email_utils import enviar_email
+from database import SessionLocal
+from models.tokens import TokenAtivacao
+from models import Usuario
+from utils.email_utils import enviar_email
 
 router = APIRouter(prefix="/mercado_pago", tags=["Mercado Pago"])
 

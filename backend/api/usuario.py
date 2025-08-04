@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from backend.database import get_db
-from backend.models import Usuario
-from backend.api.auth import get_usuario_logado
-from backend.models import Usuario, Diagnostico
+from database import get_db
+from models import Usuario
+from api.auth import get_usuario_logado
+from models import Usuario, Diagnostico
 
 
 
