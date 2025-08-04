@@ -420,15 +420,22 @@ def tela_login_personalizada():
 
 def login_usuario(email, senha):
     """Realiza login e retorna o token"""
+    import httpx
+    import streamlit as st
+
+    API_URL = "https://mivmark-backend.onrender.com"
+
     data = {
         "username": email,
-        "password": senha,
+        "password": senha
     }
 
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
 
     try:
-        r = httpx.post(f"{API_URL}/login", data=data, headers=headers)  # ATENÇÃO: data, não json
+        r = httpx.post(f"{API_URL}/login", data=data, headers=headers)  # <- AQUI
         if r.status_code == 200:
             resposta = r.json()
             st.success("✅ Login realizado com sucesso!")
@@ -436,9 +443,10 @@ def login_usuario(email, senha):
             st.session_state.usuario = resposta
             st.rerun()
         else:
-            st.error(f"Erro no login: {r.json().get('detail', 'Erro desconhecido')}")
+            st.error(f"Erro no login: {r.text}")
     except Exception as e:
         st.error(f"Erro ao conectar: {e}")
+
 
 
 
