@@ -72,6 +72,17 @@ def cadastrar_usuario(dados: CadastroSchema):
 
     return {"mensagem": "Usuário cadastrado com sucesso", "id": novo_usuario.id}
 
+# 👇 Verificar se existe usuário por e‑mail
+from pydantic import EmailStr
+from sqlalchemy import select
+
+@router.get("/usuarios/existe")
+def usuario_existe(email: EmailStr):
+    db: Session = SessionLocal()
+    existe = db.execute(select(Usuario).where(Usuario.email == email)).scalar_one_or_none() is not None
+    return {"existe": bool(existe)}
+
+
 # Rota de login
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):

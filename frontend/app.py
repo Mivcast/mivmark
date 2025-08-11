@@ -1,5 +1,5 @@
 import streamlit as st
-from agenda import tela_agenda  # ✅ Importa a versão visual com calendário
+from frontend.agenda import tela_agenda  # ✅ Importa a versão visual com calendário
 from datetime import datetime, timedelta
 
 # ⚙️ A configuração da página deve ser a PRIMEIRA chamada do Streamlit
@@ -8,12 +8,12 @@ st.set_page_config(layout="wide")
 import httpx
 import datetime
 import streamlit.components.v1 as components
-from site_cliente import tela_site_cliente
-from aplicativos import listar_aplicativos_admin
-from admin.planos import aba_gerenciar_planos
+from frontend.site_cliente import tela_site_cliente
+from frontend.aplicativos import listar_aplicativos_admin
+from frontend.admin.planos import aba_gerenciar_planos
 
 
-API_URL = "https://mivmark-backend.onrender.com"
+API_URL = "http://127.0.0.1:8000"
 
 
 def usuario_tem_acesso(modulo: str) -> bool:
@@ -72,7 +72,7 @@ def tela_inicio():
     headers = {"Authorization": f"Bearer {st.session_state.token}"}
 
     import httpx
-    API_URL = "https://mivmark-backend.onrender.com"
+    API_URL = "http://127.0.0.1:8000"
 
     # Caminhos das imagens
     BASE_DIR = Path(__file__).parent
@@ -269,104 +269,75 @@ def tela_login_personalizada():
 
     st.set_page_config(layout="wide")
 
-    # Caminho da imagem de fundo
-    caminho_imagem = Path("img/telalogin.jpg")  # ou .png se for o caso
+    # Fundo da coluna esquerda (opcional)
+    caminho_imagem = Path("frontend/img/telalogin.jpg")
     imagem_base64 = ""
     if caminho_imagem.exists():
         with open(caminho_imagem, "rb") as f:
             imagem_base64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # CSS com imagem de fundo usando base64 e layout 60/40
+    # ✅ CSS revisado: melhor padding no mobile + card centralizado
     st.markdown(f"""
         <style>
         * {{ font-family: 'Segoe UI', sans-serif; }}
-        html, body {{
-            margin: 0 !important;
-            padding: 0 !important;
-        }}
-        .css-18e3th9, .block-container {{
-            padding: 0rem !important;
-        }}
+        html, body {{ margin:0 !important; padding:0 !important; }}
+
+        /* Tiramos o padding global apenas no desktop. No mobile, recolocamos. */
+        .block-container {{ padding: 0rem !important; }}
+
         .left {{
             flex: 6;
-            background: url("data:image/jpeg;base64,{imagem_base64}") center center no-repeat;
-            background-size: cover;
+            background: url("data:image/jpeg;base64,{imagem_base64}") center/cover no-repeat;
             height: 100vh;
-            margin: 0 !important;
-            padding: 0 !important;
         }}
         .right {{
             flex: 4;
-            max-width: 480px;
+            max-width: 520px;
             margin: auto;
-            padding: 60px 40px;
-            background-color: white;
+            padding: 56px 44px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 28px rgba(0,0,0,.00);
         }}
-        h1 {{
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }}
-        .subtitle {{
-            color: #666;
-            margin-bottom: 40px;
-        }}
+        h1 {{ font-size: 32px; font-weight: 800; margin: 0 0 8px; }}
+        .subtitle {{ color:#666; margin-bottom: 28px; }}
 
-        /* 🔵 INPUTS E CAMPOS */
-        .stTextInput, .stPassword {{
-            width: 90% !important;
-            margin-bottom: 10px;
-        }}
+        /* Inputs */
+        .stTextInput, .stPassword {{ margin-bottom: 10px; }}
         .stTextInput > div > input,
         .stPassword > div > input {{
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            width: 100%;
+            width: 100% !important;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #dcdcdc;
         }}
 
-        /* 🔵 BOTÃO */
+        /* Botão principal */
         .stButton button {{
-            background-color: #265df2;
-            color: white;
-            font-weight: bold;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 90%;
+            width: 100% !important;
+            background: #265df2;
+            color:#fff; font-weight: 700;
+            padding: 12px 14px; border:0; border-radius: 10px;
         }}
+        .stButton button:hover {{ background:#1d47c8; }}
 
-        .stButton button:hover {{
-            background-color: #1d47c8;
-        }}
+        .small-link {{ font-size:14px; color:#265df2; margin: 6px 0 16px; }}
 
-        .link, .bottom-text {{
-            font-size: 14px;
-            color: #265df2;
-            margin-top: 10px;
-        }}
+        /* Mobile */
         @media(max-width: 768px) {{
-            .left {{
-                display: none;
-            }}
+            .left {{ display:none; }}
             .right {{
-                width: 90% !important;
-                padding: 20px 24px !important;
-                max-width: 100% !important;
-                margin: 0 auto !important;
+                width: calc(100% - 32px) !important;   /* margem dos dois lados */
+                margin: 16px auto !important;
+                padding: 24px !important;
+                border-radius: 14px;
             }}
-            .stTextInput > div > input,
-            .stPassword > div > input,
-            .stButton button {{
-                width: 90% !important;
-            }}
+            /* recoloca um pouco de padding global no mobile pra nada grudar nas laterais */
+            .block-container {{ padding-left: 8px !important; padding-right: 8px !important; }}
         }}
         </style>
     """, unsafe_allow_html=True)
 
-    # Layout com colunas
     col1, col2 = st.columns([6, 4])
     with col1:
         st.markdown('<div class="left"></div>', unsafe_allow_html=True)
@@ -374,84 +345,65 @@ def tela_login_personalizada():
     with col2:
         st.markdown('<div class="right">', unsafe_allow_html=True)
 
-        st.image("img/mivlogopreta.png", width=120)
+        # ⚠️ se seu arquivo tiver espaço no nome, mantenha exatamente igual
+        st.image("frontend/img/mivlogo preta.png", width=120)
         st.markdown("<h1>Login</h1>", unsafe_allow_html=True)
         st.markdown("<p class='subtitle'>Acesse sua conta para gerenciar seu sistema.</p>", unsafe_allow_html=True)
 
         st.markdown("**E-mail**")
-        email = st.text_input("E-mail", placeholder="Digite seu e-mail ou usuário", label_visibility="collapsed")
+        email = st.text_input("", placeholder="Digite seu e-mail ou usuário", key="login_email")
 
         st.markdown("**Senha**")
-        senha = st.text_input("", placeholder="Digite sua senha", type="password")
+        senha = st.text_input("", placeholder="Digite sua senha", type="password", key="login_senha")
 
-        st.markdown("<div class='link'>Esqueci minha senha</div>", unsafe_allow_html=True)
+        # Link “Esqueci” (visual apenas — implemente o fluxo quando quiser)
+        st.markdown("<div class='small-link'>Esqueci minha senha</div>", unsafe_allow_html=True)
 
-        if st.button("Acessar meu Sistema", use_container_width=True):
-            token = login_usuario(email, senha)
-            if token:
-                st.session_state.token = token
-                obter_dados_usuario()
-                st.success("✅ Login realizado com sucesso!")
-                st.rerun()
+        if st.button("Acessar meu Sistema", use_container_width=True, key="btn_login"):
+            login_usuario(email, senha)
 
-        # Botão cinza como DIV estilizado com clique
-        st.markdown("""
-            <div style="margin-top: 15px;">
-                <button style="width: 90%; padding: 12px 20px; background-color: #d6d6d6; color: black; border: none; border-radius: 8px; font-size: 15px; cursor: pointer;"
-                    onclick="window.location.href='?demo=true'">
-                    Quer apenas conhecer o sistema? Faça um login rápido
-                </button>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # Link para cadastro
-
+        # CTA de cadastro
         st.markdown("Ainda não tem cadastro na MivCast?")
-
-        if st.button("📩 Cadastre-se agora"):
+        if st.button("📩 Cadastre-se agora", key="btn_ir_cadastro"):
             st.query_params = {"cadastro": "true"}
             st.rerun()
 
 
-
-
+def verificar_email_existe(email: str) -> bool:
+    try:
+        r = httpx.get(f"{API_URL}/usuarios/existe", params={"email": email})
+        return r.status_code == 200 and bool(r.json().get("existe"))
+    except Exception as e:
+        # Fallback: se não conseguir checar, não travamos o usuário.
+        st.warning(f"Não consegui verificar seu e-mail agora ({e}). Vou tentar o login assim mesmo.")
+        return True
 
 
 
 def login_usuario(email, senha):
-    """Realiza login e retorna o token"""
-    import httpx
-    import streamlit as st
+    if not email or not senha:
+        st.warning("Preencha e‑mail e senha para continuar.")
+        return
 
-    API_URL = "https://mivmark-backend.onrender.com"
+    # 1) Confere se o e‑mail existe
+    if not verificar_email_existe(email):
+        st.info("👀 Não encontrei esse e‑mail por aqui. Se for seu primeiro acesso, clique em **📩 Cadastre-se agora** aqui embaixo e crie sua conta rapidinho.")
+        return
 
-    # payload deve estar em formato de formulário (não JSON)
-    data = {
-        "username": email,
-        "password": senha,
-        "grant_type": "password"  # <-- isso é OBRIGATÓRIO para OAuth2PasswordRequestForm
-    }
-
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-
+    # 2) E‑mail existe → tenta logar
     try:
-        r = httpx.post(f"{API_URL}/login", data=data, headers=headers)
+        r = httpx.post(f"{API_URL}/login", data={"username": email, "password": senha})
         if r.status_code == 200:
-            resposta = r.json()
+            token = r.json()["access_token"]
+            st.session_state["token"] = token
+            obter_dados_usuario()
             st.success("✅ Login realizado com sucesso!")
-            st.session_state.token = resposta["access_token"]
-            st.session_state.usuario = resposta
             st.rerun()
         else:
-            st.error(f"Erro no login: {r.text}")
+            # Aqui, como já sabemos que o e-mail existe, provavelmente é senha incorreta
+            st.info("😅 Quase lá! Parece que a senha não confere. Tente lembrar ou clique em **Esqueci minha senha** para redefinir.")
     except Exception as e:
-        st.error(f"Erro ao conectar: {e}")
-
-
-
-
+        st.error(f"Erro ao fazer login: {e}")
 
 # ------------------- CADASTRO E LOGIN -------------------
 
@@ -459,7 +411,7 @@ def tela_cadastro():
     import streamlit as st
     import httpx
 
-    API_URL = "https://mivmark-backend.onrender.com"
+    API_URL = "http://127.0.0.1:8000"
     st.title("📝 Criar sua conta")
 
     cupons_validos = {
@@ -539,24 +491,18 @@ def tela_cadastro():
         enviar = st.form_submit_button("Cadastrar")
 
         if enviar:
-            if not nome or not email or not senha:
-                st.warning("⚠️ Preencha todos os campos obrigatórios.")
-            elif plano_selecionado == "Gratuito":
+            if plano_selecionado == "Gratuito":
                 try:
                     r = httpx.post(f"{API_URL}/cadastro/gratuito", json={
                         "nome": nome,
                         "email": email,
                         "senha": senha
-                    }, timeout=10)
+                    })
                     if r.status_code == 200:
                         st.success("✅ Cadastro realizado com sucesso!")
                         st.markdown("[🔑 Ir para o login](?login=true)")
-                    elif r.status_code == 409:
-                        st.warning("⚠️ E-mail já cadastrado.")
-                    elif r.status_code == 422:
-                        st.warning("⚠️ Dados inválidos. Verifique os campos.")
                     else:
-                        st.error(f"Erro inesperado: {r.text}")
+                        st.error(f"❌ {r.json().get('detail', 'Erro ao cadastrar.')}")
                 except Exception as e:
                     st.error(f"Erro ao conectar: {e}")
             elif token:
@@ -566,16 +512,12 @@ def tela_cadastro():
                         "email": email,
                         "senha": senha,
                         "token_ativacao": token
-                    }, timeout=10)
+                    })
                     if r.status_code == 200:
                         st.success("✅ Cadastro ativado com sucesso!")
                         st.markdown("[🔑 Ir para o login](?login=true)")
                     else:
-                        try:
-                            erro = r.json().get("detail", "Erro ao cadastrar.")
-                        except Exception:
-                            erro = r.text or "Erro ao cadastrar."
-                        st.error(f"❌ {erro}")
+                        st.error(f"❌ {r.json().get('detail', 'Erro ao cadastrar.')}")
                 except Exception as e:
                     st.error(f"Erro ao conectar: {e}")
             else:
@@ -583,7 +525,7 @@ def tela_cadastro():
                     r = httpx.post(f"{API_URL}/api/mercado_pago/criar_preferencia", json={
                         "plano_nome": plano_selecionado,
                         "preco": preco_final
-                    }, timeout=10)
+                    })
                     if r.status_code == 200:
                         pagamento = r.json()
                         st.success("✅ Cadastro iniciado. Finalize o pagamento para receber o token de ativação no e-mail.")
@@ -597,6 +539,7 @@ def tela_cadastro():
     if st.button("👨🏻‍💻 Voltar para login"):
         st.query_params = {"login": "true"}
         st.rerun()
+
 
 
 
@@ -822,7 +765,6 @@ def tela_empresa():
 
 
 def tela_consultoria():
-    import os
     # ⚠️ Verificação de acesso: Admin sempre tem acesso total
     email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
     if email_usuario != "matheus@email.com":
@@ -882,19 +824,10 @@ def tela_consultoria():
         st.error(f"Erro ao verificar consultoria: {e}")
         return
 
-    from pathlib import Path
-
-    CAMINHO_BASE = Path(__file__).parent  # já está dentro do frontend
-    CAMINHO_TOPICOS = CAMINHO_BASE / "data" / "consultoria_topicos_completos.json"
-    CAMINHO_SETOR = CAMINHO_BASE / "data" / "topicos_por_setor.json"
-
-
-
-
     try:
-        with open(CAMINHO_TOPICOS, "r", encoding="utf-8") as f:
+        with open("data/consultoria_topicos_completos.json", "r", encoding="utf-8") as f:
             topicos = json.load(f)
-        with open(CAMINHO_SETOR, "r", encoding="utf-8") as f:
+        with open("data/topicos_por_setor.json", "r", encoding="utf-8") as f:
             por_setor = json.load(f)
     except Exception as e:
         st.error(f"Erro ao carregar arquivos de tópicos: {e}")
@@ -1577,7 +1510,7 @@ def tela_planos():
     plano_atual = st.session_state.dados_usuario.get("plano_atual", "Gratuito")
     usuario_id = st.session_state.dados_usuario.get("id")
 
-    API_URL = "https://mivmark-backend.onrender.com"
+    API_URL = "http://127.0.0.1:8000"
     try:
         planos = httpx.get(f"{API_URL}/planos/").json()
     except:
@@ -2253,27 +2186,6 @@ def tela_checkout_app(app_id):
 
 
 # ------------------- INTERFACE PRINCIPAL -------------------
-
-API_URL = "https://mivmark-backend.onrender.com"
-
-def get_headers():
-    """Gera o cabeçalho com token salvo"""
-    return {"Authorization": f"Bearer {st.session_state.get('token', '')}"}
-
-def obter_dados_usuario():
-    """Consulta os dados do usuário logado e salva no session_state"""
-    try:
-        response = httpx.get(f"{API_URL}/minha-conta", headers=get_headers())
-        if response.status_code == 200:
-            st.session_state["dados_usuario"] = response.json()
-        else:
-            st.error("❌ Erro ao obter dados do usuário.")
-            st.session_state["token"] = None
-            st.session_state["dados_usuario"] = {}
-    except Exception as e:
-        st.error(f"❌ Erro ao consultar perfil: {e}")
-        st.session_state["token"] = None
-        st.session_state["dados_usuario"] = {}
 
 def main():
     st.set_page_config(page_title="MARK Sistema IA", layout="wide")
