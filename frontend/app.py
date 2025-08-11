@@ -1,5 +1,5 @@
 import streamlit as st
-from frontend.agenda import tela_agenda  # ✅ Importa a versão visual com calendário
+from agenda import tela_agenda  # ✅ Importa a versão visual com calendário
 from datetime import datetime, timedelta
 
 # ⚙️ A configuração da página deve ser a PRIMEIRA chamada do Streamlit
@@ -8,12 +8,12 @@ st.set_page_config(layout="wide")
 import httpx
 import datetime
 import streamlit.components.v1 as components
-from frontend.site_cliente import tela_site_cliente
-from frontend.aplicativos import listar_aplicativos_admin
-from frontend.admin.planos import aba_gerenciar_planos
+from site_cliente import tela_site_cliente
+from aplicativos import listar_aplicativos_admin
+from admin.planos import aba_gerenciar_planos
 
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://mivmark-backend.onrender.com"
 
 
 def usuario_tem_acesso(modulo: str) -> bool:
@@ -72,7 +72,7 @@ def tela_inicio():
     headers = {"Authorization": f"Bearer {st.session_state.token}"}
 
     import httpx
-    API_URL = "http://127.0.0.1:8000"
+    API_URL = "https://mivmark-backend.onrender.com"
 
     # Caminhos das imagens
     BASE_DIR = Path(__file__).parent
@@ -405,13 +405,17 @@ def login_usuario(email, senha):
     except Exception as e:
         st.error(f"Erro ao fazer login: {e}")
 
+
+
+
+
 # ------------------- CADASTRO E LOGIN -------------------
 
 def tela_cadastro():
     import streamlit as st
     import httpx
 
-    API_URL = "http://127.0.0.1:8000"
+    API_URL = "https://mivmark-backend.onrender.com"
     st.title("📝 Criar sua conta")
 
     cupons_validos = {
@@ -491,18 +495,24 @@ def tela_cadastro():
         enviar = st.form_submit_button("Cadastrar")
 
         if enviar:
-            if plano_selecionado == "Gratuito":
+            if not nome or not email or not senha:
+                st.warning("⚠️ Preencha todos os campos obrigatórios.")
+            elif plano_selecionado == "Gratuito":
                 try:
                     r = httpx.post(f"{API_URL}/cadastro/gratuito", json={
                         "nome": nome,
                         "email": email,
                         "senha": senha
-                    })
+                    }, timeout=10)
                     if r.status_code == 200:
                         st.success("✅ Cadastro realizado com sucesso!")
                         st.markdown("[🔑 Ir para o login](?login=true)")
+                    elif r.status_code == 409:
+                        st.warning("⚠️ E-mail já cadastrado.")
+                    elif r.status_code == 422:
+                        st.warning("⚠️ Dados inválidos. Verifique os campos.")
                     else:
-                        st.error(f"❌ {r.json().get('detail', 'Erro ao cadastrar.')}")
+                        st.error(f"Erro inesperado: {r.text}")
                 except Exception as e:
                     st.error(f"Erro ao conectar: {e}")
             elif token:
@@ -512,12 +522,16 @@ def tela_cadastro():
                         "email": email,
                         "senha": senha,
                         "token_ativacao": token
-                    })
+                    }, timeout=10)
                     if r.status_code == 200:
                         st.success("✅ Cadastro ativado com sucesso!")
                         st.markdown("[🔑 Ir para o login](?login=true)")
                     else:
-                        st.error(f"❌ {r.json().get('detail', 'Erro ao cadastrar.')}")
+                        try:
+                            erro = r.json().get("detail", "Erro ao cadastrar.")
+                        except Exception:
+                            erro = r.text or "Erro ao cadastrar."
+                        st.error(f"❌ {erro}")
                 except Exception as e:
                     st.error(f"Erro ao conectar: {e}")
             else:
@@ -525,7 +539,7 @@ def tela_cadastro():
                     r = httpx.post(f"{API_URL}/api/mercado_pago/criar_preferencia", json={
                         "plano_nome": plano_selecionado,
                         "preco": preco_final
-                    })
+                    }, timeout=10)
                     if r.status_code == 200:
                         pagamento = r.json()
                         st.success("✅ Cadastro iniciado. Finalize o pagamento para receber o token de ativação no e-mail.")
@@ -539,7 +553,6 @@ def tela_cadastro():
     if st.button("👨🏻‍💻 Voltar para login"):
         st.query_params = {"login": "true"}
         st.rerun()
-
 
 
 
@@ -765,6 +778,7 @@ def tela_empresa():
 
 
 def tela_consultoria():
+    import os
     # ⚠️ Verificação de acesso: Admin sempre tem acesso total
     email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
     if email_usuario != "matheus@email.com":
@@ -824,10 +838,19 @@ def tela_consultoria():
         st.error(f"Erro ao verificar consultoria: {e}")
         return
 
+    from pathlib import Path
+
+    CAMINHO_BASE = Path(__file__).parent  # já está dentro do frontend
+    CAMINHO_TOPICOS = CAMINHO_BASE / "data" / "consultoria_topicos_completos.json"
+    CAMINHO_SETOR = CAMINHO_BASE / "data" / "topicos_por_setor.json"
+
+
+
+
     try:
-        with open("data/consultoria_topicos_completos.json", "r", encoding="utf-8") as f:
+        with open(CAMINHO_TOPICOS, "r", encoding="utf-8") as f:
             topicos = json.load(f)
-        with open("data/topicos_por_setor.json", "r", encoding="utf-8") as f:
+        with open(CAMINHO_SETOR, "r", encoding="utf-8") as f:
             por_setor = json.load(f)
     except Exception as e:
         st.error(f"Erro ao carregar arquivos de tópicos: {e}")
@@ -1510,7 +1533,7 @@ def tela_planos():
     plano_atual = st.session_state.dados_usuario.get("plano_atual", "Gratuito")
     usuario_id = st.session_state.dados_usuario.get("id")
 
-    API_URL = "http://127.0.0.1:8000"
+    API_URL = "https://mivmark-backend.onrender.com"
     try:
         planos = httpx.get(f"{API_URL}/planos/").json()
     except:
@@ -2186,6 +2209,27 @@ def tela_checkout_app(app_id):
 
 
 # ------------------- INTERFACE PRINCIPAL -------------------
+
+API_URL = "https://mivmark-backend.onrender.com"
+
+def get_headers():
+    """Gera o cabeçalho com token salvo"""
+    return {"Authorization": f"Bearer {st.session_state.get('token', '')}"}
+
+def obter_dados_usuario():
+    """Consulta os dados do usuário logado e salva no session_state"""
+    try:
+        response = httpx.get(f"{API_URL}/minha-conta", headers=get_headers())
+        if response.status_code == 200:
+            st.session_state["dados_usuario"] = response.json()
+        else:
+            st.error("❌ Erro ao obter dados do usuário.")
+            st.session_state["token"] = None
+            st.session_state["dados_usuario"] = {}
+    except Exception as e:
+        st.error(f"❌ Erro ao consultar perfil: {e}")
+        st.session_state["token"] = None
+        st.session_state["dados_usuario"] = {}
 
 def main():
     st.set_page_config(page_title="MARK Sistema IA", layout="wide")
