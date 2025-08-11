@@ -346,7 +346,7 @@ def tela_login_personalizada():
         st.markdown('<div class="right">', unsafe_allow_html=True)
 
         # ⚠️ se seu arquivo tiver espaço no nome, mantenha exatamente igual
-        st.image("frontend/img/mivlogopreta.png", width=120)
+        st.image("img/mivlogopreta.png", width=120)
         st.markdown("<h1>Login</h1>", unsafe_allow_html=True)
         st.markdown("<p class='subtitle'>Acesse sua conta para gerenciar seu sistema.</p>", unsafe_allow_html=True)
 
