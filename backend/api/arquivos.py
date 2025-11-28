@@ -1,8 +1,8 @@
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from sqlalchemy.orm import Session, sessionmaker
-from database import engine
-from models import Arquivo, Usuario
-from api.auth import get_current_user
+from backend.database import engine
+from backend.models import Arquivo, Usuario
+from backend.api.auth import get_current_user
 from datetime import datetime
 import os
 import shutil

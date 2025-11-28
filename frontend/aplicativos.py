@@ -1,8 +1,8 @@
 import streamlit as st
 import httpx
-from verificar_acesso import usuario_tem_acesso
+from frontend.verificar_acesso import usuario_tem_acesso
 
-API_URL = "https://mivmark-backend.onrender.com"
+API_URL = "http://127.0.0.1:8000"
 
 def get_headers():
     token = st.session_state.get("token")

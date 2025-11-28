@@ -3,10 +3,9 @@ import httpx
 from datetime import datetime, timedelta
 import json
 import streamlit.components.v1 as components
-from verificar_acesso import usuario_tem_acesso
+from frontend.verificar_acesso import usuario_tem_acesso
 
-
-API_URL = "https://mivmark-backend.onrender.com"
+API_URL = "http://127.0.0.1:8000"
 
 def exibir_calendario_html(eventos):
     eventos_js = json.dumps([

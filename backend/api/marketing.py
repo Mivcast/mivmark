@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, sessionmaker
-from database import engine, get_db
-from models import CardMarketing, Usuario
+from backend.database import engine, get_db
+from backend.models import CardMarketing, Usuario
 from datetime import datetime
 from typing import List
 from pydantic import BaseModel
-from api.auth import get_current_user
+from backend.api.auth import get_current_user
 
 router = APIRouter()
 SessionLocal = sessionmaker(bind=engine)

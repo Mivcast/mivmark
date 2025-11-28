@@ -1,5 +1,5 @@
-from database import SessionLocal
-from models import Usuario
+from backend.database import SessionLocal
+from backend.models import Usuario
 from datetime import datetime
 from passlib.hash import bcrypt
 

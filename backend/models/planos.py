@@ -1,6 +1,6 @@
 # backend/models/planos.py
 from sqlalchemy import Column, Integer, String, Float, Boolean, JSON
-from database import Base
+from backend.database import Base
 from pydantic import BaseModel
 from typing import Optional, List
 

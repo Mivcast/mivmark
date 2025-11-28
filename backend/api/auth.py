@@ -1,20 +1,23 @@
+# backend/api/auth.py
+
 from fastapi import APIRouter, HTTPException, Depends
-from database import get_db  # Importar get_db aqui
+from backend.database import get_db
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session, sessionmaker
-from database import engine
-from models import Usuario
+from backend.database import engine
+from backend.models import Usuario
+from backend.models.tokens import TokenAtivacao
 from sqlalchemy import select
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from models.tokens import TokenAtivacao
-from models.demo import CadastroDemo
-
 import secrets
 
-# Inicializações
+# -------------------------------------------------
+# Configurações gerais
+# -------------------------------------------------
+
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -25,21 +28,28 @@ TEMPO_EXPIRACAO = 60 * 24  # 24 horas
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-# Schema de Demonstração do sistema para usuarios desconhecidos
-class CadastroDemoSchema(BaseModel):
-    nome: str
-    email: EmailStr
-    senha: str
-    setor: str
 
-# Schema de entrada
+# -------------------------------------------------
+# Schemas
+# -------------------------------------------------
+
 class CadastroSchema(BaseModel):
     nome: str
     email: EmailStr
     senha: str
-    token_ativacao: str  # novo campo obrigatório
+    token_ativacao: str  # usado para planos pagos
 
-# Rota de cadastro
+
+class CadastroGratuitoSchema(BaseModel):
+    nome: str
+    email: EmailStr
+    senha: str
+
+
+# -------------------------------------------------
+# Cadastro com TOKEN (planos pagos)
+# -------------------------------------------------
+
 @router.post("/cadastro")
 def cadastrar_usuario(dados: CadastroSchema):
     db: Session = SessionLocal()
@@ -49,7 +59,10 @@ def cadastrar_usuario(dados: CadastroSchema):
         raise HTTPException(status_code=400, detail="E-mail já cadastrado.")
 
     # Verifica se o token existe e está ativo
-    token_db = db.execute(select(TokenAtivacao).where(TokenAtivacao.token == dados.token_ativacao)).scalar_one_or_none()
+    token_db = db.execute(
+        select(TokenAtivacao).where(TokenAtivacao.token == dados.token_ativacao)
+    ).scalar_one_or_none()
+
     if not token_db or not token_db.ativo:
         raise HTTPException(status_code=400, detail="Token de ativação inválido ou já utilizado.")
 
@@ -60,7 +73,7 @@ def cadastrar_usuario(dados: CadastroSchema):
         email=dados.email,
         senha_hash=senha_hash,
         data_criacao=datetime.utcnow(),
-        plano_atual="ativo"
+        plano_atual="ativo"  # depois poderá ser ajustado pelo token/planos
     )
 
     db.add(novo_usuario)
@@ -72,77 +85,93 @@ def cadastrar_usuario(dados: CadastroSchema):
 
     return {"mensagem": "Usuário cadastrado com sucesso", "id": novo_usuario.id}
 
-# 👇 Verificar se existe usuário por e‑mail
-from pydantic import EmailStr
-from sqlalchemy import select
 
-@router.get("/usuarios/existe")
-def usuario_existe(email: EmailStr):
-    db: Session = SessionLocal()
-    existe = db.execute(select(Usuario).where(Usuario.email == email)).scalar_one_or_none() is not None
-    return {"existe": bool(existe)}
+# -------------------------------------------------
+# Login
+# -------------------------------------------------
 
-
-# Rota de login
 @router.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    try:
-        print("🔐 Iniciando login com:", form_data.username)
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    db: Session = SessionLocal()
+    usuario = db.execute(
+        select(Usuario).where(Usuario.email == form_data.username)
+    ).scalar_one_or_none()
 
-        usuario = db.execute(
-            select(Usuario).where(Usuario.email == form_data.username)
-        ).scalar_one_or_none()
+    if not usuario or not pwd_context.verify(form_data.password, usuario.senha_hash):
+        raise HTTPException(status_code=400, detail="Credenciais inválidas.")
 
-        if not usuario:
-            print("❌ Usuário não encontrado no banco.")
-            raise HTTPException(status_code=401, detail="Credenciais inválidas.")
+    # 🔥 Verifica se o plano do usuário expirou
+    if (
+        usuario.tipo_usuario != "admin"
+        and usuario.plano_expira_em is not None
+        and datetime.utcnow() > usuario.plano_expira_em
+    ):
+        usuario.plano_atual = "Gratuito"
+        db.commit()
+        db.refresh(usuario)
 
-        print("🔎 Verificando senha...")
-        if not pwd_context.verify(form_data.password, usuario.senha_hash):
-            print("❌ Senha inválida.")
-            raise HTTPException(status_code=401, detail="Credenciais inválidas.")
-
-        print("✅ Login validado. Gerando token...")
-        token = jwt.encode({
+    token = jwt.encode(
+        {
             "sub": str(usuario.id),
             "email": usuario.email,
-            "exp": datetime.utcnow() + timedelta(minutes=TEMPO_EXPIRACAO)
-        }, SECRET_KEY, algorithm=ALGORITHM)
+            "exp": datetime.utcnow() + timedelta(minutes=TEMPO_EXPIRACAO),
+        },
+        SECRET_KEY,
+        algorithm=ALGORITHM,
+    )
 
-        print("📤 Token gerado com sucesso.")
-        return {
-            "access_token": token,
-            "token_type": "bearer",
-            "email": usuario.email,
-            "nome": usuario.nome,
-            "tipo_usuario": usuario.tipo_usuario,
-            "plano_atual": usuario.plano_atual or ("Administrador" if usuario.tipo_usuario == "admin" else "Gratuito")
-        }
-
-    except Exception as e:
-        import traceback
-        print("🔥 ERRO INTERNO NO LOGIN:")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail="Erro interno ao processar o login.")
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "email": usuario.email,
+        "nome": usuario.nome,
+        "tipo_usuario": usuario.tipo_usuario,
+        "plano_atual": usuario.plano_atual
+        or ("Administrador" if usuario.tipo_usuario == "admin" else "Gratuito"),
+    }
 
 
-# Verifica e retorna usuário com base no token JWT
-def get_current_user(token: str = Depends(oauth2_scheme)):
+# -------------------------------------------------
+# Helpers de autenticação
+# -------------------------------------------------
+
+def get_current_user(token: str = Depends(oauth2_scheme)) -> Usuario:
+    """
+    Usado em rotas que chamam diretamente get_current_user.
+    Faz também a verificação de expiração de plano.
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = int(payload.get("sub"))
     except JWTError:
         raise HTTPException(status_code=401, detail="Token inválido ou expirado.")
 
-    db = SessionLocal()
+    db: Session = SessionLocal()
     usuario = db.get(Usuario, user_id)
     if not usuario:
         raise HTTPException(status_code=401, detail="Usuário não encontrado.")
+
+    # 🔥 Verifica expiração de plano (teste ou plano pago com data)
+    if (
+        usuario.tipo_usuario != "admin"
+        and usuario.plano_expira_em is not None
+        and datetime.utcnow() > usuario.plano_expira_em
+    ):
+        usuario.plano_atual = "Gratuito"
+        db.commit()
+        db.refresh(usuario)
+
     return usuario
 
 
-# Alias para reutilização
-def get_usuario_logado(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Usuario:
+def get_usuario_logado(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> Usuario:
+    """
+    Alias usado em outros módulos (empresa, usuario, etc.).
+    Também faz a verificação de expiração de plano.
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = int(payload.get("sub"))
@@ -152,18 +181,38 @@ def get_usuario_logado(token: str = Depends(oauth2_scheme), db: Session = Depend
     usuario = db.get(Usuario, user_id)
     if not usuario:
         raise HTTPException(status_code=401, detail="Usuário não encontrado.")
+
+    # 🔥 Verifica expiração de plano
+    if (
+        usuario.tipo_usuario != "admin"
+        and usuario.plano_expira_em is not None
+        and datetime.utcnow() > usuario.plano_expira_em
+    ):
+        usuario.plano_atual = "Gratuito"
+        db.commit()
+        db.refresh(usuario)
+
     return usuario
 
-# Rota protegida
+
+# -------------------------------------------------
+# Minha conta
+# -------------------------------------------------
+
 @router.get("/minha-conta")
 def minha_conta(usuario: Usuario = Depends(get_current_user)):
+    """
+    Retorna dados básicos do usuário logado e da empresa.
+    Inclui plano_atual e plano_expira_em para o frontend saber do teste.
+    """
     return {
         "id": usuario.id,
         "nome": usuario.nome,
         "email": usuario.email,
         "plano_atual": usuario.plano_atual,
+        "plano_expira_em": usuario.plano_expira_em,
         "tipo_usuario": usuario.tipo_usuario,
-        "is_admin": usuario.tipo_usuario == "admin",  # ← ESSENCIAL
+        "is_admin": usuario.tipo_usuario == "admin",
         "data_criacao": usuario.data_criacao,
         "nota_saude": usuario.nota_saude,
         "respostas_saude": usuario.respostas_saude,
@@ -176,85 +225,56 @@ def minha_conta(usuario: Usuario = Depends(get_current_user)):
             "produtos": usuario.empresa.produtos,
             "redes_sociais": usuario.empresa.redes_sociais,
             "informacoes_adicionais": usuario.empresa.informacoes_adicionais,
-        } if usuario.empresa else None
+        }
+        if usuario.empresa
+        else None,
     }
 
 
-@router.post("/cadastro/demo")
-def cadastrar_demo(dados: CadastroDemoSchema):
-    db: Session = SessionLocal()
-
-    # Verifica se já existe usuário com o e-mail
-    if db.execute(select(Usuario).where(Usuario.email == dados.email)).scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="E-mail já cadastrado.")
-
-    # Verifica se já usou demo para o setor
-    ja_usou = db.execute(
-        select(CadastroDemo).where(
-            CadastroDemo.email == dados.email,
-            CadastroDemo.setor == dados.setor
-        )
-    ).scalar_one_or_none()
-
-    if ja_usou:
-        raise HTTPException(status_code=400, detail="Você já usou o acesso demo para este setor.")
-
-    # Cria novo usuário com plano demo
-    senha_hash = pwd_context.hash(dados.senha)
-    novo_usuario = Usuario(
-        nome=dados.nome,
-        email=dados.email,
-        senha_hash=senha_hash,
-        plano_atual="demo",
-        data_criacao=datetime.utcnow()
-    )
-
-    db.add(novo_usuario)
-
-    # Registra o uso do demo
-    registro_demo = CadastroDemo(
-        email=dados.email,
-        setor=dados.setor
-    )
-    db.add(registro_demo)
-
-    db.commit()
-    db.refresh(novo_usuario)
-
-    return {"mensagem": "Acesso demo criado com sucesso", "id": novo_usuario.id}
-
-
-# Novo cadastro gratuito sem token
-class CadastroGratuitoSchema(BaseModel):
-    nome: str
-    email: EmailStr
-    senha: str
+# -------------------------------------------------
+# Cadastro GRATUITO – teste de 7 dias (Plano Profissional)
+# -------------------------------------------------
 
 @router.post("/cadastro/gratuito")
 def cadastrar_usuario_gratuito(dados: CadastroGratuitoSchema):
+    """
+    Cadastro sem token.
+    Ganha 7 dias de acesso ao plano Profissional.
+    Depois disso, será rebaixado automaticamente para 'Gratuito'.
+    """
     db: Session = SessionLocal()
 
     if db.execute(select(Usuario).where(Usuario.email == dados.email)).scalar_one_or_none():
         raise HTTPException(status_code=400, detail="E-mail já cadastrado.")
 
     senha_hash = pwd_context.hash(dados.senha)
+    agora = datetime.utcnow()
 
     novo_usuario = Usuario(
         nome=dados.nome,
         email=dados.email,
         senha_hash=senha_hash,
-        data_criacao=datetime.utcnow(),
-        plano_atual="Gratuito",
-        tipo_usuario="comum"
+        data_criacao=agora,
+        tipo_usuario="cliente",
+        plano_atual="Profissional",                 # 🔥 teste com plano profissional
+        plano_expira_em=agora + timedelta(days=7),  # 🔥 expira em 7 dias
     )
 
     db.add(novo_usuario)
     db.commit()
     db.refresh(novo_usuario)
 
-    return {"mensagem": "Usuário gratuito criado com sucesso", "id": novo_usuario.id}
+    return {
+        "mensagem": "Usuário gratuito criado com sucesso. Você ganhou 7 dias do plano Profissional.",
+        "id": novo_usuario.id,
+        "plano_atual": novo_usuario.plano_atual,
+        "plano_expira_em": novo_usuario.plano_expira_em,
+    }
 
 
+# -------------------------------------------------
+# Rotas ADMIN – tokens e lista de usuários
+# -------------------------------------------------
 
 @router.post("/admin/gerar_token")
 def gerar_token_admin(senha_admin: str):
@@ -262,13 +282,14 @@ def gerar_token_admin(senha_admin: str):
         raise HTTPException(status_code=401, detail="Acesso não autorizado.")
 
     db: Session = SessionLocal()
-    token_gerado = secrets.token_hex(8)  # Gera um token aleatório de 16 caracteres
+    token_gerado = secrets.token_hex(8)  # 16 caracteres
 
     novo_token = TokenAtivacao(token=token_gerado)
     db.add(novo_token)
     db.commit()
 
     return {"token_ativacao": token_gerado}
+
 
 @router.get("/admin/listar_tokens")
 def listar_tokens(senha_admin: str):
@@ -278,11 +299,15 @@ def listar_tokens(senha_admin: str):
     db: Session = SessionLocal()
     tokens = db.query(TokenAtivacao).order_by(TokenAtivacao.id.desc()).all()
 
-    return [{
-        "token": t.token,
-        "ativo": t.ativo,
-        "data_criacao": t.data_criacao.isoformat() if t.data_criacao else None
-    } for t in tokens]
+    return [
+        {
+            "token": t.token,
+            "ativo": t.ativo,
+            "data_criacao": t.data_criacao.isoformat() if t.data_criacao else None,
+        }
+        for t in tokens
+    ]
+
 
 @router.get("/admin/usuarios")
 def listar_usuarios(senha_admin: str):
@@ -292,10 +317,14 @@ def listar_usuarios(senha_admin: str):
     db: Session = SessionLocal()
     usuarios = db.query(Usuario).order_by(Usuario.id.desc()).all()
 
-    return [{
-        "nome": u.nome,
-        "email": u.email,
-        "tipo_usuario": u.tipo_usuario,
-        "plano_atual": u.plano_atual,
-        "data_criacao": u.data_criacao.isoformat() if u.data_criacao else None
-    } for u in usuarios]
+    return [
+        {
+            "nome": u.nome,
+            "email": u.email,
+            "tipo_usuario": u.tipo_usuario,
+            "plano_atual": u.plano_atual,
+            "plano_expira_em": u.plano_expira_em,
+            "data_criacao": u.data_criacao.isoformat() if u.data_criacao else None,
+        }
+        for u in usuarios
+    ]

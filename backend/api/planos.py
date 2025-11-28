@@ -1,8 +1,8 @@
 # backend/api/planos.py (novo endpoint para gerenciar planos)
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from database import get_db
-from models.planos import Plano, PlanoSchema, PlanoCreate
+from backend.database import get_db
+from backend.models.planos import Plano, PlanoSchema, PlanoCreate
 
 router = APIRouter(prefix="/planos", tags=["Planos"])
 

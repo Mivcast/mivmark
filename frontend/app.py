@@ -1,5 +1,5 @@
 import streamlit as st
-from agenda import tela_agenda  # ✅ Importa a versão visual com calendário
+from frontend.agenda import tela_agenda  # ✅ Importa a versão visual com calendário
 from datetime import datetime, timedelta
 
 # ⚙️ A configuração da página deve ser a PRIMEIRA chamada do Streamlit
@@ -8,20 +8,24 @@ st.set_page_config(layout="wide")
 import httpx
 import datetime
 import streamlit.components.v1 as components
-from site_cliente import tela_site_cliente
-from aplicativos import listar_aplicativos_admin
-from admin.planos import aba_gerenciar_planos
+from frontend.site_cliente import tela_site_cliente
+from frontend.aplicativos import listar_aplicativos_admin
+from frontend.admin.planos import aba_gerenciar_planos
 
 
-API_URL = "https://mivmark-backend.onrender.com"
+API_URL = "http://127.0.0.1:8000"
 
 
 def usuario_tem_acesso(modulo: str) -> bool:
-    usuario = st.session_state.get("dados_usuario", {})
+    usuario = st.session_state.get("dados_usuario", {}) or {}
     plano = usuario.get("plano_atual")
 
     if not plano:
         return False
+
+    # 🔁 Compatibilidade: tratar consultoria_full como plano Profissional
+    if str(plano).lower() == "consultoria_full":
+        plano = "Profissional"
 
     try:
         r = httpx.get(f"{API_URL}/planos/")
@@ -35,14 +39,69 @@ def usuario_tem_acesso(modulo: str) -> bool:
     
     return False
 
+    try:
+        r = httpx.get(f"{API_URL}/planos/")
+        if r.status_code == 200:
+            planos = r.json()
+            for p in planos:
+                if p["nome"] == plano:
+                    return modulo in p.get("modulos_liberados", [])
+    except Exception as e:
+        st.warning(f"Erro ao verificar acesso ao módulo: {e}")
+    
+    return False
+
+
+
+
+def mostrar_bloqueio_modulo(nome_modulo: str):
+    """
+    Mostra mensagem específica quando o usuário não tem acesso ao módulo:
+    - Se o teste gratuito de 7 dias já terminou → aviso de teste expirado
+    - Caso contrário → aviso genérico de módulo pago
+    """
+    usuario = st.session_state.get("dados_usuario", {}) or {}
+    plano = usuario.get("plano_atual") or "Gratuito"
+    expira_str = usuario.get("plano_expira_em")
+
+    mostrou_mensagem_teste = False
+
+    # 🔎 Só faz sentido falar de teste expirado se ele estiver no plano Gratuito
+    # e existir uma data de expiração salva
+    if plano == "Gratuito" and expira_str:
+        try:
+            # expira_str vem do backend como ISO. Garantimos que não tenha "Z" no final
+            if isinstance(expira_str, str):
+                expira_dt = datetime.fromisoformat(expira_str.replace("Z", ""))
+            else:
+                expira_dt = expira_str
+
+            if expira_dt < datetime.utcnow():
+                data_fmt = expira_dt.strftime("%d/%m/%Y")
+                st.error(f"⏰ Seu teste gratuito de 7 dias terminou em **{data_fmt}**.")
+                st.info(
+                    f"Para continuar usando o módulo **{nome_modulo}**, "
+                    f"faça upgrade do seu plano na opção **'💳 Plano Atual'** do menu lateral."
+                )
+                mostrou_mensagem_teste = True
+        except Exception:
+            # Se der erro pra interpretar a data, cai no aviso genérico abaixo
+            pass
+
+    if not mostrou_mensagem_teste:
+        st.warning(f"⚠️ O módulo **{nome_modulo}** está disponível apenas para planos pagos.")
+        st.info(
+            "Para liberar esse recurso, faça upgrade do seu plano na opção "
+            "**'💳 Plano Atual'** do menu lateral."
+        )
+
+
+
+
 # ------------------- ESTADO GLOBAL -------------------
 
 if "token" not in st.session_state:
     st.session_state.token = None
-if "modo_demo" not in st.session_state:
-    st.session_state.modo_demo = False
-if "setores_visitados" not in st.session_state:
-    st.session_state.setores_visitados = []
 if "dados_usuario" not in st.session_state:
     st.session_state.dados_usuario = {}
 if "admin" not in st.session_state:
@@ -62,6 +121,55 @@ def tela_inicio():
     from pathlib import Path
 
     usuario = st.session_state.get("dados_usuario", {})
+
+    # ---------------------------------------------------------
+    # 🔔 AVISO SOBRE O TESTE GRATUITO DE 7 DIAS
+    # ---------------------------------------------------------
+    plano = usuario.get("plano_atual", "Gratuito")
+    expira_str = usuario.get("plano_expira_em")
+
+    if expira_str:
+        try:
+            from datetime import datetime
+            expira_dt = datetime.fromisoformat(expira_str.replace("Z", ""))
+
+            hoje = datetime.utcnow()
+            dias_restantes = (expira_dt.date() - hoje.date()).days
+
+            if plano == "Profissional" and dias_restantes > 0:
+                st.markdown(
+                    f"""
+                    <div style="padding: 15px; border-radius: 10px; 
+                        background: linear-gradient(90deg, #0066ff, #00bbff);
+                        color: white; margin-bottom: 20px;">
+                        <h4>⏳ Seu teste gratuito está ativo!</h4>
+                        <p>Você ainda tem <b>{dias_restantes} dias</b> de acesso ao 
+                        <b>Plano Profissional</b>.</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            elif plano == "Gratuito" and expira_dt < hoje:
+                data_fmt = expira_dt.strftime("%d/%m/%Y")
+                st.markdown(
+                    f"""
+                    <div style="padding: 15px; border-radius: 10px; 
+                        background: #fff3cd; border: 1px solid #ffeeba;
+                        color: #856404; margin-bottom: 20px;">
+                        <h4>⏰ Seu teste gratuito terminou</h4>
+                        <p>O seu acesso ao plano profissional expirou em 
+                        <b>{data_fmt}</b>.</p>
+                        <p>Para continuar com todas as funcionalidades, faça o upgrade do seu plano.</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+        except Exception as e:
+            pass
+
+
     nome = usuario.get("nome", "Usuário")
     plano = usuario.get("plano_atual") or "Gratuito"
     if usuario.get("is_admin"):
@@ -72,7 +180,7 @@ def tela_inicio():
     headers = {"Authorization": f"Bearer {st.session_state.token}"}
 
     import httpx
-    API_URL = "https://mivmark-backend.onrender.com"
+    API_URL = "http://127.0.0.1:8000"
 
     # Caminhos das imagens
     BASE_DIR = Path(__file__).parent
@@ -134,12 +242,21 @@ def tela_inicio():
     # Progresso Cursos
     try:
         r = httpx.get(f"{API_URL}/cursos/progresso", headers=headers)
-        dados = r.json()
-        total = dados.get("aulas_total", 1)
-        concluidas = dados.get("aulas_concluidas", 0)
-        pct_curso = int((concluidas / total) * 100) if total > 0 else 0
-    except:
+        if r.status_code == 200:
+            dados = r.json()
+            # Backend retorna lista de IDs de aulas concluídas
+            lista_concluidas = dados.get("aulas_concluidas", [])
+            concluidas = len(lista_concluidas)
+
+            # Por enquanto, assumimos total mínimo de 1
+            # (depois podemos buscar o total real de aulas no backend)
+            total = max(concluidas, 1)
+            pct_curso = int((concluidas / total) * 100) if total > 0 else 0
+        else:
+            pct_curso = 0
+    except Exception:
         pct_curso = 0
+
 
     # Estilo dos cards personalizados
     st.markdown(f"""
@@ -269,75 +386,104 @@ def tela_login_personalizada():
 
     st.set_page_config(layout="wide")
 
-    # Fundo da coluna esquerda (opcional)
-    caminho_imagem = Path("frontend/img/telalogin.jpg")
+    # Caminho da imagem de fundo
+    caminho_imagem = Path("frontend/img/telalogin.jpg")  # ou .png se for o caso
     imagem_base64 = ""
     if caminho_imagem.exists():
         with open(caminho_imagem, "rb") as f:
             imagem_base64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # ✅ CSS revisado: melhor padding no mobile + card centralizado
+    # CSS com imagem de fundo usando base64 e layout 60/40
     st.markdown(f"""
         <style>
         * {{ font-family: 'Segoe UI', sans-serif; }}
-        html, body {{ margin:0 !important; padding:0 !important; }}
-
-        /* Tiramos o padding global apenas no desktop. No mobile, recolocamos. */
-        .block-container {{ padding: 0rem !important; }}
-
+        html, body {{
+            margin: 0 !important;
+            padding: 0 !important;
+        }}
+        .css-18e3th9, .block-container {{
+            padding: 0rem !important;
+        }}
         .left {{
             flex: 6;
-            background: url("data:image/jpeg;base64,{imagem_base64}") center/cover no-repeat;
+            background: url("data:image/jpeg;base64,{imagem_base64}") center center no-repeat;
+            background-size: cover;
             height: 100vh;
+            margin: 0 !important;
+            padding: 0 !important;
         }}
         .right {{
             flex: 4;
-            max-width: 520px;
+            max-width: 480px;
             margin: auto;
-            padding: 56px 44px;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 8px 28px rgba(0,0,0,.00);
+            padding: 60px 40px;
+            background-color: white;
         }}
-        h1 {{ font-size: 32px; font-weight: 800; margin: 0 0 8px; }}
-        .subtitle {{ color:#666; margin-bottom: 28px; }}
+        h1 {{
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }}
+        .subtitle {{
+            color: #666;
+            margin-bottom: 40px;
+        }}
 
-        /* Inputs */
-        .stTextInput, .stPassword {{ margin-bottom: 10px; }}
+        /* 🔵 INPUTS E CAMPOS */
+        .stTextInput, .stPassword {{
+            width: 90% !important;
+            margin-bottom: 10px;
+        }}
         .stTextInput > div > input,
         .stPassword > div > input {{
-            width: 100% !important;
-            padding: 12px 14px;
-            border-radius: 10px;
-            border: 1px solid #dcdcdc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            width: 100%;
         }}
 
-        /* Botão principal */
+        /* 🔵 BOTÃO */
         .stButton button {{
-            width: 100% !important;
-            background: #265df2;
-            color:#fff; font-weight: 700;
-            padding: 12px 14px; border:0; border-radius: 10px;
+            background-color: #265df2;
+            color: white;
+            font-weight: bold;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 90%;
         }}
-        .stButton button:hover {{ background:#1d47c8; }}
 
-        .small-link {{ font-size:14px; color:#265df2; margin: 6px 0 16px; }}
+        .stButton button:hover {{
+            background-color: #1d47c8;
+        }}
 
-        /* Mobile */
+        .link, .bottom-text {{
+            font-size: 14px;
+            color: #265df2;
+            margin-top: 10px;
+        }}
         @media(max-width: 768px) {{
-            .left {{ display:none; }}
-            .right {{
-                width: calc(100% - 32px) !important;   /* margem dos dois lados */
-                margin: 16px auto !important;
-                padding: 24px !important;
-                border-radius: 14px;
+            .left {{
+                display: none;
             }}
-            /* recoloca um pouco de padding global no mobile pra nada grudar nas laterais */
-            .block-container {{ padding-left: 8px !important; padding-right: 8px !important; }}
+            .right {{
+                width: 90% !important;
+                padding: 20px 24px !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
+            }}
+            .stTextInput > div > input,
+            .stPassword > div > input,
+            .stButton button {{
+                width: 90% !important;
+            }}
         }}
         </style>
     """, unsafe_allow_html=True)
 
+    # Layout com colunas
     col1, col2 = st.columns([6, 4])
     with col1:
         st.markdown('<div class="left"></div>', unsafe_allow_html=True)
@@ -345,69 +491,77 @@ def tela_login_personalizada():
     with col2:
         st.markdown('<div class="right">', unsafe_allow_html=True)
 
-        # ⚠️ se seu arquivo tiver espaço no nome, mantenha exatamente igual
-        st.image("img/mivlogopreta.png", width=120)
+        st.image("frontend/img/mivlogo preta.png", width=120)
         st.markdown("<h1>Login</h1>", unsafe_allow_html=True)
         st.markdown("<p class='subtitle'>Acesse sua conta para gerenciar seu sistema.</p>", unsafe_allow_html=True)
 
         st.markdown("**E-mail**")
-        email = st.text_input("", placeholder="Digite seu e-mail ou usuário", key="login_email")
+        email = st.text_input("", placeholder="Digite seu e-mail ou usuário")
 
         st.markdown("**Senha**")
-        senha = st.text_input("", placeholder="Digite sua senha", type="password", key="login_senha")
+        senha = st.text_input("", placeholder="Digite sua senha", type="password")
 
-        # Link “Esqueci” (visual apenas — implemente o fluxo quando quiser)
-        st.markdown("<div class='small-link'>Esqueci minha senha</div>", unsafe_allow_html=True)
+        st.markdown("<div class='link'>Esqueci minha senha</div>", unsafe_allow_html=True)
 
-        if st.button("Acessar meu Sistema", use_container_width=True, key="btn_login"):
-            login_usuario(email, senha)
+        if st.button("Acessar meu Sistema", use_container_width=True):
+            token = login_usuario(email, senha)
+            if token:
+                st.session_state.token = token
+                obter_dados_usuario()
+                st.success("✅ Login realizado com sucesso!")
+                st.rerun()
 
-        # CTA de cadastro
+        # Botão cinza como DIV estilizado com clique
+        st.markdown("""
+        <p style="margin-top: 10px; font-size: 13px;">
+        🆓 <b>Teste gratuito:</b> crie seu cadastro e ganhe <b>7 dias de acesso ao plano Profissional</b> para conhecer todas as funções.
+        </p>
+        """, unsafe_allow_html=True)
+
+        # Link para cadastro
+
         st.markdown("Ainda não tem cadastro na MivCast?")
-        if st.button("📩 Cadastre-se agora", key="btn_ir_cadastro"):
+
+        if st.button("📩 Cadastre-se agora"):
             st.query_params = {"cadastro": "true"}
             st.rerun()
 
 
-def verificar_email_existe(email: str) -> bool:
-    try:
-        r = httpx.get(f"{API_URL}/usuarios/existe", params={"email": email})
-        return r.status_code == 200 and bool(r.json().get("existe"))
-    except Exception as e:
-        # Fallback: se não conseguir checar, não travamos o usuário.
-        st.warning(f"Não consegui verificar seu e-mail agora ({e}). Vou tentar o login assim mesmo.")
-        return True
+
+
 
 
 
 def login_usuario(email, senha):
-    if not email or not senha:
-        st.warning("Preencha e‑mail e senha para continuar.")
-        return
-
-    # 1) Confere se o e‑mail existe
-    if not verificar_email_existe(email):
-        st.info("👀 Não encontrei esse e‑mail por aqui. Se for seu primeiro acesso, clique em **📩 Cadastre-se agora** aqui embaixo e crie sua conta rapidinho.")
-        return
-
-    # 2) E‑mail existe → tenta logar
+    """Realiza login e retorna o token"""
     try:
-        r = httpx.post(f"{API_URL}/login", data={"username": email, "password": senha})
-        if r.status_code == 200:
-            token = r.json()["access_token"]
+        response = httpx.post(f"{API_URL}/login", data={"username": email, "password": senha})
+        if response.status_code == 200:
+            token = response.json()["access_token"]
             st.session_state["token"] = token
-            obter_dados_usuario()
+            obter_dados_usuario()  # ← Já busca os dados completos após login
             st.success("✅ Login realizado com sucesso!")
             st.rerun()
         else:
-            # Aqui, como já sabemos que o e-mail existe, provavelmente é senha incorreta
-            st.info("😅 Quase lá! Parece que a senha não confere. Tente lembrar ou clique em **Esqueci minha senha** para redefinir.")
+            st.error("❌ Email ou senha incorretos.")
     except Exception as e:
         st.error(f"Erro ao fazer login: {e}")
 
+def get_headers():
+    """Gera o cabeçalho com token salvo"""
+    return {"Authorization": f"Bearer {st.session_state.get('token', '')}"}
 
-
-
+def obter_dados_usuario():
+    """Consulta os dados do usuário logado"""
+    try:
+        response = httpx.get(f"{API_URL}/minha-conta", headers=get_headers())
+        if response.status_code == 200:
+            st.session_state["dados_usuario"] = response.json()
+        else:
+            st.error("Erro ao obter dados do usuário.")
+            st.session_state["token"] = None
+    except Exception as e:
+        st.error(f"Erro ao consultar perfil: {e}")
 
 # ------------------- CADASTRO E LOGIN -------------------
 
@@ -415,7 +569,7 @@ def tela_cadastro():
     import streamlit as st
     import httpx
 
-    API_URL = "https://mivmark-backend.onrender.com"
+    API_URL = "http://127.0.0.1:8000"
     st.title("📝 Criar sua conta")
 
     cupons_validos = {
@@ -495,24 +649,18 @@ def tela_cadastro():
         enviar = st.form_submit_button("Cadastrar")
 
         if enviar:
-            if not nome or not email or not senha:
-                st.warning("⚠️ Preencha todos os campos obrigatórios.")
-            elif plano_selecionado == "Gratuito":
+            if plano_selecionado == "Gratuito":
                 try:
                     r = httpx.post(f"{API_URL}/cadastro/gratuito", json={
                         "nome": nome,
                         "email": email,
                         "senha": senha
-                    }, timeout=10)
+                    })
                     if r.status_code == 200:
                         st.success("✅ Cadastro realizado com sucesso!")
                         st.markdown("[🔑 Ir para o login](?login=true)")
-                    elif r.status_code == 409:
-                        st.warning("⚠️ E-mail já cadastrado.")
-                    elif r.status_code == 422:
-                        st.warning("⚠️ Dados inválidos. Verifique os campos.")
                     else:
-                        st.error(f"Erro inesperado: {r.text}")
+                        st.error(f"❌ {r.json().get('detail', 'Erro ao cadastrar.')}")
                 except Exception as e:
                     st.error(f"Erro ao conectar: {e}")
             elif token:
@@ -522,16 +670,12 @@ def tela_cadastro():
                         "email": email,
                         "senha": senha,
                         "token_ativacao": token
-                    }, timeout=10)
+                    })
                     if r.status_code == 200:
                         st.success("✅ Cadastro ativado com sucesso!")
                         st.markdown("[🔑 Ir para o login](?login=true)")
                     else:
-                        try:
-                            erro = r.json().get("detail", "Erro ao cadastrar.")
-                        except Exception:
-                            erro = r.text or "Erro ao cadastrar."
-                        st.error(f"❌ {erro}")
+                        st.error(f"❌ {r.json().get('detail', 'Erro ao cadastrar.')}")
                 except Exception as e:
                     st.error(f"Erro ao conectar: {e}")
             else:
@@ -539,7 +683,7 @@ def tela_cadastro():
                     r = httpx.post(f"{API_URL}/api/mercado_pago/criar_preferencia", json={
                         "plano_nome": plano_selecionado,
                         "preco": preco_final
-                    }, timeout=10)
+                    })
                     if r.status_code == 200:
                         pagamento = r.json()
                         st.success("✅ Cadastro iniciado. Finalize o pagamento para receber o token de ativação no e-mail.")
@@ -558,15 +702,10 @@ def tela_cadastro():
 
 
 
+
 # ------------------- SETORES -------------------
 
 def setor_acesso(nome_setor, titulo, conteudo):
-    if st.session_state.modo_demo and nome_setor in st.session_state.setores_visitados:
-        st.warning("Você já acessou esse setor. Cadastre-se para liberar o uso completo.")
-        return
-    if st.session_state.modo_demo:
-        st.session_state.setores_visitados.append(nome_setor)
-
     st.header(titulo)
     st.info(conteudo)
 
@@ -778,12 +917,11 @@ def tela_empresa():
 
 
 def tela_consultoria():
-    import os
     # ⚠️ Verificação de acesso: Admin sempre tem acesso total
     email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
     if email_usuario != "matheus@email.com":
         if not usuario_tem_acesso("consultoria"):
-            st.warning("⚠️ Este módulo está disponível apenas para planos pagos.")
+            mostrar_bloqueio_modulo("Consultoria Interativa")
             st.stop()
 
     import json
@@ -838,19 +976,10 @@ def tela_consultoria():
         st.error(f"Erro ao verificar consultoria: {e}")
         return
 
-    from pathlib import Path
-
-    CAMINHO_BASE = Path(__file__).parent  # já está dentro do frontend
-    CAMINHO_TOPICOS = CAMINHO_BASE / "data" / "consultoria_topicos_completos.json"
-    CAMINHO_SETOR = CAMINHO_BASE / "data" / "topicos_por_setor.json"
-
-
-
-
     try:
-        with open(CAMINHO_TOPICOS, "r", encoding="utf-8") as f:
+        with open("data/consultoria_topicos_completos.json", "r", encoding="utf-8") as f:
             topicos = json.load(f)
-        with open(CAMINHO_SETOR, "r", encoding="utf-8") as f:
+        with open("data/topicos_por_setor.json", "r", encoding="utf-8") as f:
             por_setor = json.load(f)
     except Exception as e:
         st.error(f"Erro ao carregar arquivos de tópicos: {e}")
@@ -1063,7 +1192,7 @@ def tela_marketing():
     email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
     if email_usuario != "matheus@email.com":
         if not usuario_tem_acesso("marketing"):
-            st.warning("⚠️ Este módulo está disponível apenas para planos pagos.")
+            mostrar_bloqueio_modulo("Central de Marketing")
             st.stop()
 
     # 🌐 Estilo global para ocupar toda a tela sem margens
@@ -1179,7 +1308,7 @@ def tela_branding():
     email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
     if email_usuario != "matheus@email.com":
         if not usuario_tem_acesso("branding"):
-            st.warning("⚠️ Este módulo está disponível apenas para planos pagos.")
+            mostrar_bloqueio_modulo("Central da Marca (Branding)")
             st.stop()
 
     import base64
@@ -1324,36 +1453,63 @@ def tela_branding():
 
 def tela_historico():
     st.header("🧠 Histórico")
-    usuario_id = st.session_state.dados_usuario.get("id")
+
     historico = []
 
+    # Campo de busca
+    termo_busca = st.text_input(
+        "🔎 Buscar no histórico (palavra, frase ou parte da data):",
+        placeholder="Ex.: Google Ads, orçamento, Instagram..."
+    ).strip()
+
+    params = {}
+    if termo_busca:
+        params["busca"] = termo_busca
+
     try:
-        response = httpx.get(f"{API_URL}/mark/historico", params={"usuario_id": usuario_id})
+        response = httpx.get(
+            f"{API_URL}/mark/historico",
+            params=params,
+            headers=get_headers(),   # ✅ agora envia o token
+            timeout=30,
+        )
         if response.status_code == 200:
             historico = response.json()
             if not historico:
-                st.info("Nenhuma interação registrada ainda.")
+                if termo_busca:
+                    st.info("Nenhum registro encontrado para essa busca.")
+                else:
+                    st.info("Nenhuma interação registrada ainda.")
             else:
+                # Mostra do mais recente para o mais antigo
                 for h in historico:
-                    st.markdown(f"🕒 *{h['data_envio']}*")
-                    st.markdown(f"**{h['remetente']}**: {h['mensagem']}")
+                    data_str = h.get("data_envio", "")
+                    remetente = h.get("remetente", "").capitalize()
+                    mensagem = h.get("mensagem", "")
+
+                    st.markdown(f"🕒 *{data_str}*")
+                    st.markdown(f"**{remetente}:** {mensagem}")
                     st.markdown("---")
         else:
-            st.error("Erro ao carregar histórico.")
+            st.error(f"Erro ao carregar histórico: {response.status_code}")
     except Exception as e:
-        st.error(f"Erro: {e}")
+        st.error(f"Erro ao carregar histórico: {e}")
 
     # ✅ Botão de exportar histórico em TXT
     if historico:
         conteudo = "\n\n".join(
-            [f"{h['data_envio']} - {h['remetente']}: {h['mensagem']}" for h in historico]
+            [
+                f"{h.get('data_envio', '')} - {h.get('remetente', '')}: {h.get('mensagem', '')}"
+                for h in historico
+            ]
         )
         st.download_button(
             "📤 Exportar histórico (.txt)",
             data=conteudo,
             file_name="historico_mark.txt",
-            mime="text/plain"
+            mime="text/plain",
         )
+
 
 
 
@@ -1369,7 +1525,7 @@ def tela_arquivos():
     email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
     if email_usuario != "matheus@email.com":
         if not usuario_tem_acesso("arquivo"):
-            st.warning("⚠️ Este módulo está disponível apenas para planos pagos.")
+            mostrar_bloqueio_modulo("Central de Arquivos")
             st.stop()
 
     import base64
@@ -1455,15 +1611,88 @@ def tela_arquivos():
             st.caption("Nenhum arquivo nesta categoria ainda.")
         st.divider()
 
+
+
+
 def tela_mark():
     # ⚠️ Verificação de acesso: Admin sempre tem acesso total
     email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
     if email_usuario != "matheus@email.com":
         if not usuario_tem_acesso("mark"):
-            st.warning("⚠️ Este módulo está disponível apenas para planos pagos.")
+            mostrar_bloqueio_modulo("MARK IA (Chat Inteligente)")
             st.stop()
 
-    st.header("🤖 Converse com o MARK")
+    # 🔹 Garante que o histórico do chat exista
+    if "chat" not in st.session_state:
+        st.session_state.chat = []
+
+    # 🎨 Estilo do botão ENVIAR (preto com texto branco)
+    st.markdown(
+        """
+        <style>
+        button[data-testid="baseButton-secondary"],
+        button[data-testid="baseButton-secondaryFormSubmit"] {
+            background-color: #000000 !important;
+            color: #FFFFFF !important;
+            border-radius: 999px !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # 🎨 Estilos da linha de input do MARK
+    st.markdown(
+        """
+        <style>
+        /* input principal do chat */
+        div[data-testid="stForm"] input[type="text"] {
+            height: 44px !important;
+            border-radius: 999px !important;
+            padding: 0 16px !important;
+            font-size: 14px !important;
+        }
+
+        /* centralizar verticalmente as colunas dentro do form */
+        div[data-testid="stForm"] div[data-testid="column"] {
+            display: flex;
+            align-items: center;
+        }
+
+        /* remover label padrão do uploader */
+        div[data-testid="stFileUploader"] > label {
+            display: none !important;
+        }
+
+        /* remover qualquer texto interno do uploader */
+        div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] * {
+            display: none !important;
+        }
+
+        /* estilizar o uploader como botão redondo com + */
+        div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
+            padding: 0 !important;
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 999px !important;
+            border: 1px solid #cccccc !important;
+            background-color: #f5f5f5 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]::before {
+            content: "+";
+            font-size: 24px;
+            color: #333333;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     # ✅ Bloco com guia visual do MARK com avatar personalizado
     from pathlib import Path
     import base64
@@ -1475,7 +1704,8 @@ def tela_mark():
     CAMINHO_AVATAR = Path(__file__).parent / "img" / "avatar.jpeg"
     avatar_base64 = carregar_imagem_base64(CAMINHO_AVATAR)
 
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div style="background-color:#d0e7fe; border-left: 6px solid #0f00ff; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
         <div style="display: flex; align-items: center;">
             <img src="data:image/jpeg;base64,{avatar_base64}" alt="MARK IA" width="100" style="margin-right: 15px; border-radius: 50%;">
@@ -1485,12 +1715,14 @@ def tela_mark():
                     Converse comigo para tirar dúvidas, criar conteúdos, montar campanhas ou resolver qualquer desafio da sua empresa. Estou conectado aos seus dados reais.
                 </p>
                 <p style="margin: 0; margin-top: 10px; color: #555;">
-                💬 <strong>Dica do MARK:</strong> Use frases diretas como “crie uma legenda para meu produto X” ou “me mostre ideias de reels para meu nicho”.
-            </p>
+                    💬 <strong>Dica do MARK:</strong> Use frases diretas como “crie uma legenda para meu produto X” ou “me mostre ideias de reels para meu nicho”.
+                </p>
+            </div>
         </div>
     </div>
-</div>
-""", unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     nome = st.session_state.dados_usuario.get("nome")
     plano = st.session_state.dados_usuario.get("plano_atual", "desconhecido")
@@ -1498,87 +1730,271 @@ def tela_mark():
     usuario_id = st.session_state.dados_usuario.get("id")
 
     st.info(f"Olá, {nome}! Você está no plano **{plano}** como **{tipo}**.")
-    st.write("Digite abaixo sua pergunta e o MARK vai te ajudar com base nos dados da sua empresa.")
+    st.write(
+        "Digite abaixo sua pergunta e o MARK vai te ajudar com base nos dados da sua empresa."
+    )
 
-    pergunta = st.text_input("📩 Sua pergunta:")
-    if st.button("Enviar") and pergunta:
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+    # 🔹 Histórico do chat (do mais antigo para o mais recente)
+    for autor, mensagem in st.session_state.chat:
+        st.markdown(f"**{autor}**: {mensagem}")
+
+    st.markdown("---")
+
+    # 🔹 Formulário: input + anexo + (futuro) áudio + botão enviar – tudo em 1 linha
+    with st.form("form_mark"):
+        col_input, col_file, col_audio, col_btn = st.columns([5, 0.7, 1.6, 1])
+
+        # INPUT
+        with col_input:
+            pergunta = st.text_input(
+                "",
+                key="input_mark",
+                placeholder="Digite sua pergunta...",
+            )
+
+        # ANEXO – botão redondo com +
+        with col_file:
+            arquivo = st.file_uploader(
+                "",
+                type=["pdf", "png", "jpg", "jpeg"],
+                label_visibility="collapsed",
+                key="upload_mark",
+            )
+
+        # ÁUDIO – texto discreto na mesma linha
+        with col_audio:
+            st.markdown(
+                "<span style='font-size:13px; color:#999;'>🎙️ Voz (em breve)</span>",
+                unsafe_allow_html=True,
+            )
+
+        # ENVIAR
+        with col_btn:
+            enviar = st.form_submit_button("Enviar", use_container_width=True)
+
+    # 👉 Agora, tanto clicar no botão quanto apertar Enter envia a mensagem
+    if enviar and pergunta:
+        # adiciona pergunta no histórico
         st.session_state.chat.append(("🧑", pergunta))
 
-        try:
-            response = httpx.post(
-                f"{API_URL}/mark/responder",
-                json={"mensagem": pergunta, "usuario_id": usuario_id},
-                timeout=60  # aumento de tempo para evitar erro de timeout
-            )
-            if response.status_code == 200:
-                resposta = response.json()["resposta"]
-                st.session_state.chat.append(("🤖 MARK", resposta))
-            else:
-                st.session_state.chat.append(("⚠️", "Erro ao consultar o MARK."))
-        except Exception as e:
-            st.session_state.chat.append(("❌", f"Erro: {e}"))
+        # placeholder para status ("MARK está pensando...")
+        status_placeholder = st.empty()
+        status_placeholder.markdown(
+            "⏳ **MARK está analisando seus dados, consultando o método MARK-APP "
+            "e preparando uma resposta personalizada...**"
+        )
 
-    for autor, mensagem in reversed(st.session_state.chat):
-        st.markdown(f"**{autor}**: {mensagem}")
+        # placeholder para resposta em streaming
+        resposta_placeholder = st.empty()
+        resposta_texto = ""
+
+        try:
+            # 🔹 Consome o endpoint /mark/stream no backend com streaming real
+            with httpx.stream(
+                "POST",
+                f"{API_URL}/mark/stream",
+                json={"mensagem": pergunta, "usuario_id": usuario_id},
+                timeout=60,
+            ) as r:
+                if r.status_code != 200:
+                    raise Exception(f"Erro {r.status_code} ao chamar o MARK.")
+
+                for chunk in r.iter_text():
+                    if not chunk:
+                        continue
+                    resposta_texto += chunk
+                    # Atualiza em tempo real, como se o MARK estivesse digitando
+                    resposta_placeholder.markdown(
+                        f"**🤖 MARK:** {resposta_texto}"
+                    )
+
+            # terminou o streaming: grava no histórico local
+            st.session_state.chat.append(("🤖 MARK", resposta_texto))
+
+            # 👉 Envia a conversa para o backend salvar no histórico
+            try:
+                headers = get_headers()
+
+                # Mensagem do usuário
+                httpx.post(
+                    f"{API_URL}/mark/historico",
+                    json={"remetente": "usuario", "mensagem": pergunta},
+                    headers=headers,
+                    timeout=30,
+                )
+
+                # Resposta do MARK
+                httpx.post(
+                    f"{API_URL}/mark/historico",
+                    json={"remetente": "mark", "mensagem": resposta_texto},
+                    headers=headers,
+                    timeout=30,
+                )
+            except Exception:
+                # Se der erro para salvar, não quebra o chat
+                pass
+
+            status_placeholder.empty()
+
+        except Exception as e:
+            status_placeholder.empty()
+            st.session_state.chat.append(("❌", f"Erro ao falar com o MARK: {e}"))
+
+        # força recarregar a tela para redesenhar o chat com a nova resposta
+        st.rerun()
 
 
 
 
 # tela_planos()
+# ------------------- TELA DE PLANOS -------------------
 def tela_planos():
     import httpx
     import streamlit as st
 
     st.title("📦 Meus Planos")
-    plano_atual = st.session_state.dados_usuario.get("plano_atual", "Gratuito")
-    usuario_id = st.session_state.dados_usuario.get("id")
 
-    API_URL = "https://mivmark-backend.onrender.com"
-    try:
-        planos = httpx.get(f"{API_URL}/planos/").json()
-    except:
-        st.error("Erro ao buscar planos.")
-        return
+    API_URL = "http://127.0.0.1:8000"
 
-    usuario = st.session_state.get("dados_usuario", {})
+    # ----- DADOS DO USUÁRIO -----
+    usuario = st.session_state.get("dados_usuario", {}) or {}
     plano_atual = usuario.get("plano_atual") or "Gratuito"
     if usuario.get("is_admin"):
         plano_atual = "Administrador (acesso total)"
 
-    st.markdown(f"""
-    <div style='background-color:#f0f8ff; padding: 15px; border-left: 6px solid #007bff; border-radius: 8px; margin-bottom: 20px;'>
-        <strong>🔒 Seu plano atual:</strong> <span style='font-size:18px; color:#007bff'>{plano_atual}</span><br>
-        Para liberar mais recursos do sistema, você pode fazer upgrade agora mesmo.
-    </div>
-    """, unsafe_allow_html=True)
+    # Banner com plano atual
+    st.markdown(
+        f"""
+        <div style='background-color:#f0f8ff; padding: 15px; border-left: 6px solid #007bff; border-radius: 8px; margin-bottom: 20px;'>
+            <strong>🔒 Seu plano atual:</strong> <span style='font-size:18px; color:#007bff'>{plano_atual}</span><br>
+            Para liberar mais recursos do sistema, você pode fazer upgrade agora mesmo.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # ======================================================
+    # 🔑 BLOCO: ATIVAÇÃO DE PLANO POR TOKEN (CONSULTORIA)
+    # ======================================================
+    st.subheader("🔑 Ativar plano com token")
+
+    st.markdown(
+        "Se você comprou uma **consultoria MivCast** ou recebeu um código de ativação de um parceiro, "
+        "cole seu token abaixo para liberar o acesso por **1 ano** no MivMark."
+    )
+
+    token_input = st.text_input(
+        "Digite seu token de ativação:",
+        key="token_ativacao_plano",
+    )
+
+    if st.button("Ativar token agora"):
+        token_texto = (token_input or "").strip()
+
+        if not token_texto:
+            st.warning("Digite um token válido.")
+        else:
+            token_jwt = st.session_state.get("token")
+            if not token_jwt:
+                st.error(
+                    "Não foi possível identificar seu login. "
+                    "Saia e entre novamente no sistema antes de ativar o token."
+                )
+            else:
+                headers = {
+                    "Authorization": f"Bearer {token_jwt}",
+                    "Content-Type": "application/json",
+                }
+
+                try:
+                    resp = httpx.post(
+                        f"{API_URL}/usuario/ativar_token",
+                        json={"token": token_texto},
+                        headers=headers,
+                        timeout=30.0,
+                    )
+
+                    if resp.status_code == 200:
+                        dados = resp.json()
+                        novo_plano = dados.get("plano") or "consultoria_full"
+                        expira = dados.get("expira_em") or ""
+
+                        # Atualiza sessão para refletir o novo plano na interface
+                        st.session_state.dados_usuario["plano_atual"] = novo_plano
+
+                        st.success(
+                            f"✅ Plano ativado com sucesso!\n\n"
+                            f"Plano: **{novo_plano}**\n\n"
+                            f"Válido até: **{expira}**"
+                        )
+                        st.info(
+                            "Se a tela não atualizar sozinha, clique em outra aba e volte em **Plano Atual**."
+                        )
+                    else:
+                        try:
+                            detalhe = resp.json().get("detail", "Erro ao ativar token.")
+                        except Exception:
+                            detalhe = "Erro ao ativar token."
+                        st.error(f"⚠️ {detalhe}")
+                except Exception as e:
+                    st.error(f"Erro ao conectar com o servidor para ativar o token: {e}")
+
+    st.markdown("---")
+
+    # ======================================================
+    # 🚀 BLOCO: LISTAGEM DE PLANOS E CUPONS (JÁ EXISTENTE)
+    # ======================================================
+    try:
+        resposta_planos = httpx.get(f"{API_URL}/planos/")
+        resposta_planos.raise_for_status()
+        planos = resposta_planos.json()
+    except Exception as e:
+        st.error(f"Erro ao buscar planos: {e}")
+        return
 
     st.subheader("🚀 Planos Disponíveis")
     colunas = st.columns(4)
 
+    # 🔎 Aqui ainda estão cupons de exemplo — depois vamos ajustar
     cupons_validos = {
         "BEMVINDO10": ("porcentagem", 10),
         "MIV99": ("porcentagem", 90),
         "PROMO25": ("porcentagem", 25),
         "VIP50": ("fixo", 50),
-        "R10OFF": ("fixo", 10)
+        "R10OFF": ("fixo", 10),
     }
 
     for i, plano in enumerate(planos):
         with colunas[i % 4]:
-            destaques = "".join([f"<li>{m}</li>" for m in plano['modulos_liberados']])
-            st.markdown(f"""
-            <div style='border: 1px solid #ccc; border-radius: 10px; padding: 20px; margin-bottom: 20px;'>
-                <h4>{plano['nome']}</h4>
-                <p>{plano['descricao']}</p>
-                <ul>{destaques}</ul>
-                <p><strong>💰 R$ {plano['preco_mensal']:.2f}/mês</strong></p>
-            """, unsafe_allow_html=True)
+            destaques = "".join(
+                [f"<li>{m}</li>" for m in plano["modulos_liberados"]]
+            )
 
-            cupom_input = st.text_input(f"Digite um cupom para {plano['nome']}", key=f"cupom_{plano['id']}").upper()
+            st.markdown(
+                f"""
+                <div style='border: 1px solid #ccc; border-radius: 10px; padding: 20px; margin-bottom: 20px;'>
+                    <h4>{plano['nome']}</h4>
+                    <p>{plano['descricao']}</p>
+                    <ul>{destaques}</ul>
+                    <p><strong>💰 R$ {plano['preco_mensal']:.2f}/mês</strong></p>
+                """,
+                unsafe_allow_html=True,
+            )
 
-            if plano['nome'] != plano_atual:
-                if st.button(f"Quero esse plano: {plano['nome']}", key=f"contratar_{plano['id']}"):
-                    preco = plano['preco_mensal']
+            cupom_input = st.text_input(
+                f"Digite um cupom para {plano['nome']}",
+                key=f"cupom_{plano['id']}",
+            ).upper()
+
+            # Se não é o plano atual, mostra botão de contratar
+            if plano["nome"] != plano_atual:
+                if st.button(
+                    f"Quero esse plano: {plano['nome']}",
+                    key=f"contratar_{plano['id']}",
+                ):
+                    preco = plano["preco_mensal"]
                     desconto = 0
 
                     if cupom_input and cupom_input in cupons_validos:
@@ -1587,28 +2003,38 @@ def tela_planos():
                             desconto = preco * (valor / 100)
                         elif tipo == "fixo":
                             desconto = valor
+
                         preco -= desconto
                         preco = max(0, round(preco, 2))
-                        st.success(f"🎉 Cupom aplicado! Novo valor: R$ {preco:.2f}")
+                        st.success(
+                            f"🎉 Cupom aplicado! Novo valor: R$ {preco:.2f}"
+                        )
                     elif cupom_input:
-                        st.warning("⚠️ Cupom inválido. Será cobrado o valor original.")
+                        st.warning(
+                            "⚠️ Cupom inválido. Será cobrado o valor original."
+                        )
 
                     try:
-                        resposta = httpx.post(f"{API_URL}/api/mercado_pago/criar_preferencia", json={
-                            "plano_nome": plano["nome"],
-                            "preco": preco
-                        })
+                        resposta = httpx.post(
+                            f"{API_URL}/api/mercado_pago/criar_preferencia",
+                            json={
+                                "plano_nome": plano["nome"],
+                                "preco": preco,
+                            },
+                        )
                         if resposta.status_code == 200:
                             pagamento = resposta.json()
-                            st.markdown(f"[🔗 Clique aqui para pagar agora]({pagamento['init_point']})")
+                            st.markdown(
+                                f"[🔗 Clique aqui para pagar agora]({pagamento['init_point']})"
+                            )
                         else:
                             st.error("Erro ao gerar link de pagamento.")
                     except Exception as e:
                         st.error(f"Erro ao conectar com Mercado Pago: {e}")
             else:
                 st.info("✅ Esse já é seu plano atual.")
-            st.markdown("</div>", unsafe_allow_html=True)
 
+            st.markdown("</div>", unsafe_allow_html=True)
 
 
 
@@ -1714,6 +2140,13 @@ def painel_admin_cursos():
         gratuito = st.checkbox("Gratuito", value=curso["gratuito"])
         preco = st.number_input("Preço", value=curso.get("preco") or 0.0, disabled=gratuito)
         destaque = st.checkbox("Destaque", value=curso["destaque"])
+        ordem = st.number_input(
+            "Ordem de exibição",
+            min_value=1,
+            step=1,
+            value=int(curso.get("ordem") or 1)
+        )
+
 
         if st.button("💾 Salvar Alterações"):
             payload = {
@@ -1724,6 +2157,7 @@ def painel_admin_cursos():
                 "gratuito": gratuito,
                 "preco": preco if not gratuito else None,
                 "destaque": destaque,
+                "ordem": ordem,
                 "ativo": True
             }
             try:
@@ -1755,6 +2189,13 @@ def painel_admin_cursos():
     gratuito = st.checkbox("Gratuito", value=True)
     preco = st.number_input("Preço", min_value=0.0, step=0.01, disabled=gratuito)
     destaque = st.checkbox("Destacar no topo", value=False)
+    ordem = st.number_input(
+        "Ordem de exibição do curso",
+        min_value=1,
+        step=1,
+        value=1
+    )
+
 
     if st.button("Salvar Curso"):
         payload = {
@@ -1765,6 +2206,7 @@ def painel_admin_cursos():
             "gratuito": gratuito,
             "preco": preco if not gratuito else None,
             "destaque": destaque,
+            "ordem": ordem,
             "ativo": True
         }
         try:
@@ -1804,6 +2246,82 @@ def painel_admin_cursos():
                 st.error("Erro ao salvar aula.")
         except Exception as e:
             st.error(f"Erro: {e}")
+
+    st.divider()
+    st.subheader("✏️ Editar aulas de um curso")
+
+    # Reaproveita o dicionário de cursos já carregado acima
+    curso_escolhido_ed = st.selectbox(
+        "Escolha o curso para gerenciar aulas",
+        list(nomes_cursos.keys()),
+        key="curso_editar_aulas"
+    )
+    id_curso_ed = nomes_cursos[curso_escolhido_ed]
+
+    try:
+        # Busca o curso completo, incluindo lista de aulas
+        r = httpx.get(f"{API_URL}/cursos/{id_curso_ed}")
+        if r.status_code == 200:
+            curso_detalhe = r.json()
+            aulas = curso_detalhe.get("aulas", [])
+
+            if not aulas:
+                st.info("Este curso ainda não tem aulas cadastradas.")
+            else:
+                # Ordena aulas pela ordem
+                aulas_ordenadas = sorted(aulas, key=lambda a: a.get("ordem") or 0)
+
+                for aula in aulas_ordenadas:
+                    with st.expander(f"{aula.get('ordem') or 0} - {aula['titulo']} (ID {aula['id']})"):
+                        novo_titulo = st.text_input(
+                            "Título da aula",
+                            value=aula["titulo"],
+                            key=f"titulo_aula_{aula['id']}",
+                        )
+                        nova_desc = st.text_area(
+                            "Descrição",
+                            value=aula.get("descricao") or "",
+                            key=f"desc_aula_{aula['id']}",
+                        )
+                        nova_video = st.text_input(
+                            "Link do vídeo (YouTube)",
+                            value=aula.get("video_url") or "",
+                            key=f"video_aula_{aula['id']}",
+                        )
+                        nova_ordem = st.number_input(
+                            "Ordem",
+                            value=int(aula.get("ordem") or 0),
+                            step=1,
+                            key=f"ordem_aula_{aula['id']}",
+                        )
+
+                        if st.button(
+                            "💾 Salvar alterações desta aula",
+                            key=f"salvar_aula_{aula['id']}"
+                        ):
+                            payload = {
+                                "titulo": novo_titulo,
+                                "descricao": nova_desc,
+                                "video_url": nova_video,
+                                "ordem": nova_ordem,
+                            }
+                            try:
+                                r_upd = httpx.put(
+                                    f"{API_URL}/cursos/admin/aula/{aula['id']}",
+                                    json=payload,
+                                )
+                                if r_upd.status_code == 200:
+                                    st.success("Aula atualizada com sucesso!")
+                                else:
+                                    st.error("Erro ao atualizar aula.")
+                            except Exception as e:
+                                st.error(f"Erro ao atualizar aula: {e}")
+        else:
+            st.error("Não foi possível carregar as aulas desse curso.")
+    except Exception as e:
+        st.error(f"Erro ao buscar curso e aulas: {e}")
+
+
 
     st.divider()
     st.subheader("🎟 Criar Cupom de Desconto")
@@ -1979,7 +2497,7 @@ def painel_admin_aplicativos():
 
 def tela_cursos():
     if not usuario_tem_acesso("cursos"):
-        st.warning("⚠️ Este módulo está disponível apenas para planos pagos.")
+        mostrar_bloqueio_modulo("Cursos")
         st.stop()
 
     st.header("🎓 Meus Cursos")
@@ -2006,14 +2524,24 @@ def tela_cursos():
             preco = f"R$ {curso['preco']:.2f}" if not curso["gratuito"] else "Gratuito"
             st.markdown(f"💰 **Preço:** {preco}")
 
+            # Se o curso é gratuito ou já está liberado para o usuário
             if curso["gratuito"] or curso["id"] in st.session_state.get("cursos_liberados", []):
                 if st.button("▶️ Acessar", key=f"acessar_{curso['id']}"):
-                    st.session_state["curso_selecionado"] = curso["id"]
+                    # Aqui usamos a mesma chave que o main() enxerga
+                    st.session_state["curso_liberado"] = curso["id"]
                     st.rerun()
             else:
-                if st.button("💳 Comprar", key=f"comprar_{curso['id']}"):
-                    st.session_state["curso_checkout"] = curso["id"]
-                    st.rerun()
+                col_b1, col_b2 = st.columns(2)
+                with col_b1:
+                    if st.button("👁️ Espiar", key=f"espiar_{curso['id']}"):
+                        st.session_state["curso_espiar"] = curso["id"]
+                        st.rerun()
+                with col_b2:
+                    if st.button("💳 Comprar", key=f"comprar_{curso['id']}"):
+                        st.session_state["curso_checkout"] = curso["id"]
+                        st.rerun()
+
+
 
 
 def tela_checkout(curso_id):
@@ -2078,49 +2606,133 @@ def tela_checkout(curso_id):
 
 
 
-def tela_detalhe_curso(curso_id):
+def tela_detalhe_curso(curso_id: int):
+    # Busca dados do curso na API
     try:
         r = httpx.get(f"{API_URL}/cursos/{curso_id}", headers=get_headers())
+        if r.status_code != 200:
+            st.error("Curso não encontrado.")
+            return
         curso = r.json()
-    except:
-        st.error("Erro ao buscar curso.")
+    except Exception as e:
+        st.error(f"Erro ao buscar curso: {e}")
         return
 
-    st.title(curso["titulo"])
-    st.image(curso["capa_url"], use_container_width=True)
-    st.markdown(f"**Categoria:** {curso['categoria']}")
-    st.markdown(curso["descricao"])
+    # Estamos "espiando" se o estado ativo for curso_espiar
+    esta_espiando = (
+        st.session_state.get("curso_espiar") == curso_id
+        and st.session_state.get("curso_liberado") != curso_id
+    )
 
+    st.title(curso.get("titulo", "Curso"))
+
+    if curso.get("capa_url"):
+        st.image(curso["capa_url"], use_container_width=True)
+
+    st.markdown(f"**Categoria:** {curso.get('categoria') or 'Sem categoria'}")
+    st.markdown(curso.get("descricao", ""))
+
+    aulas = curso.get("aulas") or []
+
+    # ================== MODO ESPIAR / SAIBA MAIS ==================
+    if esta_espiando:
+        st.markdown("---")
+        st.subheader("📚 O que você vai aprender")
+
+        if aulas:
+            for aula in sorted(aulas, key=lambda a: a["ordem"]):
+                desc = (aula.get("descricao") or "").strip()
+                if len(desc) > 120:
+                    desc = desc[:120] + "..."
+                st.markdown(f"- **{aula['titulo']}** – {desc}")
+        else:
+            st.info("As aulas deste curso ainda serão adicionadas.")
+
+        st.markdown("---")
+        col1, col2 = st.columns([2, 1])
+
+        with col1:
+            if st.button("▶️ Acessar curso completo"):
+                # troca do modo ESPIAR para ACESSAR (curso_liberado)
+                st.session_state["curso_liberado"] = curso_id
+                st.session_state.pop("curso_espiar", None)
+                st.rerun()
+
+        with col2:
+            if st.button("⬅️ Voltar para Cursos"):
+                st.session_state.pop("curso_espiar", None)
+                st.rerun()
+
+        # Em modo espiar não mostramos os vídeos
+        return
+
+    # ================== MODO ACESSO COMPLETO ==================
     st.markdown("---")
-    st.subheader("🎥 Aulas disponíveis")
+    st.subheader("📊 Progresso no Curso")
 
     aulas_concluidas = []
     try:
         p = httpx.get(f"{API_URL}/cursos/progresso", headers=get_headers())
         aulas_concluidas = p.json().get("aulas_concluidas", [])
-    except:
+    except Exception:
         pass
 
-    for aula in sorted(curso["aulas"], key=lambda a: a["ordem"]):
+    total_aulas = len(aulas)
+    feitas = len([a for a in aulas if a["id"] in aulas_concluidas])
+
+    if total_aulas > 0:
+        st.progress(feitas / total_aulas)
+        st.caption(f"{feitas} de {total_aulas} aulas concluídas")
+    else:
+        st.info("Este curso ainda não possui aulas cadastradas.")
+
+    st.markdown("---")
+    st.subheader("🎥 Aulas do Curso")
+
+    aulas_ordenadas = sorted(aulas, key=lambda a: a["ordem"])
+
+    # Grade de 1 coluna
+    cols = None
+    for idx, aula in enumerate(aulas_ordenadas):
+        if idx % 1 == 0:
+            cols = st.columns(1)
+        col = cols[idx % 1]
+
         concluida = aula["id"] in aulas_concluidas
-        st.markdown(f"#### {aula['titulo']}")
-        st.write(aula["descricao"])
-        st.video(aula["video_url"])
-        if not concluida:
-            if st.button("✅ Marcar como concluída", key=f"concluir_{aula['id']}"):
-                httpx.post(f"{API_URL}/cursos/aula/{aula['id']}/concluir", headers=get_headers())
-                st.success("Marcado como concluído!")
-                st.rerun()
-        else:
-            st.success("✔️ Aula concluída")
-        st.divider()
+
+        with col:
+            st.markdown(f"#### {aula['titulo']} {'✔️' if concluida else ''}")
+
+            # Descrição opcional
+            descricao = (aula.get("descricao") or "").strip()
+            if descricao:
+                st.write(descricao)
+
+            # Vídeo opcional – só mostra se tiver URL válida
+            video_url = (aula.get("video_url") or "").strip()
+            if video_url:
+                st.video(video_url)
+
+            if not concluida:
+                if st.button("✅ Marcar como concluída", key=f"concluir_{aula['id']}"):
+                    httpx.post(
+                        f"{API_URL}/cursos/aula/{aula['id']}/concluir",
+                        headers=get_headers(),
+                    )
+                    st.success("Aula marcada como concluída!")
+                    st.rerun()
+            else:
+                st.success("✔️ Aula já concluída")
 
 
-
+    st.markdown("---")
     if st.button("⬅️ Voltar para Cursos"):
+        # aqui está o ponto que estava te “prendendo”
         st.session_state.pop("curso_checkout", None)
         st.session_state.pop("curso_espiar", None)
+        st.session_state.pop("curso_liberado", None)
         st.rerun()
+
 
 
 
@@ -2133,7 +2745,7 @@ def get_headers():
 
 def tela_aplicativos():
     if not usuario_tem_acesso("aplicativos"):
-        st.warning("⚠️ Este módulo está disponível apenas para planos pagos.")
+        mostrar_bloqueio_modulo("Aplicativos")
         st.stop()
 
     st.title("📱 Aplicativos Disponíveis")
@@ -2210,33 +2822,12 @@ def tela_checkout_app(app_id):
 
 # ------------------- INTERFACE PRINCIPAL -------------------
 
-API_URL = "https://mivmark-backend.onrender.com"
-
-def get_headers():
-    """Gera o cabeçalho com token salvo"""
-    return {"Authorization": f"Bearer {st.session_state.get('token', '')}"}
-
-def obter_dados_usuario():
-    """Consulta os dados do usuário logado e salva no session_state"""
-    try:
-        response = httpx.get(f"{API_URL}/minha-conta", headers=get_headers())
-        if response.status_code == 200:
-            st.session_state["dados_usuario"] = response.json()
-        else:
-            st.error("❌ Erro ao obter dados do usuário.")
-            st.session_state["token"] = None
-            st.session_state["dados_usuario"] = {}
-    except Exception as e:
-        st.error(f"❌ Erro ao consultar perfil: {e}")
-        st.session_state["token"] = None
-        st.session_state["dados_usuario"] = {}
-
 def main():
     st.set_page_config(page_title="MARK Sistema IA", layout="wide")
 
     query_params = st.query_params
     modo_cadastro = "cadastro" in query_params
-    logado = st.session_state.token or st.session_state.modo_demo
+    logado = st.session_state.token is not None
 
     # Se o usuário não estiver logado e clicou para se cadastrar
     if not logado and modo_cadastro:
@@ -2279,6 +2870,9 @@ def main():
             if st.sidebar.button("⚙️ Painel Admin"):
                 st.session_state.admin = True
 
+
+
+    # --- Painel admin mantém a lógica atual ---
     if st.session_state.admin:
         painel_admin()
         if st.button("⬅️ Voltar para o sistema"):
@@ -2286,41 +2880,49 @@ def main():
             st.rerun()
         return
 
+    # --- MENU LATERAL: sempre aparece ---
+    st.sidebar.title("📚 Menu")
+    escolha = st.sidebar.radio(
+        "Navegar para:",
+        [
+            "🏠 **Início**",
+            "💳 Plano Atual",
+            "🏢 **Empresa**",
+            "❤️ **Saúde da Empresa**",
+            "📋 **Consultoria**",
+            "🎓 **Cursos**",
+            "📘 **Meus Cursos**",
+            "📱 **Aplicativos**",
+            "💰 **Orçamento**",
+            "📅 **Agenda**",
+            "📣 **Central de Marketing**",
+            "🏷️ **Central da Marca (Branding)**",
+            "🧠 **Histórico**",
+            "📁 **Arquivos**",
+            "🤖 **MARK IA**",
+            "🌐 **Página e Chat do Cliente**",
+            "🚪 **Sair**"
+        ],
+        key="menu_principal",
+    )
+
+    # --- ESTADOS DE CURSO: sobrescrevem o conteúdo da tela,
+    # mas o menu continua visível na esquerda ---
     if st.session_state.get("curso_checkout"):
-        from frontend.cursos import tela_checkout
+        # usa as funções definidas no próprio app.py
         tela_checkout(st.session_state["curso_checkout"])
         return
 
     if st.session_state.get("curso_liberado"):
-        from frontend.cursos import tela_curso
-        tela_curso(st.session_state["curso_liberado"])
+        tela_detalhe_curso(st.session_state["curso_liberado"])
         return
 
     if st.session_state.get("curso_espiar"):
-        from frontend.cursos import tela_detalhe_curso
         tela_detalhe_curso(st.session_state["curso_espiar"])
         return
 
-    st.sidebar.title("📚 Menu")
-    escolha = st.sidebar.radio("Navegar para:", [
-        "🏠 **Início**",
-        "💳 Plano Atual",
-        "🏢 **Empresa**",
-        "❤️ **Saúde da Empresa**",
-        "📋 **Consultoria**",
-        "🎓 **Cursos**",
-        "📘 **Meus Cursos**",
-        "📱 **Aplicativos**",
-        "💰 **Orçamento**",
-        "📅 **Agenda**",
-        "📣 **Central de Marketing**",
-        "🏷️ **Central da Marca (Branding)**",
-        "🧠 **Histórico**",
-        "📁 **Arquivos**",
-        "🤖 **MARK IA**",
-        "🌐 **Página e Chat do Cliente**",
-        "🚪 **Sair**"
-    ])
+
+
 
     if escolha == "🏠 **Início**":
         tela_inicio()

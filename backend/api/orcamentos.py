@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, sessionmaker
-from database import engine
-from models import Orcamento, Usuario
-from api.auth import get_current_user
+from backend.database import engine
+from backend.models import Orcamento, Usuario
+from backend.api.auth import get_current_user
 from datetime import datetime
 from typing import List, Dict
 

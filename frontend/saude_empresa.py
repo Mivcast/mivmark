@@ -3,7 +3,7 @@ import httpx
 import plotly.graph_objects as go
 from datetime import datetime
 
-API_URL = "https://mivmark-backend.onrender.com"
+API_URL = "http://127.0.0.1:8000"
 
 def get_headers():
     return {"Authorization": f"Bearer {st.session_state.token}"}

@@ -11,8 +11,7 @@ from sqlalchemy.orm import sessionmaker
 
 from openai import OpenAI
 
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 SessionLocal = sessionmaker(bind=engine)
 

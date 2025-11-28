@@ -2,13 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from database import SessionLocal
-from models import Empresa, Usuario, CardMarketing
-from api.auth import get_current_user
+from backend.database import SessionLocal
+from backend.models import Empresa, Usuario
+from backend.api.auth import get_current_user
 from datetime import datetime
+from backend.models import CardMarketing
 
 # ✅ Import para geração do site do cliente
-from api.site_cliente import gerar_site_cliente, DadosSiteCliente
+from backend.api.site_cliente import gerar_site_cliente, DadosSiteCliente
 
 router = APIRouter()
 
@@ -42,7 +43,27 @@ class EmpresaSchema(BaseModel):
     cidade: Optional[str] = None
     cep: Optional[str] = None
 
-# -------- ROTAS --------
+# -------- FUNÇÃO AUXILIAR --------
+def empresa_to_dict(empresa: Empresa) -> dict:
+    return {
+        "nome_empresa": empresa.nome_empresa,
+        "descricao": empresa.descricao,
+        "nicho": empresa.nicho,
+        "logo_url": empresa.logo_url,
+        "funcionarios": empresa.funcionarios,
+        "produtos": empresa.produtos,
+        "redes_sociais": empresa.redes_sociais,
+        "informacoes_adicionais": empresa.informacoes_adicionais,
+        "cnpj": empresa.cnpj,
+        "rua": empresa.rua,
+        "numero": empresa.numero,
+        "bairro": empresa.bairro,
+        "cidade": empresa.cidade,
+        "cep": empresa.cep,
+        "atualizado_em": empresa.atualizado_em,
+    }
+
+# -------- ROTAS PRINCIPAIS (COM AUTENTICAÇÃO) --------
 
 @router.post("/empresa")
 def salvar_empresa(dados: EmpresaSchema, usuario: Usuario = Depends(get_current_user)):
@@ -95,23 +116,7 @@ def obter_empresa(usuario: Usuario = Depends(get_current_user)):
         empresa = db.query(Empresa).filter(Empresa.usuario_id == usuario.id).first()
         if not empresa:
             raise HTTPException(status_code=404, detail="Empresa não encontrada.")
-        return {
-            "nome_empresa": empresa.nome_empresa,
-            "descricao": empresa.descricao,
-            "nicho": empresa.nicho,
-            "logo_url": empresa.logo_url,
-            "funcionarios": empresa.funcionarios,
-            "produtos": empresa.produtos,
-            "redes_sociais": empresa.redes_sociais,
-            "informacoes_adicionais": empresa.informacoes_adicionais,
-            "cnpj": empresa.cnpj,
-            "rua": empresa.rua,
-            "numero": empresa.numero,
-            "bairro": empresa.bairro,
-            "cidade": empresa.cidade,
-            "cep": empresa.cep,
-            "atualizado_em": empresa.atualizado_em
-        }
+        return empresa_to_dict(empresa)
     finally:
         db.close()
 
@@ -155,7 +160,10 @@ def gerar_cards_marketing(usuario: Usuario = Depends(get_current_user)):
     db: Session = SessionLocal()
     try:
         mes_atual = datetime.utcnow().strftime("%Y-%m")
-        cards_existentes = db.query(CardMarketing).filter_by(usuario_id=usuario.id, mes_referencia=mes_atual).first()
+        cards_existentes = db.query(CardMarketing).filter_by(
+            usuario_id=usuario.id,
+            mes_referencia=mes_atual
+        ).first()
 
         if not cards_existentes:
             exemplo_cards = [
@@ -194,5 +202,34 @@ def gerar_cards_marketing(usuario: Usuario = Depends(get_current_user)):
             db.commit()
 
         return {"mensagem": "Cards de marketing gerados com sucesso."}
+    finally:
+        db.close()
+
+# -------------------------------------------------------
+# 🚀 ROTA: DADOS DA EMPRESA PARA O MARK (SEM LOGIN)
+# -------------------------------------------------------
+@router.get("/empresa_mark")
+def obter_empresa_para_mark():
+    """
+    Rota usada exclusivamente pelo MARK IA.
+
+    Por enquanto, para uso local e 1 usuário, ela pega
+    sempre a empresa mais recentemente atualizada na tabela.
+    Assim, o MARK usa SEMPRE os dados mais atuais.
+    """
+    db: Session = SessionLocal()
+    try:
+        from backend.models import Empresa  # garante import correto
+
+        empresa = (
+            db.query(Empresa)
+            .order_by(Empresa.atualizado_em.desc())
+            .first()
+        )
+
+        if not empresa:
+            raise HTTPException(status_code=404, detail="Nenhuma empresa cadastrada.")
+
+        return empresa_to_dict(empresa)
     finally:
         db.close()

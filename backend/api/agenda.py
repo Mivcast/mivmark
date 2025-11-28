@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from database import get_db
-from models.agenda import EventoAgenda, TipoEventoEnum, PrioridadeEnum, OrigemEventoEnum
+from backend.database import get_db
+from backend.models.agenda import EventoAgenda, TipoEventoEnum, PrioridadeEnum, OrigemEventoEnum
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID

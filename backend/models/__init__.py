@@ -1,10 +1,10 @@
 from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, Boolean, ForeignKey, Numeric, JSON, DateTime
 from sqlalchemy.orm import relationship
-from database import Base
-from models.tokens import TokenAtivacao
-from models.demo import CadastroDemo
-from models.historico_mark import HistoricoMark
-from models.marketing import CardMarketing
+from ..database import Base
+from .tokens import TokenAtivacao
+from .demo import CadastroDemo
+from .historico_mark import HistoricoMark
+from .marketing import CardMarketing
 from datetime import datetime
 
 class Diagnostico(Base):
@@ -28,6 +28,7 @@ class Usuario(Base):
     senha_hash = Column(String)
     tipo_usuario = Column(String, default="cliente")
     plano_atual = Column(String)
+    plano_expira_em = Column(DateTime, nullable=True)  # 🔥 Adicionado aqui
     data_criacao = Column(TIMESTAMP)
     nota_saude = Column(String, nullable=True)  # ✅ Nova coluna para salvar a nota do diagnóstico
     respostas_saude = Column(JSON, nullable=True)  # ⬅️ Adicione abaixo de nota_saude

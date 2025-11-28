@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from database import get_db
-from models.aplicativo import Aplicativo, CompraApp, AplicativoSchema
-from models import Usuario
-from api.auth import get_current_user
+from backend.database import get_db
+from backend.models.aplicativo import Aplicativo, CompraApp, AplicativoSchema
+from backend.models import Usuario
+from backend.api.auth import get_current_user
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel
