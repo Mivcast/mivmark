@@ -1,5 +1,5 @@
 import streamlit as st
-from frontend.agenda import tela_agenda  # ✅ Importa a versão visual com calendário
+from agenda import tela_agenda  # ✅ Importa a versão visual com calendário
 from datetime import datetime, timedelta
 
 # ⚙️ A configuração da página deve ser a PRIMEIRA chamada do Streamlit
@@ -8,12 +8,12 @@ st.set_page_config(layout="wide")
 import httpx
 import datetime
 import streamlit.components.v1 as components
-from frontend.site_cliente import tela_site_cliente
-from frontend.aplicativos import listar_aplicativos_admin
-from frontend.admin.planos import aba_gerenciar_planos
+from site_cliente import tela_site_cliente
+from aplicativos import listar_aplicativos_admin
+from admin.planos import aba_gerenciar_planos
 
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://mivmark-backend.onrender.com"
 
 
 def usuario_tem_acesso(modulo: str) -> bool:
@@ -2931,24 +2931,24 @@ def main():
     elif escolha == "🏢 **Empresa**":
         tela_empresa()
     elif escolha == "❤️ **Saúde da Empresa**":
-        from frontend.saude_empresa import tela_saude_empresa
+        from saude_empresa import tela_saude_empresa
         tela_saude_empresa()
     elif escolha == "📋 **Consultoria**":
         tela_consultoria()
     elif escolha == "🎓 **Cursos**":
-        from frontend.cursos import tela_cursos
+        from cursos import tela_cursos
         tela_cursos()
     elif escolha == "📘 **Meus Cursos**":
-        from frontend.cursos import tela_meus_cursos
+        from cursos import tela_meus_cursos
         tela_meus_cursos()
     elif escolha == "📱 **Aplicativos**":
-        from frontend.aplicativos import tela_aplicativos
+        from aplicativos import tela_aplicativos
         tela_aplicativos()
     elif escolha == "📲 **Meus Apps**":
-        from frontend.aplicativos import tela_meus_aplicativos
+        from aplicativos import tela_meus_aplicativos
         tela_meus_aplicativos()
     elif escolha == "💰 **Orçamento**":
-        from frontend.orcamento import tela_orcamento
+        from orcamento import tela_orcamento
         try:
             r = httpx.get(f"{API_URL}/empresa", headers=get_headers())
             dados_empresa = r.json() if r.status_code == 200 else {}
