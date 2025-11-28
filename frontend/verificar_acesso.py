@@ -1,7 +1,7 @@
 import httpx
 import streamlit as st
 
-API_URL = "http://localhost:8000"  # ajuste se for ambiente online
+API_URL = "https://mivmark-backend.onrender.com"
 
 def usuario_tem_acesso(modulo: str) -> bool:
     usuario = st.session_state.get("dados_usuario", {})

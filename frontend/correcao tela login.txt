@@ -1,0 +1,142 @@
+
+
+def tela_login_personalizada():
+    import streamlit as st
+    import base64
+    from pathlib import Path
+
+    st.set_page_config(layout="wide")
+
+    # Fundo da coluna esquerda (opcional)
+    caminho_imagem = Path("frontend/img/telalogin.jpg")
+    imagem_base64 = ""
+    if caminho_imagem.exists():
+        with open(caminho_imagem, "rb") as f:
+            imagem_base64 = base64.b64encode(f.read()).decode("utf-8")
+
+    # ✅ CSS revisado: melhor padding no mobile + card centralizado
+    st.markdown(f"""
+        <style>
+        * {{ font-family: 'Segoe UI', sans-serif; }}
+        html, body {{ margin:0 !important; padding:0 !important; }}
+
+        /* Tiramos o padding global apenas no desktop. No mobile, recolocamos. */
+        .block-container {{ padding: 0rem !important; }}
+
+        .left {{
+            flex: 6;
+            background: url("data:image/jpeg;base64,{imagem_base64}") center/cover no-repeat;
+            height: 100vh;
+        }}
+        .right {{
+            flex: 4;
+            max-width: 520px;
+            margin: auto;
+            padding: 56px 44px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 28px rgba(0,0,0,.00);
+        }}
+        h1 {{ font-size: 32px; font-weight: 800; margin: 0 0 8px; }}
+        .subtitle {{ color:#666; margin-bottom: 28px; }}
+
+        /* Inputs */
+        .stTextInput, .stPassword {{ margin-bottom: 10px; }}
+        .stTextInput > div > input,
+        .stPassword > div > input {{
+            width: 100% !important;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #dcdcdc;
+        }}
+
+        /* Botão principal */
+        .stButton button {{
+            width: 100% !important;
+            background: #265df2;
+            color:#fff; font-weight: 700;
+            padding: 12px 14px; border:0; border-radius: 10px;
+        }}
+        .stButton button:hover {{ background:#1d47c8; }}
+
+        .small-link {{ font-size:14px; color:#265df2; margin: 6px 0 16px; }}
+
+        /* Mobile */
+        @media(max-width: 768px) {{
+            .left {{ display:none; }}
+            .right {{
+                width: calc(100% - 32px) !important;   /* margem dos dois lados */
+                margin: 16px auto !important;
+                padding: 24px !important;
+                border-radius: 14px;
+            }}
+            /* recoloca um pouco de padding global no mobile pra nada grudar nas laterais */
+            .block-container {{ padding-left: 8px !important; padding-right: 8px !important; }}
+        }}
+        </style>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([6, 4])
+    with col1:
+        st.markdown('<div class="left"></div>', unsafe_allow_html=True)
+
+    with col2:
+        st.markdown('<div class="right">', unsafe_allow_html=True)
+
+        # ⚠️ se seu arquivo tiver espaço no nome, mantenha exatamente igual
+        st.image("frontend/img/mivlogo preta.png", width=120)
+        st.markdown("<h1>Login</h1>", unsafe_allow_html=True)
+        st.markdown("<p class='subtitle'>Acesse sua conta para gerenciar seu sistema.</p>", unsafe_allow_html=True)
+
+        st.markdown("**E-mail**")
+        email = st.text_input("", placeholder="Digite seu e-mail ou usuário", key="login_email")
+
+        st.markdown("**Senha**")
+        senha = st.text_input("", placeholder="Digite sua senha", type="password", key="login_senha")
+
+        # Link “Esqueci” (visual apenas — implemente o fluxo quando quiser)
+        st.markdown("<div class='small-link'>Esqueci minha senha</div>", unsafe_allow_html=True)
+
+        if st.button("Acessar meu Sistema", use_container_width=True, key="btn_login"):
+            login_usuario(email, senha)
+
+        # CTA de cadastro
+        st.markdown("Ainda não tem cadastro na MivCast?")
+        if st.button("📩 Cadastre-se agora", key="btn_ir_cadastro"):
+            st.query_params = {"cadastro": "true"}
+            st.rerun()
+
+
+def login_usuario(email, senha):
+    """Realiza login e ajusta mensagens amigáveis"""
+    try:
+        r = httpx.post(f"{API_URL}/login", data={"username": email, "password": senha})
+        if r.status_code == 200:
+            token = r.json()["access_token"]
+            st.session_state["token"] = token
+            obter_dados_usuario()
+            st.success("✅ Login realizado com sucesso!")
+            st.rerun()
+        else:
+            # Mensagem única e descontraída (sem endpoint pra checar se o e-mail existe)
+            st.info("😅 Não rolou dessa vez. Se você já tem cadastro, tente lembrar a senha ou clique em **Esqueci minha senha** para redefinir. "
+                    "Se ainda não tem conta, toque em **📩 Cadastre-se agora** aqui embaixo e crie a sua rapidinho.")
+    except Exception as e:
+        st.error(f"Erro ao fazer login: {e}")
+
+
+def get_headers():
+    """Gera o cabeçalho com token salvo"""
+    return {"Authorization": f"Bearer {st.session_state.get('token', '')}"}
+
+def obter_dados_usuario():
+    """Consulta os dados do usuário logado"""
+    try:
+        response = httpx.get(f"{API_URL}/minha-conta", headers=get_headers())
+        if response.status_code == 200:
+            st.session_state["dados_usuario"] = response.json()
+        else:
+            st.error("Erro ao obter dados do usuário.")
+            st.session_state["token"] = None
+    except Exception as e:
+        st.error(f"Erro ao consultar perfil: {e}")

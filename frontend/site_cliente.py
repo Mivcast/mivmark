@@ -7,7 +7,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from verificar_acesso import usuario_tem_acesso
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://mivmark-backend.onrender.com"
 
 # 🌐 URL base onde os sites gerados serão publicados na internet
 # Quando você subir o sistema, ajuste a variável de ambiente PUBLIC_SITE_BASE_URL
