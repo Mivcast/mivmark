@@ -180,7 +180,7 @@ def tela_inicio():
     headers = {"Authorization": f"Bearer {st.session_state.token}"}
 
     import httpx
-    API_URL = "http://127.0.0.1:8000"
+    API_URL = "https://mivmark-backend.onrender.com"
 
     # Caminhos das imagens
     BASE_DIR = Path(__file__).parent
@@ -569,7 +569,7 @@ def tela_cadastro():
     import streamlit as st
     import httpx
 
-    API_URL = "http://127.0.0.1:8000"
+    API_URL = "https://mivmark-backend.onrender.com"
     st.title("📝 Criar sua conta")
 
     cupons_validos = {
@@ -1856,7 +1856,7 @@ def tela_planos():
 
     st.title("📦 Meus Planos")
 
-    API_URL = "http://127.0.0.1:8000"
+    API_URL = "https://mivmark-backend.onrender.com"
 
     # ----- DADOS DO USUÁRIO -----
     usuario = st.session_state.get("dados_usuario", {}) or {}
