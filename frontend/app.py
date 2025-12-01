@@ -384,6 +384,7 @@ def tela_login_personalizada():
     import base64
     from pathlib import Path
 
+    # ⚠️ Se o set_page_config já estiver em main(), pode remover esta linha
     st.set_page_config(layout="wide")
 
     # Caminho da imagem de fundo
@@ -396,7 +397,9 @@ def tela_login_personalizada():
     # CSS com imagem de fundo usando base64 e layout 60/40
     st.markdown(f"""
         <style>
-        * {{ font-family: 'Segoe UI', sans-serif; }}
+        * {{
+            font-family: 'Segoe UI', sans-serif;
+        }}
         html, body {{
             margin: 0 !important;
             padding: 0 !important;
@@ -442,7 +445,7 @@ def tela_login_personalizada():
             width: 100%;
         }}
 
-        /* 🔵 BOTÃO */
+        /* 🔵 BOTÕES */
         .stButton button {{
             background-color: #265df2;
             color: white;
@@ -452,32 +455,38 @@ def tela_login_personalizada():
             border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
-            width: 90%;
+            width: 100%;
         }}
-
         .stButton button:hover {{
             background-color: #1d47c8;
         }}
 
-        .link, .bottom-text {{
+        .link {{
             font-size: 14px;
             color: #265df2;
             margin-top: 10px;
+            margin-bottom: 16px;
         }}
+
+        .bottom-text {{
+            font-size: 13px;
+            margin-top: 14px;
+        }}
+
+        /* 📱 Ajustes para mobile */
         @media(max-width: 768px) {{
             .left {{
                 display: none;
             }}
             .right {{
-                width: 90% !important;
-                padding: 20px 24px !important;
+                width: 100% !important;
+                padding: 24px 18px !important;
                 max-width: 100% !important;
                 margin: 0 auto !important;
             }}
             .stTextInput > div > input,
-            .stPassword > div > input,
-            .stButton button {{
-                width: 90% !important;
+            .stPassword > div > input {{
+                width: 100% !important;
             }}
         }}
         </style>
@@ -496,35 +505,42 @@ def tela_login_personalizada():
         st.markdown("<p class='subtitle'>Acesse sua conta para gerenciar seu sistema.</p>", unsafe_allow_html=True)
 
         st.markdown("**E-mail**")
-        email = st.text_input("", placeholder="Digite seu e-mail ou usuário")
+        email = st.text_input(
+            "E-mail",
+            placeholder="Digite seu e-mail ou usuário",
+            label_visibility="collapsed",
+        )
 
         st.markdown("**Senha**")
-        senha = st.text_input("", placeholder="Digite sua senha", type="password")
+        senha = st.text_input(
+            "Senha",
+            placeholder="Digite sua senha",
+            type="password",
+            label_visibility="collapsed",
+        )
 
         st.markdown("<div class='link'>Esqueci minha senha</div>", unsafe_allow_html=True)
 
+        # 🔹 Botão de login: apenas chama login_usuario, que já cuida do fluxo todo
         if st.button("Acessar meu Sistema", use_container_width=True):
-            token = login_usuario(email, senha)
-            if token:
-                st.session_state.token = token
-                obter_dados_usuario()
-                st.success("✅ Login realizado com sucesso!")
-                st.rerun()
+            login_usuario(email, senha)
 
-        # Botão cinza como DIV estilizado com clique
+        # 🔹 Chamada pro cadastro logo abaixo do botão de login (sem o usuário precisar rolar tanto)
+        st.markdown("<br/>", unsafe_allow_html=True)
+        st.markdown("Ainda não tem cadastro na MivCast?")
+
+        if st.button("📩 Cadastre-se agora", use_container_width=True):
+            st.query_params = {"cadastro": "true"}
+            st.rerun()
+
+        # 🔹 Texto do teste gratuito fica por último
         st.markdown("""
-        <p style="margin-top: 10px; font-size: 13px;">
+        <p class="bottom-text">
         🆓 <b>Teste gratuito:</b> crie seu cadastro e ganhe <b>7 dias de acesso ao plano Profissional</b> para conhecer todas as funções.
         </p>
         """, unsafe_allow_html=True)
 
-        # Link para cadastro
-
-        st.markdown("Ainda não tem cadastro na MivCast?")
-
-        if st.button("📩 Cadastre-se agora"):
-            st.query_params = {"cadastro": "true"}
-            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 
