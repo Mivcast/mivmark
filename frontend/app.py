@@ -578,6 +578,25 @@ def login_usuario(email, senha):
         st.error(f"Erro ao fazer login: {e}")
 
 
+
+# ------------------- FUNÇÕES DE APOIO DO USUÁRIO -------------------
+
+
+def obter_dados_usuario():
+    """Consulta os dados do usuário logado e guarda em st.session_state"""
+    try:
+        response = httpx.get(f"{API_URL}/minha-conta", headers=get_headers())
+        if response.status_code == 200:
+            st.session_state["dados_usuario"] = response.json()
+        else:
+            st.error("Erro ao obter dados do usuário.")
+            st.session_state["token"] = None
+    except Exception as e:
+        st.error(f"Erro ao consultar perfil: {e}")
+
+
+
+
 # ------------------- CADASTRO E LOGIN -------------------
 
 def tela_cadastro():
