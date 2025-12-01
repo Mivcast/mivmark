@@ -97,10 +97,21 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         select(Usuario).where(Usuario.email == form_data.username)
     ).scalar_one_or_none()
 
-    if not usuario or not pwd_context.verify(form_data.password, usuario.senha_hash):
-        raise HTTPException(status_code=400, detail="Credenciais inválidas.")
+    # 1️⃣ E-mail não encontrado
+    if not usuario:
+        raise HTTPException(
+            status_code=404,
+            detail="EMAIL_NAO_ENCONTRADO"
+        )
 
-    # 🔥 Verifica se o plano do usuário expirou
+    # 2️⃣ Senha incorreta
+    if not pwd_context.verify(form_data.password, usuario.senha_hash):
+        raise HTTPException(
+            status_code=401,
+            detail="SENHA_INCORRETA"
+        )
+
+    # 3️⃣ Verifica se o plano do usuário expirou
     if (
         usuario.tipo_usuario != "admin"
         and usuario.plano_expira_em is not None
@@ -129,6 +140,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         "plano_atual": usuario.plano_atual
         or ("Administrador" if usuario.tipo_usuario == "admin" else "Gratuito"),
     }
+
+
 
 
 # -------------------------------------------------

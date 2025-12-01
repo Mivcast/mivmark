@@ -535,33 +535,48 @@ def tela_login_personalizada():
 def login_usuario(email, senha):
     """Realiza login e retorna o token"""
     try:
-        response = httpx.post(f"{API_URL}/login", data={"username": email, "password": senha})
+        response = httpx.post(
+            f"{API_URL}/login",
+            data={"username": email, "password": senha},
+            timeout=15.0,
+        )
+
         if response.status_code == 200:
-            token = response.json()["access_token"]
+            token = response.json().get("access_token")
+            if not token:
+                st.error("Resposta do servidor sem token de acesso.")
+                return
+
             st.session_state["token"] = token
-            obter_dados_usuario()  # ← Já busca os dados completos após login
+            obter_dados_usuario()  # já puxa os dados do usuário
             st.success("✅ Login realizado com sucesso!")
             st.rerun()
+
+        elif response.status_code == 404:
+            # E-mail não cadastrado
+            st.error("Este e-mail ainda **não está cadastrado**. Clique em *Criar sua conta* para se registrar.")
+
+        elif response.status_code == 401:
+            # Senha incorreta
+            st.error("Senha incorreta. Verifique e tente novamente.")
+
         else:
-            st.error("❌ Email ou senha incorretos.")
+            # Outros erros (500, 422, etc.)
+            detalhe = ""
+            try:
+                detalhe_json = response.json()
+                detalhe = detalhe_json.get("detail", "")
+            except Exception:
+                pass
+
+            if detalhe:
+                st.error(f"Erro ao fazer login ({response.status_code}): {detalhe}")
+            else:
+                st.error(f"Erro ao fazer login ({response.status_code}).")
+
     except Exception as e:
         st.error(f"Erro ao fazer login: {e}")
 
-def get_headers():
-    """Gera o cabeçalho com token salvo"""
-    return {"Authorization": f"Bearer {st.session_state.get('token', '')}"}
-
-def obter_dados_usuario():
-    """Consulta os dados do usuário logado"""
-    try:
-        response = httpx.get(f"{API_URL}/minha-conta", headers=get_headers())
-        if response.status_code == 200:
-            st.session_state["dados_usuario"] = response.json()
-        else:
-            st.error("Erro ao obter dados do usuário.")
-            st.session_state["token"] = None
-    except Exception as e:
-        st.error(f"Erro ao consultar perfil: {e}")
 
 # ------------------- CADASTRO E LOGIN -------------------
 
