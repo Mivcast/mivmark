@@ -2901,7 +2901,7 @@ def main():
 
             /* Caixinha preta ao lado do >> */
             [data-testid="stHeader"]::after {
-                content: "👉 Menu de módulos";
+                content: "👈🏻 Menu de módulos";
                 position: absolute;
                 left: 55px;
                 top: 16px;              /* altura ajustada pra ficar na linha do >> */
