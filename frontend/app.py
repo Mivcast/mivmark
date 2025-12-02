@@ -12,7 +12,6 @@ from site_cliente import tela_site_cliente
 from aplicativos import listar_aplicativos_admin
 from admin.planos import aba_gerenciar_planos
 
-
 API_URL = "https://mivmark-backend.onrender.com"
 
 
@@ -383,9 +382,6 @@ def tela_login_personalizada():
     import streamlit as st
     import base64
     from pathlib import Path
-
-    # ⚠️ Se o set_page_config já estiver em main(), pode remover esta linha
-    st.set_page_config(layout="wide")
 
     # Caminho da imagem de fundo
     caminho_imagem = Path("frontend/img/telalogin.jpg")  # ou .png se for o caso
@@ -2790,8 +2786,7 @@ def tela_detalhe_curso(curso_id: int):
 
 
 
-def get_headers():
-    return {"Authorization": f"Bearer {st.session_state.token}"}
+
 
 def tela_aplicativos():
     if not usuario_tem_acesso("aplicativos"):
@@ -2891,6 +2886,37 @@ def main():
 
     # Agora segue normalmente com usuário logado
     if st.session_state.token:
+
+        # 🔤 "Menu de módulos" em uma caixinha preta ao lado do >>
+        st.markdown("""
+        <style>
+        @media (max-width: 768px) {
+
+            /* Header fixo no topo */
+            [data-testid="stHeader"] {
+                position: sticky;
+                top: 0;
+                z-index: 999;
+            }
+
+            /* Caixinha preta ao lado do >> */
+            [data-testid="stHeader"]::after {
+                content: "👉 Menu de módulos";
+                position: absolute;
+                left: 55px;
+                top: 16px;              /* altura ajustada pra ficar na linha do >> */
+                padding: 6px 12px;
+                background-color: #000000;
+                color: #ffffff;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 600;
+                white-space: nowrap;
+            }
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
         obter_dados_usuario()
         usuario = st.session_state.dados_usuario
         plano = usuario.get("plano_atual") or "Gratuito"
@@ -2920,8 +2946,6 @@ def main():
             if st.sidebar.button("⚙️ Painel Admin"):
                 st.session_state.admin = True
 
-
-
     # --- Painel admin mantém a lógica atual ---
     if st.session_state.admin:
         painel_admin()
@@ -2929,6 +2953,9 @@ def main():
             st.session_state.admin = False
             st.rerun()
         return
+
+
+
 
     # --- MENU LATERAL: sempre aparece ---
     st.sidebar.title("📚 Menu")
@@ -3035,4 +3062,8 @@ def main():
 # Executa o app
 if __name__ == "__main__":
     main()
+
+
+
+
 
