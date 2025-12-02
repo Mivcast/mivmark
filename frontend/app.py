@@ -396,13 +396,17 @@ def tela_login_personalizada():
         * {{
             font-family: 'Segoe UI', sans-serif;
         }}
+
         html, body {{
             margin: 0 !important;
             padding: 0 !important;
         }}
-        .css-18e3th9, .block-container {{
-            padding: 0rem !important;
+
+        /* 👉 NÃO zeramos mais tudo, deixamos uma borda lateral */
+        .block-container {{
+            padding: 0rem 1rem 0rem !important;  /* 1rem de borda nos lados */
         }}
+
         .left {{
             flex: 6;
             background: url("data:image/jpeg;base64,{imagem_base64}") center center no-repeat;
@@ -411,6 +415,7 @@ def tela_login_personalizada():
             margin: 0 !important;
             padding: 0 !important;
         }}
+
         .right {{
             flex: 4;
             max-width: 480px;
@@ -418,11 +423,13 @@ def tela_login_personalizada():
             padding: 60px 40px;
             background-color: white;
         }}
+
         h1 {{
             font-size: 32px;
             font-weight: bold;
             margin-bottom: 10px;
         }}
+
         .subtitle {{
             color: #666;
             margin-bottom: 40px;
@@ -433,6 +440,7 @@ def tela_login_personalizada():
             width: 90% !important;
             margin-bottom: 10px;
         }}
+
         .stTextInput > div > input,
         .stPassword > div > input {{
             padding: 12px;
@@ -471,15 +479,27 @@ def tela_login_personalizada():
 
         /* 📱 Ajustes para mobile */
         @media(max-width: 768px) {{
+
+            /* Esconde a imagem da esquerda */
             .left {{
                 display: none;
             }}
+
+            /* Deixa o conteúdo da direita CENTRALIZADO, com borda e menos padding */
             .right {{
+                flex: 1;
                 width: 100% !important;
-                padding: 24px 18px !important;
-                max-width: 100% !important;
-                margin: 0 auto !important;
+                max-width: 420px !important;
+                padding: 28px 20px !important;       /* menos espaço vertical e boa borda lateral */
+                margin: 16px auto !important;         /* centraliza e dá respiro em cima/baixo */
+                border-radius: 16px;
+                box-shadow: 0 0 12px rgba(0,0,0,0.06);
             }}
+
+            .stTextInput, .stPassword {{
+                width: 100% !important;
+            }}
+
             .stTextInput > div > input,
             .stPassword > div > input {{
                 width: 100% !important;
