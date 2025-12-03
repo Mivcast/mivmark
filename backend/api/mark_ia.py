@@ -1,17 +1,23 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from openai import AsyncOpenAI
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+from sqlalchemy.orm import Session
+
 import os
 import json
-import httpx
 import time
-from typing import Any, Dict, List, Optional
+
+from backend.database import get_db
+from backend.models import Empresa
 
 router = APIRouter()
 
-# Diretórios base
+# ---------------------------------------------------------
+# CAMINHOS (iguais ao padrão antigo do MARK) :contentReference[oaicite:0]{index=0}
+# ---------------------------------------------------------
 BACKEND_DIR = Path(__file__).resolve().parent.parent  # backend/
 PROJECT_DIR = BACKEND_DIR.parent                     # raiz do projeto
 
@@ -21,19 +27,21 @@ CAMINHO_PERFIL = PROJECT_DIR / "memory" / "perfil_matheus.json"
 
 CAMINHO_HISTORICO.parent.mkdir(parents=True, exist_ok=True)
 
+# ---------------------------------------------------------
+# OPENAI CLIENT :contentReference[oaicite:1]{index=1}
+# ---------------------------------------------------------
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise RuntimeError("Variável de ambiente OPENAI_API_KEY não definida.")
 
 client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
-# Modelo padrão do MARK (pode trocar no .env com MARK_MODEL=...)
 MARK_MODEL_DEFAULT = os.getenv("MARK_MODEL", "gpt-4o-mini")
 
-# Endpoint interno com os dados da empresa (já existe no seu sistema)
-EMPRESA_MARK_URL = os.getenv("EMPRESA_MARK_URL", "http://127.0.0.1:8000/empresa_mark")
 
-
+# ---------------------------------------------------------
+# MODELOS Pydantic (mantidos compatíveis) :contentReference[oaicite:2]{index=2}
+# ---------------------------------------------------------
 class EntradaMARK(BaseModel):
     mensagem: str
     usuario_id: Optional[int] = None
@@ -45,9 +53,9 @@ class EntradaSimples(BaseModel):
     mensagem: str
 
 
-# ---------------------- Auxiliares ----------------------
-
-
+# ---------------------------------------------------------
+# AUXILIARES
+# ---------------------------------------------------------
 def carregar_instrucoes_mark() -> str:
     """Lê o arquivo mark_instrucoes.txt ou usa um fallback padrão."""
     if CAMINHO_INSTRUCOES.exists():
@@ -74,16 +82,45 @@ def carregar_perfil_matheus() -> Optional[Dict[str, Any]]:
         return None
 
 
+def empresa_to_dict(empresa: Empresa) -> Dict[str, Any]:
+    """Converte o modelo Empresa em dict simples."""
+    if not empresa:
+        return {}
+
+    return {
+        "id": getattr(empresa, "id", None),
+        "usuario_id": getattr(empresa, "usuario_id", None),
+        "nome_empresa": getattr(empresa, "nome_empresa", None),
+        "descricao": getattr(empresa, "descricao", None),
+        "nicho": getattr(empresa, "nicho", None),
+        "logo_url": getattr(empresa, "logo_url", None),
+        "funcionarios": getattr(empresa, "funcionarios", None),
+        "produtos": getattr(empresa, "produtos", None),
+        "redes_sociais": getattr(empresa, "redes_sociais", None),
+        "informacoes_adicionais": getattr(empresa, "informacoes_adicionais", None),
+        "cnpj": getattr(empresa, "cnpj", None),
+        "rua": getattr(empresa, "rua", None),
+        "numero": getattr(empresa, "numero", None),
+        "bairro": getattr(empresa, "bairro", None),
+        "cidade": getattr(empresa, "cidade", None),
+        "cep": getattr(empresa, "cep", None),
+        "atualizado_em": (
+            empresa.atualizado_em.isoformat()
+            if getattr(empresa, "atualizado_em", None)
+            else None
+        ),
+    }
+
+
 def filtrar_dados_empresa(empresa_bruta: Any) -> Dict[str, Any]:
     """
     Limpa / resume os dados da empresa para não mandar lixo desnecessário para a IA.
-    Remove base64 de logo e reduz listas muito grandes.
+    (versão adaptada do código antigo). :contentReference[oaicite:3]{index=3}
     """
-    if isinstance(empresa_bruta, list):
-        if not empresa_bruta:
-            return {}
-        empresa = dict(empresa_bruta[0])
-    elif isinstance(empresa_bruta, dict):
+    if not empresa_bruta:
+        return {}
+
+    if isinstance(empresa_bruta, dict):
         empresa = dict(empresa_bruta)
     else:
         return {}
@@ -96,7 +133,7 @@ def filtrar_dados_empresa(empresa_bruta: Any) -> Dict[str, Any]:
     # Simplificar funcionários
     if isinstance(empresa.get("funcionarios"), list):
         empresa["funcionarios"] = [
-            {"nome": f.get("nome"), "cargo": f.get("cargo")}
+            {"nome": f.get("nome"), "funcao": f.get("funcao")}
             for f in empresa["funcionarios"]
             if isinstance(f, dict)
         ]
@@ -104,7 +141,7 @@ def filtrar_dados_empresa(empresa_bruta: Any) -> Dict[str, Any]:
     # Simplificar produtos
     if isinstance(empresa.get("produtos"), list):
         empresa["produtos"] = [
-            {"nome": p.get("nome"), "categoria": p.get("categoria")}
+            {"nome": p.get("nome"), "preco": p.get("preco")}
             for p in empresa["produtos"]
             if isinstance(p, dict)
         ]
@@ -133,12 +170,31 @@ def salvar_historico(historico: List[Dict[str, str]]) -> None:
         pass
 
 
-def montar_mensagens_base(texto: str, usuario_id: Optional[int]) -> List[Dict[str, str]]:
+def obter_empresa_do_usuario(db: Session, usuario_id: Optional[int]) -> Dict[str, Any]:
+    """
+    Busca a empresa vinculada ao usuário.
+    Se usuario_id for None ou não tiver empresa, tenta pegar a mais recente. :contentReference[oaicite:4]{index=4}
+    """
+    query = db.query(Empresa)
+
+    if usuario_id is not None:
+        query = query.filter(Empresa.usuario_id == usuario_id)
+
+    empresa = query.order_by(Empresa.atualizado_em.desc()).first()
+    if not empresa:
+        return {}
+
+    return filtrar_dados_empresa(empresa_to_dict(empresa))
+
+
+def montar_mensagens_base(
+    texto: str, usuario_id: Optional[int], db: Session
+) -> List[Dict[str, str]]:
     """
     Monta TODA a lista de mensagens que será enviada para a IA:
     - instruções do MARK
     - perfil do Matheus
-    - dados da empresa
+    - dados da empresa (via banco)
     - pequeno histórico
     - pergunta atual
     """
@@ -151,36 +207,34 @@ def montar_mensagens_base(texto: str, usuario_id: Optional[int]) -> List[Dict[st
     # 2) Perfil do Matheus
     perfil = carregar_perfil_matheus()
     if perfil:
-        mensagens.append({
-            "role": "system",
-            "content": (
-                "Informações sobre o criador do sistema (Matheus Nascimento). "
-                "Use isso para alinhar o estilo de linguagem e o tipo de estratégia sugerida.\n"
-                f"{json.dumps(perfil, ensure_ascii=False, indent=2)}"
-            ),
-        })
+        mensagens.append(
+            {
+                "role": "system",
+                "content": (
+                    "Informações sobre o criador do sistema (Matheus Nascimento). "
+                    "Use isso para alinhar o estilo de linguagem e o tipo de estratégia sugerida.\n"
+                    f"{json.dumps(perfil, ensure_ascii=False, indent=2)}"
+                ),
+            }
+        )
 
-    # 3) Dados da empresa (via /empresa_mark)
-    try:
-        params = {}
-        if usuario_id is not None:
-            params["usuario_id"] = usuario_id
-        r = httpx.get(EMPRESA_MARK_URL, params=params, timeout=5.0)
-        if r.status_code == 200:
-            empresa = filtrar_dados_empresa(r.json())
-        else:
-            empresa = {"erro": f"Não foi possível obter dados da empresa (status {r.status_code})."}
-    except Exception as e:
-        empresa = {"erro": f"Falha ao conectar na API interna de empresa: {e}"}
-
-    mensagens.append({
-        "role": "system",
-        "content": (
+    # 3) Dados da empresa (via banco, não mais via /empresa_mark)
+    empresa = obter_empresa_do_usuario(db, usuario_id)
+    if empresa:
+        conteudo_empresa = (
             "Dados reais da empresa do usuário. Use SEMPRE essas informações para personalizar a resposta. "
             "Se algo estiver vazio, faça perguntas de diagnóstico antes de sugerir ações.\n"
             f"{json.dumps(empresa, ensure_ascii=False, indent=2)}"
-        ),
-    })
+        )
+    else:
+        conteudo_empresa = (
+            "ATENÇÃO: o sistema NÃO localizou dados de empresa para este usuário.\n"
+            "Explique isso de forma educada ao usuário e oriente a preencher o módulo 'Empresa' "
+            "no sistema MivMark para que você consiga personalizar melhor as respostas. "
+            "Enquanto isso, responda de forma mais genérica, sem inventar dados."
+        )
+
+    mensagens.append({"role": "system", "content": conteudo_empresa})
 
     # 4) Pequeno histórico anterior (apenas as últimas interações)
     historico = carregar_historico()
@@ -196,7 +250,9 @@ def montar_mensagens_base(texto: str, usuario_id: Optional[int]) -> List[Dict[st
     return mensagens
 
 
-async def chamar_openai(mensagens: List[Dict[str, str]], modelo: Optional[str] = None) -> str:
+async def chamar_openai(
+    mensagens: List[Dict[str, str]], modelo: Optional[str] = None
+) -> str:
     """Chamada padrão (não streaming) para a OpenAI."""
     modelo_usado = modelo or MARK_MODEL_DEFAULT
     inicio = time.monotonic()
@@ -215,11 +271,11 @@ async def chamar_openai(mensagens: List[Dict[str, str]], modelo: Optional[str] =
     return conteudo.strip()
 
 
-# ---------------------- Endpoints ----------------------
-
-
+# ---------------------------------------------------------
+# ENDPOINTS PRINCIPAIS (compatíveis com versão antiga) :contentReference[oaicite:5]{index=5}
+# ---------------------------------------------------------
 @router.post("/responder")
-async def responder_mark(entrada: EntradaMARK):
+async def responder_mark(entrada: EntradaMARK, db: Session = Depends(get_db)):
     """
     Endpoint tradicional, que retorna a resposta inteira em JSON.
     Ainda é usado pelo sistema (e pode servir de fallback).
@@ -228,7 +284,7 @@ async def responder_mark(entrada: EntradaMARK):
     if not texto:
         return {"resposta": "Me envie uma pergunta ou contexto para que eu possa te ajudar."}
 
-    mensagens = montar_mensagens_base(texto, entrada.usuario_id)
+    mensagens = montar_mensagens_base(texto, entrada.usuario_id, db)
     resposta_texto = await chamar_openai(mensagens, entrada.modelo)
 
     historico = carregar_historico()
@@ -242,18 +298,20 @@ async def responder_mark(entrada: EntradaMARK):
 
 
 @router.post("/stream")
-async def stream_mark(entrada: EntradaMARK):
+async def stream_mark(entrada: EntradaMARK, db: Session = Depends(get_db)):
     """
     Endpoint com STREAMING de tokens.
-    O front (Streamlit) vai consumir isso em tempo real.
+    O front (HTML/Streamlit) consome isso em tempo real.
     """
     texto = (entrada.mensagem or "").strip()
     if not texto:
+
         async def gen_vazio():
             yield "Me envie uma pergunta ou contexto para que eu possa te ajudar."
+
         return StreamingResponse(gen_vazio(), media_type="text/plain; charset=utf-8")
 
-    mensagens = montar_mensagens_base(texto, entrada.usuario_id)
+    mensagens = montar_mensagens_base(texto, entrada.usuario_id, db)
     modelo_usado = entrada.modelo or MARK_MODEL_DEFAULT
 
     async def token_generator():
@@ -271,7 +329,6 @@ async def stream_mark(entrada: EntradaMARK):
                 delta = chunk.choices[0].delta.content or ""
                 if delta:
                     full += delta
-                    # envia só o pedaço novo
                     yield delta
         except Exception as e:
             err = f"\n[ERRO IA] {e}"
