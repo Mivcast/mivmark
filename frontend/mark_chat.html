@@ -244,8 +244,21 @@
   <script>
     console.log("MARK chat carregado");
 
-    // 👉 BACKEND LOCAL (para o Render você troca pelo domínio do backend)
-    const API_URL = "http://127.0.0.1:8000"; // online: "https://mivmark-backend.onrender.com"
+    // 👉 Detecta se está no local ou no servidor
+    let API_URL;
+
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    ) {
+      // Ambiente local
+      API_URL = "http://127.0.0.1:8000";
+    } else {
+      // Ambiente online — Render (coloque seu domínio oficial aqui)
+      API_URL = "https://mivmark-backend.onrender.com";
+    }
+
+console.log("API usada pelo MARK:", API_URL);
 
     // ID do usuário injetado pelo Streamlit
     const USUARIO_ID = "{{USUARIO_ID}}";
