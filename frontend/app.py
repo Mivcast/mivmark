@@ -1721,7 +1721,7 @@ Descrição: {empresa.get('descricao', '')}"""
     # 🔹 renderiza o chat ocupando uma boa altura
     components.html(
         html_code,
-        height=850,          # pode ajustar esse valor depois se quiser
+        height=750,          # pode ajustar esse valor depois se quiser
         scrolling=True,
     )
 

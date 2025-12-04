@@ -23,6 +23,16 @@
 
 
   <style>
+    
+    // 🔹 Corrige altura 100% em celulares (iOS / Android)
+    function updateVh() {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    updateVh();
+    window.addEventListener('resize', updateVh);
+    window.addEventListener('orientationchange', updateVh);
+
     * {
       box-sizing: border-box;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -34,16 +44,18 @@
       background: #f4f5fb;
     }
 
+    :root { --vh: 1vh; }
+
     .chat-container {
       width: 100%;
       max-width: 100%;
-      margin: 0;
+      margin: 0 auto;
       background: #ffffff;
-      border-radius: 0;           /* ou 12px, se quiser só um pouco */
-      box-shadow: none;           /* tira a sombra, fica mais “app” */
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
       display: flex;
       flex-direction: column;
-      height: 720px;
+      height: calc(var(--vh) * 100 - 32px); /* 100% da área útil - padding do body */
       overflow: hidden;
     }
 
@@ -202,8 +214,8 @@
         padding: 8px;
       }
       .chat-container {
-        height: calc(100vh - 16px);
-        border-radius: 12px;
+        height: calc(var(--vh) * 100 - 16px);
+        border-radius: 0; /* se quiser ele encostado nas laterais no mobile */
       }
       .msg-bubble {
         max-width: 85%;
@@ -340,6 +352,15 @@ console.log("API usada pelo MARK:", API_URL);
           bubble.textContent = resposta;
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
+        // 🔊 Fala em voz alta a resposta completa (Text-To-Speech)
+        if ("speechSynthesis" in window && resposta) {
+          const utterance = new SpeechSynthesisUtterance(resposta);
+          utterance.lang = "pt-BR";
+          utterance.rate = 2;
+          utterance.pitch = 2;
+          window.speechSynthesis.cancel();  
+          window.speechSynthesis.speak(utterance);
+        }
       } catch (e) {
         console.error(e);
         addMessage("Erro ao falar com o MARK. Verifique se o backend está rodando.", "mark");
@@ -374,10 +395,48 @@ console.log("API usada pelo MARK:", API_URL);
       }
     });
 
-    // Botão de voz – placeholder por enquanto
+    // 🎙️ Reconhecimento de voz (fala -> texto)
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = "pt-BR";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+    } else {
+      console.warn("Reconhecimento de voz não suportado neste navegador.");
+    }
+
     micBtn.addEventListener("click", () => {
-      alert("Função de voz em desenvolvimento 😉");
+      if (!recognition) {
+        alert("Seu navegador não suporta reconhecimento de voz. Tente usar o Chrome ou Edge.");
+        return;
+      }
+
+      micBtn.disabled = true;
+      micBtn.classList.add("gravando");
+
+      recognition.start();
     });
+
+    if (recognition) {
+      recognition.addEventListener("result", (event) => {
+        const texto = event.results[0][0].transcript;
+        userInput.value = texto;
+        enviarMensagem();
+      });
+
+      recognition.addEventListener("error", (event) => {
+        console.error("Erro no reconhecimento de voz:", event.error);
+      });
+
+      recognition.addEventListener("end", () => {
+        micBtn.disabled = false;
+        micBtn.classList.remove("gravando");
+      });
+    }
+
   </script>
 </body>
 </html>
