@@ -1684,14 +1684,15 @@ def tela_arquivos():
 
 def tela_mark():
     dados_usuario = st.session_state.get("dados_usuario", {}) or {}
+    # aqui depende de como você salva a empresa na sessão:
     empresa = (
         st.session_state.get("empresa_atual")
         or st.session_state.get("dados_empresa")
         or {}
     )
 
-    # campos reais da empresa (ajusta se for nome_empresa, etc.)
-    empresa_resumo = f"""Nome: {empresa.get('nome_empresa', '')}
+    # monta um resumo em texto da empresa
+    empresa_resumo = f"""Nome: {empresa.get('nome', '')}
 Nicho: {empresa.get('nicho', '')}
 Cidade: {empresa.get('cidade', '')}
 Descrição: {empresa.get('descricao', '')}"""
@@ -1703,27 +1704,7 @@ Descrição: {empresa.get('descricao', '')}"""
     html_code = html_code.replace("{{USUARIO_ID}}", str(dados_usuario.get("id", "")))
     html_code = html_code.replace("{{EMPRESA_RESUMO}}", empresa_resumo)
 
-    # 🔹 tira o espaçamento lá de cima (abaixo do botão "Menu de módulos")
-    st.markdown(
-        """
-        <style>
-        /* tira padding do conteúdo principal */
-        div.block-container {
-            padding-top: 0rem !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # 🔹 renderiza o chat ocupando uma boa altura
-    components.html(
-        html_code,
-        height=750,          # pode ajustar esse valor depois se quiser
-        scrolling=True,
-    )
+    components.html(html_code, height=900, scrolling=False)
 
 
 
@@ -2891,6 +2872,8 @@ def main():
         st.session_state.admin = False
         st.success("Logout realizado.")
         st.rerun()
+
+
 
 
 # Executa o app

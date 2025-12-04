@@ -1,5 +1,4 @@
 import streamlit as st
-from pathlib import Path
 from agenda import tela_agenda  # ✅ Importa a versão visual com calendário
 from datetime import datetime, timedelta
 
@@ -12,7 +11,6 @@ import streamlit.components.v1 as components
 from site_cliente import tela_site_cliente
 from aplicativos import listar_aplicativos_admin
 from admin.planos import aba_gerenciar_planos
-
 
 
 API_URL = "https://mivmark-backend.onrender.com"
@@ -386,6 +384,8 @@ def tela_login_personalizada():
     import base64
     from pathlib import Path
 
+    st.set_page_config(layout="wide")
+
     # Caminho da imagem de fundo
     caminho_imagem = Path("frontend/img/telalogin.jpg")  # ou .png se for o caso
     imagem_base64 = ""
@@ -396,20 +396,14 @@ def tela_login_personalizada():
     # CSS com imagem de fundo usando base64 e layout 60/40
     st.markdown(f"""
         <style>
-        * {{
-            font-family: 'Segoe UI', sans-serif;
-        }}
-
+        * {{ font-family: 'Segoe UI', sans-serif; }}
         html, body {{
             margin: 0 !important;
             padding: 0 !important;
         }}
-
-        /* 👉 NÃO zeramos mais tudo, deixamos uma borda lateral */
-        .block-container {{
-            padding: 0rem 1rem 0rem !important;  /* 1rem de borda nos lados */
+        .css-18e3th9, .block-container {{
+            padding: 0rem !important;
         }}
-
         .left {{
             flex: 6;
             background: url("data:image/jpeg;base64,{imagem_base64}") center center no-repeat;
@@ -418,7 +412,6 @@ def tela_login_personalizada():
             margin: 0 !important;
             padding: 0 !important;
         }}
-
         .right {{
             flex: 4;
             max-width: 480px;
@@ -426,13 +419,11 @@ def tela_login_personalizada():
             padding: 60px 40px;
             background-color: white;
         }}
-
         h1 {{
             font-size: 32px;
             font-weight: bold;
             margin-bottom: 10px;
         }}
-
         .subtitle {{
             color: #666;
             margin-bottom: 40px;
@@ -443,7 +434,6 @@ def tela_login_personalizada():
             width: 90% !important;
             margin-bottom: 10px;
         }}
-
         .stTextInput > div > input,
         .stPassword > div > input {{
             padding: 12px;
@@ -452,7 +442,7 @@ def tela_login_personalizada():
             width: 100%;
         }}
 
-        /* 🔵 BOTÕES */
+        /* 🔵 BOTÃO */
         .stButton button {{
             background-color: #265df2;
             color: white;
@@ -462,50 +452,32 @@ def tela_login_personalizada():
             border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
-            width: 100%;
+            width: 90%;
         }}
+
         .stButton button:hover {{
             background-color: #1d47c8;
         }}
 
-        .link {{
+        .link, .bottom-text {{
             font-size: 14px;
             color: #265df2;
             margin-top: 10px;
-            margin-bottom: 16px;
         }}
-
-        .bottom-text {{
-            font-size: 13px;
-            margin-top: 14px;
-        }}
-
-        /* 📱 Ajustes para mobile */
         @media(max-width: 768px) {{
-
-            /* Esconde a imagem da esquerda */
             .left {{
                 display: none;
             }}
-
-            /* Deixa o conteúdo da direita CENTRALIZADO, com borda e menos padding */
             .right {{
-                flex: 1;
-                width: 100% !important;
-                max-width: 420px !important;
-                padding: 28px 20px !important;       /* menos espaço vertical e boa borda lateral */
-                margin: 16px auto !important;         /* centraliza e dá respiro em cima/baixo */
-                border-radius: 16px;
-                box-shadow: 0 0 12px rgba(0,0,0,0.06);
+                width: 90% !important;
+                padding: 20px 24px !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
             }}
-
-            .stTextInput, .stPassword {{
-                width: 100% !important;
-            }}
-
             .stTextInput > div > input,
-            .stPassword > div > input {{
-                width: 100% !important;
+            .stPassword > div > input,
+            .stButton button {{
+                width: 90% !important;
             }}
         }}
         </style>
@@ -524,42 +496,35 @@ def tela_login_personalizada():
         st.markdown("<p class='subtitle'>Acesse sua conta para gerenciar seu sistema.</p>", unsafe_allow_html=True)
 
         st.markdown("**E-mail**")
-        email = st.text_input(
-            "E-mail",
-            placeholder="Digite seu e-mail ou usuário",
-            label_visibility="collapsed",
-        )
+        email = st.text_input("", placeholder="Digite seu e-mail ou usuário")
 
         st.markdown("**Senha**")
-        senha = st.text_input(
-            "Senha",
-            placeholder="Digite sua senha",
-            type="password",
-            label_visibility="collapsed",
-        )
+        senha = st.text_input("", placeholder="Digite sua senha", type="password")
 
         st.markdown("<div class='link'>Esqueci minha senha</div>", unsafe_allow_html=True)
 
-        # 🔹 Botão de login: apenas chama login_usuario, que já cuida do fluxo todo
         if st.button("Acessar meu Sistema", use_container_width=True):
-            login_usuario(email, senha)
+            token = login_usuario(email, senha)
+            if token:
+                st.session_state.token = token
+                obter_dados_usuario()
+                st.success("✅ Login realizado com sucesso!")
+                st.rerun()
 
-        # 🔹 Chamada pro cadastro logo abaixo do botão de login (sem o usuário precisar rolar tanto)
-        st.markdown("<br/>", unsafe_allow_html=True)
-        st.markdown("Ainda não tem cadastro na MivCast?")
-
-        if st.button("📩 Cadastre-se agora", use_container_width=True):
-            st.query_params = {"cadastro": "true"}
-            st.rerun()
-
-        # 🔹 Texto do teste gratuito fica por último
+        # Botão cinza como DIV estilizado com clique
         st.markdown("""
-        <p class="bottom-text">
+        <p style="margin-top: 10px; font-size: 13px;">
         🆓 <b>Teste gratuito:</b> crie seu cadastro e ganhe <b>7 dias de acesso ao plano Profissional</b> para conhecer todas as funções.
         </p>
         """, unsafe_allow_html=True)
 
-        st.markdown("</div>", unsafe_allow_html=True)
+        # Link para cadastro
+
+        st.markdown("Ainda não tem cadastro na MivCast?")
+
+        if st.button("📩 Cadastre-se agora"):
+            st.query_params = {"cadastro": "true"}
+            st.rerun()
 
 
 
@@ -1682,50 +1647,237 @@ def tela_arquivos():
 
 
 
+
 def tela_mark():
-    dados_usuario = st.session_state.get("dados_usuario", {}) or {}
-    empresa = (
-        st.session_state.get("empresa_atual")
-        or st.session_state.get("dados_empresa")
-        or {}
-    )
+    # ⚠️ Verificação de acesso: Admin sempre tem acesso total
+    email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
+    if email_usuario != "matheus@email.com":
+        if not usuario_tem_acesso("mark"):
+            mostrar_bloqueio_modulo("MARK IA (Chat Inteligente)")
+            st.stop()
 
-    # campos reais da empresa (ajusta se for nome_empresa, etc.)
-    empresa_resumo = f"""Nome: {empresa.get('nome_empresa', '')}
-Nicho: {empresa.get('nicho', '')}
-Cidade: {empresa.get('cidade', '')}
-Descrição: {empresa.get('descricao', '')}"""
+    # 🔹 Garante que o histórico do chat exista
+    if "chat" not in st.session_state:
+        st.session_state.chat = []
 
-    html_path = Path("frontend/mark_chat.html")
-    html_code = html_path.read_text(encoding="utf-8")
-
-    # injeta os placeholders
-    html_code = html_code.replace("{{USUARIO_ID}}", str(dados_usuario.get("id", "")))
-    html_code = html_code.replace("{{EMPRESA_RESUMO}}", empresa_resumo)
-
-    # 🔹 tira o espaçamento lá de cima (abaixo do botão "Menu de módulos")
+    # 🎨 Estilo do botão ENVIAR (preto com texto branco)
     st.markdown(
         """
         <style>
-        /* tira padding do conteúdo principal */
-        div.block-container {
-            padding-top: 0rem !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
+        button[data-testid="baseButton-secondary"],
+        button[data-testid="baseButton-secondaryFormSubmit"] {
+            background-color: #000000 !important;
+            color: #FFFFFF !important;
+            border-radius: 999px !important;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    # 🔹 renderiza o chat ocupando uma boa altura
-    components.html(
-        html_code,
-        height=750,          # pode ajustar esse valor depois se quiser
-        scrolling=True,
+    # 🎨 Estilos da linha de input do MARK
+    st.markdown(
+        """
+        <style>
+        /* input principal do chat */
+        div[data-testid="stForm"] input[type="text"] {
+            height: 44px !important;
+            border-radius: 999px !important;
+            padding: 0 16px !important;
+            font-size: 14px !important;
+        }
+
+        /* centralizar verticalmente as colunas dentro do form */
+        div[data-testid="stForm"] div[data-testid="column"] {
+            display: flex;
+            align-items: center;
+        }
+
+        /* remover label padrão do uploader */
+        div[data-testid="stFileUploader"] > label {
+            display: none !important;
+        }
+
+        /* remover qualquer texto interno do uploader */
+        div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] * {
+            display: none !important;
+        }
+
+        /* estilizar o uploader como botão redondo com + */
+        div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
+            padding: 0 !important;
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 999px !important;
+            border: 1px solid #cccccc !important;
+            background-color: #f5f5f5 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]::before {
+            content: "+";
+            font-size: 24px;
+            color: #333333;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
     )
 
+    # ✅ Bloco com guia visual do MARK com avatar personalizado
+    from pathlib import Path
+    import base64
 
+    def carregar_imagem_base64(caminho):
+        with open(caminho, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+
+    CAMINHO_AVATAR = Path(__file__).parent / "img" / "avatar.jpeg"
+    avatar_base64 = carregar_imagem_base64(CAMINHO_AVATAR)
+
+    st.markdown(
+        f"""
+    <div style="background-color:#d0e7fe; border-left: 6px solid #0f00ff; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+        <div style="display: flex; align-items: center;">
+            <img src="data:image/jpeg;base64,{avatar_base64}" alt="MARK IA" width="100" style="margin-right: 15px; border-radius: 50%;">
+            <div>
+                <h3 style="margin-bottom: 5px;">🤖 Chat Inteligente da MivCast</h3>
+                <p style="margin: 0; color: #333;">
+                    Converse comigo para tirar dúvidas, criar conteúdos, montar campanhas ou resolver qualquer desafio da sua empresa. Estou conectado aos seus dados reais.
+                </p>
+                <p style="margin: 0; margin-top: 10px; color: #555;">
+                    💬 <strong>Dica do MARK:</strong> Use frases diretas como “crie uma legenda para meu produto X” ou “me mostre ideias de reels para meu nicho”.
+                </p>
+            </div>
+        </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    nome = st.session_state.dados_usuario.get("nome")
+    plano = st.session_state.dados_usuario.get("plano_atual", "desconhecido")
+    tipo = st.session_state.dados_usuario.get("tipo_usuario", "cliente")
+    usuario_id = st.session_state.dados_usuario.get("id")
+
+    st.info(f"Olá, {nome}! Você está no plano **{plano}** como **{tipo}**.")
+    st.write(
+        "Digite abaixo sua pergunta e o MARK vai te ajudar com base nos dados da sua empresa."
+    )
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+    # 🔹 Histórico do chat (do mais antigo para o mais recente)
+    for autor, mensagem in st.session_state.chat:
+        st.markdown(f"**{autor}**: {mensagem}")
+
+    st.markdown("---")
+
+    # 🔹 Formulário: input + anexo + (futuro) áudio + botão enviar – tudo em 1 linha
+    with st.form("form_mark"):
+        col_input, col_file, col_audio, col_btn = st.columns([5, 0.7, 1.6, 1])
+
+        # INPUT
+        with col_input:
+            pergunta = st.text_input(
+                "",
+                key="input_mark",
+                placeholder="Digite sua pergunta...",
+            )
+
+        # ANEXO – botão redondo com +
+        with col_file:
+            arquivo = st.file_uploader(
+                "",
+                type=["pdf", "png", "jpg", "jpeg"],
+                label_visibility="collapsed",
+                key="upload_mark",
+            )
+
+        # ÁUDIO – texto discreto na mesma linha
+        with col_audio:
+            st.markdown(
+                "<span style='font-size:13px; color:#999;'>🎙️ Voz (em breve)</span>",
+                unsafe_allow_html=True,
+            )
+
+        # ENVIAR
+        with col_btn:
+            enviar = st.form_submit_button("Enviar", use_container_width=True)
+
+    # 👉 Agora, tanto clicar no botão quanto apertar Enter envia a mensagem
+    if enviar and pergunta:
+        # adiciona pergunta no histórico
+        st.session_state.chat.append(("🧑", pergunta))
+
+        # placeholder para status ("MARK está pensando...")
+        status_placeholder = st.empty()
+        status_placeholder.markdown(
+            "⏳ **MARK está analisando seus dados, consultando o método MARK-APP "
+            "e preparando uma resposta personalizada...**"
+        )
+
+        # placeholder para resposta em streaming
+        resposta_placeholder = st.empty()
+        resposta_texto = ""
+
+        try:
+            # 🔹 Consome o endpoint /mark/stream no backend com streaming real
+            with httpx.stream(
+                "POST",
+                f"{API_URL}/mark/stream",
+                json={"mensagem": pergunta, "usuario_id": usuario_id},
+                timeout=60,
+            ) as r:
+                if r.status_code != 200:
+                    raise Exception(f"Erro {r.status_code} ao chamar o MARK.")
+
+                for chunk in r.iter_text():
+                    if not chunk:
+                        continue
+                    resposta_texto += chunk
+                    # Atualiza em tempo real, como se o MARK estivesse digitando
+                    resposta_placeholder.markdown(
+                        f"**🤖 MARK:** {resposta_texto}"
+                    )
+
+            # terminou o streaming: grava no histórico local
+            st.session_state.chat.append(("🤖 MARK", resposta_texto))
+
+            # 👉 Envia a conversa para o backend salvar no histórico
+            try:
+                headers = get_headers()
+
+                # Mensagem do usuário
+                httpx.post(
+                    f"{API_URL}/mark/historico",
+                    json={"remetente": "usuario", "mensagem": pergunta},
+                    headers=headers,
+                    timeout=30,
+                )
+
+                # Resposta do MARK
+                httpx.post(
+                    f"{API_URL}/mark/historico",
+                    json={"remetente": "mark", "mensagem": resposta_texto},
+                    headers=headers,
+                    timeout=30,
+                )
+            except Exception:
+                # Se der erro para salvar, não quebra o chat
+                pass
+
+            status_placeholder.empty()
+
+        except Exception as e:
+            status_placeholder.empty()
+            st.session_state.chat.append(("❌", f"Erro ao falar com o MARK: {e}"))
+
+        # força recarregar a tela para redesenhar o chat com a nova resposta
+        st.rerun()
 
 
 
@@ -2622,7 +2774,8 @@ def tela_detalhe_curso(curso_id: int):
 
 
 
-
+def get_headers():
+    return {"Authorization": f"Bearer {st.session_state.token}"}
 
 def tela_aplicativos():
     if not usuario_tem_acesso("aplicativos"):
@@ -2722,37 +2875,6 @@ def main():
 
     # Agora segue normalmente com usuário logado
     if st.session_state.token:
-
-        # 🔤 "Menu de módulos" em uma caixinha preta ao lado do >>
-        st.markdown("""
-        <style>
-        @media (max-width: 768px) {
-
-            /* Header fixo no topo */
-            [data-testid="stHeader"] {
-                position: sticky;
-                top: 0;
-                z-index: 999;
-            }
-
-            /* Caixinha preta ao lado do >> */
-            [data-testid="stHeader"]::after {
-                content: "👈🏻 Menu de módulos";
-                position: absolute;
-                left: 55px;
-                top: 16px;              /* altura ajustada pra ficar na linha do >> */
-                padding: 6px 12px;
-                background-color: #000000;
-                color: #ffffff;
-                border-radius: 999px;
-                font-size: 12px;
-                font-weight: 600;
-                white-space: nowrap;
-            }
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
         obter_dados_usuario()
         usuario = st.session_state.dados_usuario
         plano = usuario.get("plano_atual") or "Gratuito"
@@ -2782,6 +2904,8 @@ def main():
             if st.sidebar.button("⚙️ Painel Admin"):
                 st.session_state.admin = True
 
+
+
     # --- Painel admin mantém a lógica atual ---
     if st.session_state.admin:
         painel_admin()
@@ -2789,9 +2913,6 @@ def main():
             st.session_state.admin = False
             st.rerun()
         return
-
-
-
 
     # --- MENU LATERAL: sempre aparece ---
     st.sidebar.title("📚 Menu")
@@ -2893,10 +3014,9 @@ def main():
         st.rerun()
 
 
+
+
 # Executa o app
 if __name__ == "__main__":
     main()
-
-
-
 

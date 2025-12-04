@@ -1,5 +1,4 @@
 import streamlit as st
-from pathlib import Path
 from agenda import tela_agenda  # ✅ Importa a versão visual com calendário
 from datetime import datetime, timedelta
 
@@ -12,8 +11,6 @@ import streamlit.components.v1 as components
 from site_cliente import tela_site_cliente
 from aplicativos import listar_aplicativos_admin
 from admin.planos import aba_gerenciar_planos
-
-
 
 API_URL = "https://mivmark-backend.onrender.com"
 
@@ -1682,50 +1679,257 @@ def tela_arquivos():
 
 
 
+
 def tela_mark():
-    dados_usuario = st.session_state.get("dados_usuario", {}) or {}
-    empresa = (
-        st.session_state.get("empresa_atual")
-        or st.session_state.get("dados_empresa")
-        or {}
-    )
+    # ⚠️ Verificação de acesso: Admin sempre tem acesso total
+    email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
+    if email_usuario != "matheus@email.com":
+        if not usuario_tem_acesso("mark"):
+            mostrar_bloqueio_modulo("MARK IA (Chat Inteligente)")
+            st.stop()
 
-    # campos reais da empresa (ajusta se for nome_empresa, etc.)
-    empresa_resumo = f"""Nome: {empresa.get('nome_empresa', '')}
-Nicho: {empresa.get('nicho', '')}
-Cidade: {empresa.get('cidade', '')}
-Descrição: {empresa.get('descricao', '')}"""
+    # 🔹 Garante que o histórico do chat exista
+    if "chat" not in st.session_state:
+        st.session_state.chat = []
 
-    html_path = Path("frontend/mark_chat.html")
-    html_code = html_path.read_text(encoding="utf-8")
-
-    # injeta os placeholders
-    html_code = html_code.replace("{{USUARIO_ID}}", str(dados_usuario.get("id", "")))
-    html_code = html_code.replace("{{EMPRESA_RESUMO}}", empresa_resumo)
-
-    # 🔹 tira o espaçamento lá de cima (abaixo do botão "Menu de módulos")
+    # 🎨 CSS geral SÓ para a tela do MARK
     st.markdown(
         """
         <style>
-        /* tira padding do conteúdo principal */
-        div.block-container {
-            padding-top: 0rem !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
+        /* Esconde toolbar padrão (Deploy, ... ) */
+        header [data-testid="stToolbar"] {
+            display: none !important;
+        }
+
+        /* Deixa o topo mais enxuto na área principal */
+        .main .block-container {
+            padding-top: 0.5rem !important;
+        }
+
+        @media (max-width: 768px) {
+            .main .block-container {
+                padding-top: 0.25rem !important;
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+            }
+        }
+
+        /* Botão ENVIAR: preto com texto branco, arredondado */
+        button[data-testid="baseButton-secondary"],
+        button[data-testid="baseButton-secondaryFormSubmit"] {
+            background-color: #000000 !important;
+            color: #FFFFFF !important;
+            border-radius: 999px !important;
+        }
+
+        /* Input principal do chat dentro do form do MARK */
+        div[data-testid="stForm"] input[type="text"] {
+            height: 44px !important;
+            border-radius: 999px !important;
+            padding: 0 16px !important;
+            font-size: 14px !important;
+        }
+
+        /* Colunas da barra de input alinhadas ao centro */
+        div[data-testid="stForm"] div[data-testid="column"] {
+            display: flex;
+            align-items: center;
+        }
+
+        /* some com o label padrão do uploader */
+        div[data-testid="stFileUploader"] > label {
+            display: none !important;
+        }
+
+        /* remove textos internos do uploader */
+        div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] * {
+            display: none !important;
+        }
+
+        /* Uploader vira botão redondo com símbolo de + */
+        div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
+            padding: 0 !important;
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 999px !important;
+            border: 1px solid #cccccc !important;
+            background-color: #f5f5f5 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]::before {
+            content: "+";
+            font-size: 24px;
+            color: #333333;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    # 🔹 renderiza o chat ocupando uma boa altura
-    components.html(
-        html_code,
-        height=750,          # pode ajustar esse valor depois se quiser
-        scrolling=True,
+    # ✅ Bloco com guia visual do MARK com avatar personalizado
+    from pathlib import Path
+    import base64
+
+    def carregar_imagem_base64(caminho):
+        with open(caminho, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+
+    CAMINHO_AVATAR = Path(__file__).parent / "img" / "avatar.jpeg"
+    avatar_base64 = carregar_imagem_base64(CAMINHO_AVATAR)
+
+    # Card azul mais enxuto (topo do chat)
+    st.markdown(
+        f"""
+    <div style="
+        background-color:#d0e7fe;
+        border-left: 6px solid #0f00ff;
+        padding: 14px 16px;
+        border-radius: 12px;
+        margin-top: 4px;
+        margin-bottom: 14px;
+    ">
+        <div style="display: flex; align-items: center;">
+            <img src="data:image/jpeg;base64,{avatar_base64}"
+                 alt="MARK IA"
+                 width="80"
+                 style="margin-right: 12px; border-radius: 50%;">
+            <div>
+                <h3 style="margin: 0 0 4px 0;">Mark.IA</h3>
+                <p style="margin: 0; color: #555; font-size: 14px;">
+                    💬 Fale com o maior especialista em branding e marketing.
+                </p>
+            </div>
+        </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
     )
 
+    # Info do usuário / plano
+    nome = st.session_state.dados_usuario.get("nome")
+    plano = st.session_state.dados_usuario.get("plano_atual", "desconhecido")
+    tipo = st.session_state.dados_usuario.get("tipo_usuario", "cliente")
+    usuario_id = st.session_state.dados_usuario.get("id")
 
+    st.info(f"Olá, {nome}! Você está no plano **{plano}** como **{tipo}**.")
+    st.write(
+        "Digite abaixo sua pergunta e o MARK vai te ajudar com base nos dados da sua empresa."
+    )
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+    # 🔹 Histórico do chat (do mais antigo para o mais recente)
+    for autor, mensagem in st.session_state.chat:
+        st.markdown(f"**{autor}**: {mensagem}")
+
+    st.markdown("---")
+
+    # 🔹 Formulário: input + anexo + (futuro) áudio + botão enviar – tudo em 1 linha
+    with st.form("form_mark"):
+        col_input, col_file, col_audio, col_btn = st.columns([5, 0.8, 1.4, 1])
+
+        # INPUT
+        with col_input:
+            pergunta = st.text_input(
+                "",
+                key="input_mark",
+                placeholder="Digite sua pergunta...",
+            )
+
+        # ANEXO – botão redondo com +
+        with col_file:
+            arquivo = st.file_uploader(
+                "",
+                type=["pdf", "png", "jpg", "jpeg"],
+                label_visibility="collapsed",
+                key="upload_mark",
+            )
+
+        # ÁUDIO – texto discreto na mesma linha (vamos ativar depois)
+        with col_audio:
+            st.markdown(
+                "<span style='font-size:13px; color:#999;'>🎙️ Voz (em breve)</span>",
+                unsafe_allow_html=True,
+            )
+
+        # ENVIAR
+        with col_btn:
+            enviar = st.form_submit_button("Enviar", use_container_width=True)
+
+    # 👉 Enviar mensagem (botão ou Enter)
+    if enviar and pergunta:
+        # adiciona pergunta no histórico local
+        st.session_state.chat.append(("🧑", pergunta))
+
+        # placeholder para status ("MARK está pensando...")
+        status_placeholder = st.empty()
+        status_placeholder.markdown(
+            "⏳ **MARK está analisando seus dados, consultando o método MARK-APP "
+            "e preparando uma resposta personalizada...**"
+        )
+
+        # placeholder para resposta em streaming
+        resposta_placeholder = st.empty()
+        resposta_texto = ""
+
+        try:
+            # 🔹 Consome o endpoint /mark/stream no backend com streaming real
+            with httpx.stream(
+                "POST",
+                f"{API_URL}/mark/stream",
+                json={"mensagem": pergunta, "usuario_id": usuario_id},
+                timeout=60,
+            ) as r:
+                if r.status_code != 200:
+                    raise Exception(f"Erro {r.status_code} ao chamar o MARK.")
+
+                for chunk in r.iter_text():
+                    if not chunk:
+                        continue
+                    resposta_texto += chunk
+                    # Atualiza em tempo real, como se o MARK estivesse digitando
+                    resposta_placeholder.markdown(
+                        f"**🤖 MARK:** {resposta_texto}"
+                    )
+
+            # terminou o streaming: grava no histórico local
+            st.session_state.chat.append(("🤖 MARK", resposta_texto))
+
+            # 👉 Envia a conversa para o backend salvar no histórico
+            try:
+                headers = get_headers()
+
+                # Mensagem do usuário
+                httpx.post(
+                    f"{API_URL}/mark/historico",
+                    json={"remetente": "usuario", "mensagem": pergunta},
+                    headers=headers,
+                    timeout=30,
+                )
+
+                # Resposta do MARK
+                httpx.post(
+                    f"{API_URL}/mark/historico",
+                    json={"remetente": "mark", "mensagem": resposta_texto},
+                    headers=headers,
+                    timeout=30,
+                )
+            except Exception:
+                # Se der erro para salvar, não quebra o chat
+                pass
+
+            status_placeholder.empty()
+
+        except Exception as e:
+            status_placeholder.empty()
+            st.session_state.chat.append(("❌", f"Erro ao falar com o MARK: {e}"))
+
+        # força recarregar a tela para redesenhar o chat com a nova resposta
+        st.rerun()
 
 
 
@@ -2891,6 +3095,8 @@ def main():
         st.session_state.admin = False
         st.success("Logout realizado.")
         st.rerun()
+
+
 
 
 # Executa o app
