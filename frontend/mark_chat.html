@@ -4,34 +4,21 @@
   <meta charset="UTF-8" />
   <title>MARK.IA Chat</title>
 
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-  }
-
-  /* 🔹 Dá um pequeno respiro no topo só no mobile,
-     pra não cortar o avatar nem o nome "Mark.IA" */
-  @media (max-width: 768px) {
-    body {
-      padding-top: 10px !important;
-    }
-  }
-</style>
-
-
   <style>
-    
-    // 🔹 Corrige altura 100% em celulares (iOS / Android)
-    function updateVh() {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
     }
-    updateVh();
-    window.addEventListener('resize', updateVh);
-    window.addEventListener('orientationchange', updateVh);
+
+    /* 🔹 Dá um pequeno respiro no topo só no mobile,
+       pra não cortar o avatar nem o nome "Mark.IA" */
+    @media (max-width: 768px) {
+      body {
+        padding-top: 10px !important;
+      }
+    }
 
     * {
       box-sizing: border-box;
@@ -203,6 +190,28 @@
       cursor: pointer;
       font-size: 18px;
     }
+    /* 🎙️ Efeito quando o microfone está gravando */
+    .icon-button.gravando {
+      background: #dc2626;
+      border-color: #b91c1c;
+      color: #ffffff;
+      animation: mic-pulse 1s infinite;
+      transform: scale(1.05);
+    }
+
+    /* Animação de "pulsar" ao redor do botão */
+    @keyframes mic-pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+      }
+    }
+
 
     .icon-button:disabled {
       opacity: 0.5;
@@ -222,6 +231,17 @@
       }
     }
   </style>
+
+  <script>
+    // 🔹 Corrige altura 100% em celulares (iOS / Android)
+    function updateVh() {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    window.addEventListener('load', updateVh);
+    window.addEventListener('resize', updateVh);
+    window.addEventListener('orientationchange', updateVh);
+  </script>
 </head>
 <body>
   <div class="chat-container">
@@ -270,7 +290,7 @@
       API_URL = "https://mivmark-backend.onrender.com";
     }
 
-console.log("API usada pelo MARK:", API_URL);
+    console.log("API usada pelo MARK:", API_URL);
 
     // ID do usuário injetado pelo Streamlit
     const USUARIO_ID = "{{USUARIO_ID}}";
@@ -296,12 +316,22 @@ console.log("API usada pelo MARK:", API_URL);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    async function enviarMensagem() {
-      const texto = userInput.value.trim();
+    /**
+     * Envia mensagem para o MARK.
+     * @param {string|null} textoParam  Mensagem já pronta (usado na voz). Se null, lê do textarea.
+     * @param {boolean} origemVoz       true se a pergunta veio do microfone.
+     */
+    async function enviarMensagem(textoParam = null, origemVoz = false) {
+      // Se veio da voz, usamos o texto passado; se não, pegamos do textarea
+      const texto = textoParam !== null ? textoParam.trim() : userInput.value.trim();
       if (!texto) return;
 
       addMessage(texto, "user");
-      userInput.value = "";
+
+      // Só limpa o campo se a origem for texto digitado (pra manter coerência visual se quiser)
+      if (!origemVoz) {
+        userInput.value = "";
+      }
       userInput.focus();
 
       sendBtn.disabled = true;
@@ -352,13 +382,15 @@ console.log("API usada pelo MARK:", API_URL);
           bubble.textContent = resposta;
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
+
         // 🔊 Fala em voz alta a resposta completa (Text-To-Speech)
-        if ("speechSynthesis" in window && resposta) {
+        // ✅ Agora SÓ quando a origem for voz
+        if (origemVoz && "speechSynthesis" in window && resposta) {
           const utterance = new SpeechSynthesisUtterance(resposta);
           utterance.lang = "pt-BR";
           utterance.rate = 2;
-          utterance.pitch = 2;
-          window.speechSynthesis.cancel();  
+          utterance.pitch = 0.9;
+          window.speechSynthesis.cancel();
           window.speechSynthesis.speak(utterance);
         }
       } catch (e) {
@@ -370,14 +402,14 @@ console.log("API usada pelo MARK:", API_URL);
       }
     }
 
-    // Botão enviar
-    sendBtn.addEventListener("click", enviarMensagem);
+    // Botão enviar (texto → só texto)
+    sendBtn.addEventListener("click", () => enviarMensagem(null, false));
 
-    // Enter envia / Shift+Enter quebra linha
+    // Enter envia / Shift+Enter quebra linha (texto → só texto)
     userInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        enviarMensagem();
+        enviarMensagem(null, false);
       }
     });
 
@@ -423,8 +455,12 @@ console.log("API usada pelo MARK:", API_URL);
     if (recognition) {
       recognition.addEventListener("result", (event) => {
         const texto = event.results[0][0].transcript;
+
+        // Se quiser mostrar o texto no campo também:
         userInput.value = texto;
-        enviarMensagem();
+
+        // 🚀 Envia como ORIGEM VOZ (ativa TTS)
+        enviarMensagem(texto, true);
       });
 
       recognition.addEventListener("error", (event) => {
@@ -436,7 +472,6 @@ console.log("API usada pelo MARK:", API_URL);
         micBtn.classList.remove("gravando");
       });
     }
-
   </script>
 </body>
 </html>
