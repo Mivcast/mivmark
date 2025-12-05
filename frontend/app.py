@@ -1,10 +1,26 @@
 import streamlit as st
+import os  
 from pathlib import Path
 from agenda import tela_agenda  # ✅ Importa a versão visual com calendário
 from datetime import datetime, timedelta
 
 # ⚙️ A configuração da página deve ser a PRIMEIRA chamada do Streamlit
 st.set_page_config(layout="wide")
+
+hide_streamlit_chrome = """
+<style>
+/* Esconde o menu dos 3 pontinhos do Streamlit */
+#MainMenu {visibility: hidden;}
+
+/* Esconde o rodapé "Made with Streamlit" */
+footer {visibility: hidden;}
+
+/* Esconde o botão "Deploy" padrão do Streamlit */
+.stDeployButton {display: none !important;}
+</style>
+"""
+st.markdown(hide_streamlit_chrome, unsafe_allow_html=True)
+
 
 import httpx
 import datetime
@@ -1682,93 +1698,76 @@ def tela_arquivos():
 
 
 
-def tela_mark():
+def tela_mark_ia():
+    import os
+    import streamlit as st
+    import streamlit.components.v1 as components
 
-    # 🔹 Pega dados do usuário e da empresa
+    # 🔹 Pega o ID do usuário logado (se tiver)
     dados_usuario = st.session_state.get("dados_usuario", {}) or {}
-    empresa = (
-        st.session_state.get("empresa_atual")
-        or st.session_state.get("dados_empresa")
-        or {}
-    )
+    usuario_id = dados_usuario.get("id", "")
 
-    empresa_resumo = f"""Nome: {empresa.get('nome_empresa', '')}
-Nicho: {empresa.get('nicho', '')}
-Cidade: {empresa.get('cidade', '')}
-Descrição: {empresa.get('descricao', '')}"""
-
-    # 🔹 Lê o mark_chat.html original
-    html_path = Path("frontend/mark_chat.html")
+    # 🔹 Lê o HTML do chat
+    caminho_html = os.path.join("frontend", "mark_chat.html")
     try:
-        mark_html = html_path.read_text(encoding="utf-8")
+        with open(caminho_html, "r", encoding="utf-8") as f:
+            html = f.read()
     except FileNotFoundError:
-        st.error("Arquivo 'frontend/mark_chat.html' não encontrado.")
+        st.error(f"Arquivo não encontrado: {caminho_html}")
         return
 
-    # 🔹 Injeta placeholders
-    mark_html = mark_html.replace("{{USUARIO_ID}}", str(dados_usuario.get("id", "")))
-    mark_html = mark_html.replace("{{EMPRESA_RESUMO}}", empresa_resumo)
+    # 🔹 Injeta o ID do usuário dentro do HTML
+    html = html.replace("{{USUARIO_ID}}", str(usuario_id))
 
-    # 🔹 Escapa aspas pra usar dentro de srcdoc
-    mark_html_srcdoc = mark_html.replace('"', "&quot;")
-
-    # 🔹 Wrapper APENAS pra centralizar e dar sombra/borda, sem header extra
-    chat_html = f"""
-    <style>
-    .mark-wrapper-root {{
-        width: 100%;
-        min-height: calc(100vh - 180px);
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        padding: 16px 8px 32px 8px;
-        box-sizing: border-box;
-    }}
-
-    .mark-wrapper-frame {{
-        width: min(900px, 100%);
-        height: min(80vh, 720px);
-        max-height: 720px;
-        border-radius: 16px;
-        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
-        overflow: hidden;
-    }}
-
-    .mark-wrapper-frame iframe {{
-        width: 100%;
-        height: 100%;
-        border: none;
-    }}
-
-    @media (max-width: 768px) {{
-        .mark-wrapper-root {{
-            padding: 8px 4px 16px 4px;
-        }}
-
-        .mark-wrapper-frame {{
-            width: 100%;
-            height: 80vh;
-            border-radius: 12px;
-        }}
-    }}
-    </style>
-
-    <div class="mark-wrapper-root">
-        <div class="mark-wrapper-frame">
-            <iframe srcdoc="{mark_html_srcdoc}"></iframe>
-        </div>
-    </div>
-    """
-
-    components.html(chat_html, height=750, width=0)
-
-
-    st.markdown("## 🤖 MARK IA – Assistente Virtual")
+    # 🔹 CSS global para o iframe do MARK usar quase toda a tela
+    #     – 100vh = altura total da janela
+    #     – subtraímos ~260px para caber header do sistema + margens
     st.markdown(
-        "Converse com o MARK IA em um layout de chat mais confortável. "
-        "O chat abaixo usa o `mark_chat.html`, com backend e botão de voz."
+        """
+        <style>
+          /* Aplica apenas no iframe que contém o chat do MARK,
+             identificado pelo título interno "MARK.IA Chat" */
+          iframe[srcdoc*="MARK.IA Chat"] {
+              width: 100% !important;
+              height: calc(100vh - 260px) !important;
+              border: none;
+              border-radius: 24px;
+              box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+          }
+
+          @media (max-width: 768px) {
+              iframe[srcdoc*="MARK.IA Chat"] {
+                  height: calc(100vh - 220px) !important;
+                  border-radius: 18px;
+              }
+          }
+        </style>
+        """,
+        unsafe_allow_html=True,
     )
-    st.markdown("---")
+
+    # 🔹 Renderiza o chat
+    components.html(
+        html,
+        height=650,        # valor base; o CSS acima sobrescreve com 100vh-calculo
+        scrolling=False,
+    )
+
+    # 🔹 Texto de apoio abaixo do chat (disfarça qualquer restinho de espaço)
+    st.markdown(
+        """
+        ### Como usar o MARK IA
+
+        - Digite sua dúvida na caixa de mensagem do chat acima.  
+        - Clique no botão de **microfone** para falar em vez de digitar (quando disponível).  
+        - Use o botão de **limpar conversa** para começar um novo assunto.  
+
+        Caso alguma parte do layout fique um pouquinho cortada em algum dispositivo,
+        é porque logo abaixo do chat ficam estas instruções e textos de apoio. 😄
+        """
+    )
+
+
 
 
 
@@ -2925,7 +2924,7 @@ def main():
     elif escolha == "📁 **Arquivos**":
         tela_arquivos()
     elif escolha == "🤖 **MARK IA**":
-        tela_mark()
+        tela_mark_ia()
     elif escolha == "🌐 **Página e Chat do Cliente**":
         tela_site_cliente()
     elif escolha == "🚪 **Sair**":
