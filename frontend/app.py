@@ -1725,19 +1725,26 @@ def tela_mark_ia():
     st.markdown(
         """
         <style>
-          /* Aplica apenas no iframe que contém o chat do MARK,
-             identificado pelo título interno "MARK.IA Chat" */
-          iframe[srcdoc*="MARK.IA Chat"] {
+          /* Desktop / notebooks grandes */
+              iframe[srcdoc*="MARK.IA Chat"] {
               width: 100% !important;
-              height: calc(100vh - 260px) !important;
+              height: calc(100vh - 280px) !important;  /* antes 260px */
               border: none;
               border-radius: 24px;
               box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
           }
 
+          /* Tablets e notebooks menores */
+          @media (max-width: 1100px) and (min-width: 769px) {
+              iframe[srcdoc*="MARK.IA Chat"] {
+                  height: calc(100vh - 260px) !important;
+              }
+          }
+
+          /* Celulares em geral */
           @media (max-width: 768px) {
               iframe[srcdoc*="MARK.IA Chat"] {
-                  height: calc(100vh - 220px) !important;
+                  height: calc(100vh - 240px) !important;  /* antes 220px */
                   border-radius: 18px;
               }
           }
@@ -1745,6 +1752,7 @@ def tela_mark_ia():
         """,
         unsafe_allow_html=True,
     )
+
 
     # 🔹 Renderiza o chat
     components.html(
