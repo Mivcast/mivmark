@@ -2805,12 +2805,12 @@ def main():
         </style>
         """, unsafe_allow_html=True)
 
-
         # 🔁 Script para FECHAR automaticamente o menu lateral no mobile
         st.markdown(
             """
             <script>
             document.addEventListener("DOMContentLoaded", function() {
+              // Só queremos esse comportamento em telas pequenas (mobile)
               function isMobile() {
                 return window.innerWidth <= 768;
               }
@@ -2823,22 +2823,53 @@ def main():
               const sidebar = document.querySelector('section[data-testid="stSidebar"]');
               if (!sidebar) return;
 
-              // Quando clicar em algum item (label do radio), fechamos o menu depois
+              // Função para tentar clicar no botão de toggle da sidebar (setinha >>)
+              function fecharSidebar() {
+                // Procura o botão de toggle em diferentes versões do Streamlit
+                const toggle =
+                  document.querySelector('button[aria-label*="sidebar" i]') ||
+                  document.querySelector('button[data-testid="baseButton-headerNoPadding"]') ||
+                  document.querySelector('button[kind="header"]');
+
+                if (toggle) {
+                  toggle.click();
+                }
+              }
+
+              // 1) Quando o usuário clicar em um item do menu (label do radio),
+              //    fechamos a sidebar depois de alguns ms
               sidebar.addEventListener("click", function(event) {
                 const label = event.target.closest("label");
                 if (!label) return;
 
-                // Dá um tempinho pro módulo carregar e então clica no botão de toggle
+                // Dá um tempinho para o módulo carregar e então fecha o menu
                 setTimeout(function() {
-                  const toggle =
-                    document.querySelector('button[title*="sidebar"]') ||
-                    document.querySelector('button[aria-label*="sidebar"]') ||
-                    document.querySelector('button[data-testid="baseButton-headerNoPadding"]');
+                  fecharSidebar();
+                }, 350);
+              });
 
-                  if (toggle) {
-                    toggle.click();
-                  }
-                }, 300);
+              // 2) Gesto de "puxar" (swipe) para fechar a sidebar no mobile
+              let touchStartX = null;
+
+              sidebar.addEventListener("touchstart", function(e) {
+                if (!isMobile()) return;
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+              });
+
+              sidebar.addEventListener("touchend", function(e) {
+                if (!isMobile()) return;
+                if (touchStartX === null) return;
+
+                const touch = e.changedTouches[0];
+                const deltaX = touch.clientX - touchStartX;
+
+                // Se arrastou para a esquerda mais de 50px, fecha
+                if (deltaX < -50) {
+                  fecharSidebar();
+                }
+
+                touchStartX = null;
               });
             });
             </script>
