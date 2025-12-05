@@ -1683,16 +1683,39 @@ def tela_arquivos():
 
 
 def tela_mark():
-    st.markdown("## 🤖 MARK IA – Assistente Virtual")
-    st.markdown(
-        "Converse com o MARK IA em um layout de chat mais confortável. "
-        "Esta é apenas uma versão de teste visual, sem conexão com o backend ainda."
-    )
-    st.markdown("---")
 
-    chat_html = """
+    # 🔹 Pega dados do usuário e da empresa
+    dados_usuario = st.session_state.get("dados_usuario", {}) or {}
+    empresa = (
+        st.session_state.get("empresa_atual")
+        or st.session_state.get("dados_empresa")
+        or {}
+    )
+
+    empresa_resumo = f"""Nome: {empresa.get('nome_empresa', '')}
+Nicho: {empresa.get('nicho', '')}
+Cidade: {empresa.get('cidade', '')}
+Descrição: {empresa.get('descricao', '')}"""
+
+    # 🔹 Lê o mark_chat.html original
+    html_path = Path("frontend/mark_chat.html")
+    try:
+        mark_html = html_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        st.error("Arquivo 'frontend/mark_chat.html' não encontrado.")
+        return
+
+    # 🔹 Injeta placeholders
+    mark_html = mark_html.replace("{{USUARIO_ID}}", str(dados_usuario.get("id", "")))
+    mark_html = mark_html.replace("{{EMPRESA_RESUMO}}", empresa_resumo)
+
+    # 🔹 Escapa aspas pra usar dentro de srcdoc
+    mark_html_srcdoc = mark_html.replace('"', "&quot;")
+
+    # 🔹 Wrapper APENAS pra centralizar e dar sombra/borda, sem header extra
+    chat_html = f"""
     <style>
-    .mark-chat-root {
+    .mark-wrapper-root {{
         width: 100%;
         min-height: calc(100vh - 180px);
         display: flex;
@@ -1700,192 +1723,53 @@ def tela_mark():
         align-items: flex-start;
         padding: 16px 8px 32px 8px;
         box-sizing: border-box;
-    }
+    }}
 
-    .mark-chat-window {
+    .mark-wrapper-frame {{
         width: min(900px, 100%);
         height: min(80vh, 720px);
         max-height: 720px;
-        background: #ffffff;
         border-radius: 16px;
         box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
-        display: flex;
-        flex-direction: column;
         overflow: hidden;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+    }}
 
-    .mark-chat-header {
-        background: linear-gradient(135deg, #0f00ff, #00b4ff);
-        padding: 14px 18px;
-        color: #ffffff;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .mark-chat-header-title {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .mark-chat-header-title span:first-child {
-        font-size: 16px;
-        font-weight: 600;
-    }
-
-    .mark-chat-header-sub {
-        font-size: 12px;
-        opacity: 0.95;
-    }
-
-    .mark-chat-header-badge {
-        font-size: 11px;
-        padding: 4px 8px;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.15);
-        border: 1px solid rgba(255,255,255,0.4);
-    }
-
-    .mark-chat-body {
-        flex: 1;
-        padding: 12px 14px;
-        background: #f3f5fb;
-        overflow-y: auto;
-        font-size: 14px;
-    }
-
-    .mark-msg {
-        margin-bottom: 10px;
-        max-width: 90%;
-        border-radius: 12px;
-        padding: 8px 10px;
-        line-height: 1.4;
-    }
-
-    .mark-msg-bot {
-        background: #ffffff;
-        border: 1px solid #e0e4f0;
-    }
-
-    .mark-msg-user {
-        background: #d0e7fe;
-        margin-left: auto;
-    }
-
-    .mark-msg small {
-        font-size: 11px;
-        color: #6b7280;
-    }
-
-    .mark-chat-input {
-        padding: 10px 12px;
-        border-top: 1px solid #e1e4f2;
-        background: #ffffff;
-    }
-
-    .mark-chat-input-inner {
-        display: flex;
-        gap: 8px;
-    }
-
-    .mark-chat-input-inner input {
-        flex: 1;
-        padding: 10px 12px;
-        border-radius: 999px;
-        border: 1px solid #cfd3e2;
-        font-size: 14px;
-        outline: none;
-    }
-
-    .mark-chat-input-inner button {
-        border-radius: 999px;
+    .mark-wrapper-frame iframe {{
+        width: 100%;
+        height: 100%;
         border: none;
-        padding: 0 16px;
-        font-size: 14px;
-        background: linear-gradient(135deg, #0f00ff, #00b4ff);
-        color: #ffffff;
-        cursor: pointer;
-        white-space: nowrap;
-    }
+    }}
 
-    @media (max-width: 768px) {
-        .mark-chat-root {
+    @media (max-width: 768px) {{
+        .mark-wrapper-root {{
             padding: 8px 4px 16px 4px;
-        }
+        }}
 
-        .mark-chat-window {
+        .mark-wrapper-frame {{
             width: 100%;
             height: 80vh;
-            border-radius: 0.75rem;
-        }
-
-        .mark-chat-body {
-            font-size: 13px;
-        }
-    }
+            border-radius: 12px;
+        }}
+    }}
     </style>
 
-    <div class="mark-chat-root">
-        <div class="mark-chat-window">
-            <div class="mark-chat-header">
-                <div class="mark-chat-header-title">
-                    <span>MARK IA – Assistente Virtual</span>
-                    <span class="mark-chat-header-sub">Online • pronto pra te ajudar</span>
-                </div>
-                <div class="mark-chat-header-badge">
-                    Versão de teste visual
-                </div>
-            </div>
-
-            <div class="mark-chat-body" id="mark-chat-body">
-                <div class="mark-msg mark-msg-bot">
-                    <b>Olá, Matheus! 👋</b><br>
-                    Este é um <b>teste visual</b> do layout de chat do MARK IA dentro de um módulo do sistema.<br>
-                    Digite qualquer coisa abaixo para ver as mensagens aparecendo. (Resposta ainda não ligada ao backend.)
-                    <br><br>
-                    <small>Dica: testa no desktop e no celular pra ver o comportamento da altura e largura.</small>
-                </div>
-            </div>
-
-            <div class="mark-chat-input">
-                <div class="mark-chat-input-inner">
-                    <input id="mark-input" placeholder="Digite sua mensagem e aperte Enter..."
-                           onkeydown="if(event.key==='Enter'){event.preventDefault();window.enviarMarkMensagem();}">
-                    <button onclick="window.enviarMarkMensagem()">Enviar</button>
-                </div>
-            </div>
+    <div class="mark-wrapper-root">
+        <div class="mark-wrapper-frame">
+            <iframe srcdoc="{mark_html_srcdoc}"></iframe>
         </div>
     </div>
-
-    <script>
-    window.enviarMarkMensagem = function() {
-        var input = document.getElementById('mark-input');
-        if (!input) return;
-        var texto = input.value.trim();
-        if (!texto) return;
-
-        var body = document.getElementById('mark-chat-body');
-        if (!body) return;
-
-        var divUser = document.createElement('div');
-        divUser.className = 'mark-msg mark-msg-user';
-        divUser.innerText = texto;
-        body.appendChild(divUser);
-
-        var divBot = document.createElement('div');
-        divBot.className = 'mark-msg mark-msg-bot';
-        divBot.innerHTML = 'Você disse:<br><b>' + texto + '</b><br><small>(resposta apenas de teste visual dentro do módulo)</small>';
-        body.appendChild(divBot);
-
-        body.scrollTop = body.scrollHeight;
-        input.value = '';
-    }
-    </script>
     """
 
-    # Dentro do módulo: largura automática, altura suficiente pra ocupar bem a tela
-    components.html(chat_html, height=720, width=0)
+    components.html(chat_html, height=750, width=0)
+
+
+    st.markdown("## 🤖 MARK IA – Assistente Virtual")
+    st.markdown(
+        "Converse com o MARK IA em um layout de chat mais confortável. "
+        "O chat abaixo usa o `mark_chat.html`, com backend e botão de voz."
+    )
+    st.markdown("---")
+
 
 
 
