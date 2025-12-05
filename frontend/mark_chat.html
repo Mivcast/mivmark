@@ -12,8 +12,6 @@
       width: 100%;
     }
 
-    /* 🔹 Dá um pequeno respiro no topo só no mobile,
-       pra não cortar o avatar nem o nome "Mark.IA" */
     @media (max-width: 768px) {
       body {
         padding-top: 10px !important;
@@ -42,7 +40,7 @@
       box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
       display: flex;
       flex-direction: column;
-      height: calc(var(--vh) * 100 - 32px); /* 100% da área útil - padding do body */
+      height: calc(var(--vh) * 100 - 32px);
       overflow: hidden;
     }
 
@@ -58,8 +56,6 @@
       width: 48px;
       height: 48px;
       border-radius: 999px;
-      overflow: hidden;
-      margin-right: 12px;
       background: linear-gradient(135deg, #1d4ed8, #38bdf8);
       display: flex;
       align-items: center;
@@ -68,16 +64,11 @@
       font-weight: 700;
       font-size: 12px;
       letter-spacing: 0.5px;
+      margin-right: 12px;
     }
 
-.chat-header-avatar .avatar-text {
-  display: block;
-}
-
-    .chat-header-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+    .chat-header-avatar .avatar-text {
+      display: block;
     }
 
     .chat-header-text h1 {
@@ -161,11 +152,6 @@
       max-height: 120px;
     }
 
-    .input-area textarea:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
-    }
-
     .send-button {
       border-radius: 999px;
       border: none;
@@ -175,15 +161,6 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      white-space: nowrap;
-    }
-
-    .send-button:disabled {
-      opacity: 0.5;
-      cursor: default;
     }
 
     .icon-button {
@@ -198,61 +175,58 @@
       cursor: pointer;
       font-size: 18px;
     }
-    /* 🎙️ Efeito quando o microfone está gravando */
+
     .icon-button.gravando {
       background: #dc2626;
       border-color: #b91c1c;
-      color: #ffffff;
+      color: white;
       animation: mic-pulse 1s infinite;
-      transform: scale(1.05);
     }
 
-    /* Animação de "pulsar" ao redor do botão */
     @keyframes mic-pulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
-      }
-      70% {
-        box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
-      }
+      0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
     }
 
+    /* 🔊 Área do botão "Ouvir resposta" */
+    .voice-controls {
+      display: none;
+      justify-content: flex-end;
+      padding: 4px 16px 0 16px;
+    }
 
-    .icon-button:disabled {
-      opacity: 0.5;
-      cursor: default;
+    .voice-button {
+      border-radius: 999px;
+      border: 1px solid #cbd5f5;
+      background: #ffffff;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: #1d4ed8;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
     }
 
     @media (max-width: 768px) {
-      body {
-        padding: 8px;
-      }
-      .chat-container {
-        height: calc(var(--vh) * 100 - 16px);
-        border-radius: 0; /* se quiser ele encostado nas laterais no mobile */
-      }
-      .msg-bubble {
-        max-width: 85%;
-      }
+      .msg-bubble { max-width: 85%; }
     }
   </style>
 
   <script>
-    // 🔹 Corrige altura 100% em celulares (iOS / Android)
+    // Corrige altura real em iOS/Android
     function updateVh() {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     }
     window.addEventListener('load', updateVh);
     window.addEventListener('resize', updateVh);
-    window.addEventListener('orientationchange', updateVh);
   </script>
+
 </head>
+
 <body>
   <div class="chat-container">
+
     <div class="chat-header">
       <div class="chat-header-avatar">
         <span class="avatar-text">MARK</span>
@@ -265,220 +239,216 @@
 
     <div id="chatMessages" class="chat-messages"></div>
 
-    <div id="typing" class="typing-indicator" style="display: none;">
+    <div id="typing" class="typing-indicator" style="display:none;">
       MARK está digitando...
     </div>
 
-    <div class="input-area">
-      <button id="attachBtn" class="icon-button" title="Anexar arquivo">+</button>
-      <textarea id="userInput" placeholder="Digite sua pergunta..."></textarea>
-      <button id="micBtn" class="icon-button" title="Falar por voz">🎤</button>
-      <button id="sendBtn" class="send-button">Enviar</button>
+    <!-- 🔊 Botão para iOS -->
+    <div id="voiceControls" class="voice-controls">
+      <button id="playVoiceBtn" class="voice-button">🔊 Ouvir esta resposta</button>
+    </div>
 
-      <!-- input escondido para anexar arquivos (futuro) -->
+    <div class="input-area">
+      <button id="attachBtn" class="icon-button">+</button>
+      <textarea id="userInput" placeholder="Digite sua pergunta..."></textarea>
+      <button id="micBtn" class="icon-button">🎤</button>
+      <button id="sendBtn" class="send-button">Enviar</button>
       <input type="file" id="fileInput" multiple style="display:none" />
     </div>
+
   </div>
 
-  <script>
-    console.log("MARK chat carregado");
+<script>
+console.log("MARK chat carregado");
 
-    // 👉 Detecta se está no local ou no servidor
-    let API_URL;
+// Detecta iOS
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-    if (
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1"
-    ) {
-      // Ambiente local
-      API_URL = "http://127.0.0.1:8000";
-    } else {
-      // Ambiente online — Render (coloque seu domínio oficial aqui)
-      API_URL = "https://mivmark-backend.onrender.com";
-    }
+// Última resposta salva para botão de voz
+let ultimaResposta = "";
 
-    console.log("API usada pelo MARK:", API_URL);
+// Detecta API
+let API_URL;
+if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+  API_URL = "http://127.0.0.1:8000";
+} else {
+  API_URL = "https://mivmark-backend.onrender.com";
+}
 
-    // ID do usuário injetado pelo Streamlit
-    const USUARIO_ID = "{{USUARIO_ID}}";
+const USUARIO_ID = "{{USUARIO_ID}}";
 
-    const chatMessages = document.getElementById("chatMessages");
-    const userInput    = document.getElementById("userInput");
-    const sendBtn      = document.getElementById("sendBtn");
-    const typing       = document.getElementById("typing");
-    const attachBtn    = document.getElementById("attachBtn");
-    const micBtn       = document.getElementById("micBtn");
-    const fileInput    = document.getElementById("fileInput");
+// Elementos
+const chatMessages = document.getElementById("chatMessages");
+const userInput    = document.getElementById("userInput");
+const sendBtn      = document.getElementById("sendBtn");
+const typing       = document.getElementById("typing");
+const attachBtn    = document.getElementById("attachBtn");
+const micBtn       = document.getElementById("micBtn");
+const fileInput    = document.getElementById("fileInput");
 
-    function addMessage(text, from = "user") {
-      const row = document.createElement("div");
-      row.className = "msg-row " + (from === "user" ? "user" : "mark");
+const voiceControls = document.getElementById("voiceControls");
+const playVoiceBtn  = document.getElementById("playVoiceBtn");
 
-      const bubble = document.createElement("div");
-      bubble.className = "msg-bubble";
-      bubble.textContent = text;
+// Botão "Ouvir esta resposta"
+if (playVoiceBtn && "speechSynthesis" in window) {
+  playVoiceBtn.addEventListener("click", () => {
+    if (!ultimaResposta) return;
+    const u = new SpeechSynthesisUtterance(ultimaResposta);
+    u.lang = "pt-BR";
+    u.rate = 1.5;
+    u.pitch = 0.9;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  });
+}
 
-      row.appendChild(bubble);
-      chatMessages.appendChild(row);
+function addMessage(text, from="user") {
+  const row = document.createElement("div");
+  row.className = "msg-row " + (from === "user" ? "user" : "mark");
+
+  const bubble = document.createElement("div");
+  bubble.className = "msg-bubble";
+  bubble.textContent = text;
+
+  row.appendChild(bubble);
+  chatMessages.appendChild(row);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Envio da mensagem
+async function enviarMensagem(textoParam=null, origemVoz=false) {
+
+  // Sempre esconde o botão de voz antes de nova mensagem
+  voiceControls.style.display = "none";
+
+  const texto = textoParam !== null ? textoParam.trim() : userInput.value.trim();
+  if (!texto) return;
+
+  addMessage(texto, "user");
+
+  if (!origemVoz) userInput.value = "";
+  userInput.focus();
+
+  sendBtn.disabled = true;
+  typing.style.display = "block";
+
+  let resposta = "";
+
+  try {
+    let uid = parseInt(USUARIO_ID, 10);
+    if (Number.isNaN(uid)) uid = null;
+
+    const resp = await fetch(`${API_URL}/mark/stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mensagem: texto, usuario_id: uid })
+    });
+
+    if (!resp.ok || !resp.body) throw new Error("Erro no streaming");
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    // Cria a bolha vazia
+    const row = document.createElement("div");
+    row.className = "msg-row mark";
+    const bubble = document.createElement("div");
+    bubble.className = "msg-bubble";
+    bubble.textContent = "";
+    row.appendChild(bubble);
+    chatMessages.appendChild(row);
+
+    while(true) {
+      const {value, done} = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value);
+      resposta += chunk;
+      bubble.textContent = resposta;
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    /**
-     * Envia mensagem para o MARK.
-     * @param {string|null} textoParam  Mensagem já pronta (usado na voz). Se null, lê do textarea.
-     * @param {boolean} origemVoz       true se a pergunta veio do microfone.
-     */
-    async function enviarMensagem(textoParam = null, origemVoz = false) {
-      // Se veio da voz, usamos o texto passado; se não, pegamos do textarea
-      const texto = textoParam !== null ? textoParam.trim() : userInput.value.trim();
-      if (!texto) return;
+    ultimaResposta = resposta;
 
-      addMessage(texto, "user");
+    // 🔊 Voz automática em PC/Android
+    if (origemVoz && resposta) {
 
-      // Só limpa o campo se a origem for texto digitado (pra manter coerência visual se quiser)
-      if (!origemVoz) {
-        userInput.value = "";
-      }
-      userInput.focus();
-
-      sendBtn.disabled = true;
-      typing.style.display = "block";
-
-      let resposta = "";
-
-      try {
-        // tenta converter o USUARIO_ID para número (se não der, manda null)
-        let uid = parseInt(USUARIO_ID, 10);
-        if (Number.isNaN(uid)) {
-          uid = null;
-        }
-
-        const resp = await fetch(`${API_URL}/mark/stream`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            mensagem: texto,
-            usuario_id: uid
-          })
-        });
-
-        if (!resp.ok || !resp.body) {
-          throw new Error("Falha na requisição ao MARK");
-        }
-
-        const reader = resp.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-
-        // Cria o balão vazio do MARK para ir preenchendo em streaming
-        const row = document.createElement("div");
-        row.className = "msg-row mark";
-        const bubble = document.createElement("div");
-        bubble.className = "msg-bubble";
-        bubble.textContent = "";
-        row.appendChild(bubble);
-        chatMessages.appendChild(row);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          resposta += chunk;
-          bubble.textContent = resposta;
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // 🔊 Fala em voz alta a resposta completa (Text-To-Speech)
-        // ✅ Agora SÓ quando a origem for voz
-        if (origemVoz && "speechSynthesis" in window && resposta) {
-          const utterance = new SpeechSynthesisUtterance(resposta);
-          utterance.lang = "pt-BR";
-          utterance.rate = 1.5;
-          utterance.pitch = 0.9;
-          window.speechSynthesis.cancel();
-          window.speechSynthesis.speak(utterance);
-        }
-      } catch (e) {
-        console.error(e);
-        addMessage("Erro ao falar com o MARK. Verifique se o backend está rodando.", "mark");
-      } finally {
-        sendBtn.disabled = false;
-        typing.style.display = "none";
+      if (isIOS) {
+        voiceControls.style.display = "flex";  // mostra botão manual
+      } else if ("speechSynthesis" in window) {
+        const u = new SpeechSynthesisUtterance(resposta);
+        u.lang = "pt-BR";
+        u.rate = 1.5;
+        u.pitch = 0.9;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
       }
     }
 
-    // Botão enviar (texto → só texto)
-    sendBtn.addEventListener("click", () => enviarMensagem(null, false));
+  } catch (e) {
+    console.error(e);
+    addMessage("Erro ao falar com o MARK.", "mark");
+  }
 
-    // Enter envia / Shift+Enter quebra linha (texto → só texto)
-    userInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        enviarMensagem(null, false);
-      }
-    });
+  sendBtn.disabled = false;
+  typing.style.display = "none";
+}
 
-    // Botão de anexo – abre o seletor
-    attachBtn.addEventListener("click", () => {
-      fileInput.click();
-    });
+// Eventos
+sendBtn.addEventListener("click", () => enviarMensagem(null, false));
 
-    fileInput.addEventListener("change", () => {
-      if (fileInput.files.length > 0) {
-        addMessage(
-          `📎 ${fileInput.files.length} arquivo(s) selecionado(s) (envio ainda em desenvolvimento).`,
-          "mark"
-        );
-      }
-    });
+userInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    enviarMensagem(null, false);
+  }
+});
 
-    // 🎙️ Reconhecimento de voz (fala -> texto)
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognition = null;
+attachBtn.addEventListener("click", () => fileInput.click());
 
-    if (SpeechRecognition) {
-      recognition = new SpeechRecognition();
-      recognition.lang = "pt-BR";
-      recognition.continuous = false;
-      recognition.interimResults = false;
-    } else {
-      console.warn("Reconhecimento de voz não suportado neste navegador.");
-    }
+fileInput.addEventListener("change", () => {
+  if (fileInput.files.length > 0) {
+    addMessage(`📎 ${fileInput.files.length} arquivo(s) selecionado(s).`, "mark");
+  }
+});
 
-    micBtn.addEventListener("click", () => {
-      if (!recognition) {
-        alert("Seu navegador não suporta reconhecimento de voz. Tente usar o Chrome ou Edge.");
-        return;
-      }
+// 🎙️ Voz → Texto
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
 
-      micBtn.disabled = true;
-      micBtn.classList.add("gravando");
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = "pt-BR";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+}
 
-      recognition.start();
-    });
+micBtn.addEventListener("click", () => {
+  if (!recognition) {
+    alert("Navegador não suporta reconhecimento de voz.");
+    return;
+  }
+  micBtn.disabled = true;
+  micBtn.classList.add("gravando");
+  recognition.start();
+});
 
-    if (recognition) {
-      recognition.addEventListener("result", (event) => {
-        const texto = event.results[0][0].transcript;
+if (recognition) {
+  recognition.addEventListener("result", (event) => {
+    const texto = event.results[0][0].transcript;
+    userInput.value = texto;
+    enviarMensagem(texto, true); // origem voz
+  });
 
-        // Se quiser mostrar o texto no campo também:
-        userInput.value = texto;
+  recognition.addEventListener("end", () => {
+    micBtn.disabled = false;
+    micBtn.classList.remove("gravando");
+  });
 
-        // 🚀 Envia como ORIGEM VOZ (ativa TTS)
-        enviarMensagem(texto, true);
-      });
+  recognition.addEventListener("error", (event) => {
+    console.error("Erro voz:", event.error);
+  });
+}
 
-      recognition.addEventListener("error", (event) => {
-        console.error("Erro no reconhecimento de voz:", event.error);
-      });
-
-      recognition.addEventListener("end", () => {
-        micBtn.disabled = false;
-        micBtn.classList.remove("gravando");
-      });
-    }
-  </script>
+</script>
 </body>
 </html>

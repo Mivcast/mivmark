@@ -2805,6 +2805,50 @@ def main():
         </style>
         """, unsafe_allow_html=True)
 
+
+        # 🔁 Script para FECHAR automaticamente o menu lateral no mobile
+        st.markdown(
+            """
+            <script>
+            document.addEventListener("DOMContentLoaded", function() {
+              function isMobile() {
+                return window.innerWidth <= 768;
+              }
+
+              if (!isMobile()) {
+                return;
+              }
+
+              // Sidebar do Streamlit
+              const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+              if (!sidebar) return;
+
+              // Quando clicar em algum item (label do radio), fechamos o menu depois
+              sidebar.addEventListener("click", function(event) {
+                const label = event.target.closest("label");
+                if (!label) return;
+
+                // Dá um tempinho pro módulo carregar e então clica no botão de toggle
+                setTimeout(function() {
+                  const toggle =
+                    document.querySelector('button[title*="sidebar"]') ||
+                    document.querySelector('button[aria-label*="sidebar"]') ||
+                    document.querySelector('button[data-testid="baseButton-headerNoPadding"]');
+
+                  if (toggle) {
+                    toggle.click();
+                  }
+                }, 300);
+              });
+            });
+            </script>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+
+
         obter_dados_usuario()
         usuario = st.session_state.dados_usuario
         plano = usuario.get("plano_atual") or "Gratuito"
