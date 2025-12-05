@@ -2756,7 +2756,6 @@ def tela_checkout_app(app_id):
 # ------------------- INTERFACE PRINCIPAL -------------------
 
 def main():
-    st.set_page_config(page_title="MARK Sistema IA", layout="wide")
 
     query_params = st.query_params
     modo_cadastro = "cadastro" in query_params
@@ -2805,73 +2804,81 @@ def main():
         </style>
         """, unsafe_allow_html=True)
 
-        # 🔁 Script para FECHAR automaticamente o menu lateral no mobile
+        # 🔁 Script para FECHAR automaticamente o menu lateral no mobile (versão 2)
         st.markdown(
             """
             <script>
-            document.addEventListener("DOMContentLoaded", function() {
-              // Só queremos esse comportamento em telas pequenas (mobile)
+            // Coloca tudo em uma função auto-executável pra evitar conflitos
+            (function() {
               function isMobile() {
                 return window.innerWidth <= 768;
               }
 
-              if (!isMobile()) {
-                return;
+              // Tenta achar o botão de toggle do menu do Streamlit
+              function encontrarBotaoToggle() {
+                // alguns possíveis seletores que o Streamlit usa no header
+                const candidatos = Array.from(document.querySelectorAll("button"));
+
+                return candidatos.find(btn => {
+                  const aria = (btn.getAttribute("aria-label") || "").toLowerCase();
+                  const title = (btn.getAttribute("title") || "").toLowerCase();
+                  const texto = (btn.innerText || "").toLowerCase();
+
+                  return (
+                    aria.includes("sidebar") ||
+                    aria.includes("barra lateral") ||
+                    title.includes("sidebar") ||
+                    title.includes("barra lateral") ||
+                    texto.includes("≪") || texto.includes("≫")
+                  );
+                }) || null;
               }
 
-              // Sidebar do Streamlit
-              const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-              if (!sidebar) return;
-
-              // Função para tentar clicar no botão de toggle da sidebar (setinha >>)
               function fecharSidebar() {
-                // Procura o botão de toggle em diferentes versões do Streamlit
-                const toggle =
-                  document.querySelector('button[aria-label*="sidebar" i]') ||
-                  document.querySelector('button[data-testid="baseButton-headerNoPadding"]') ||
-                  document.querySelector('button[kind="header"]');
-
+                const toggle = encontrarBotaoToggle();
                 if (toggle) {
                   toggle.click();
                 }
               }
 
-              // 1) Quando o usuário clicar em um item do menu (label do radio),
-              //    fechamos a sidebar depois de alguns ms
-              sidebar.addEventListener("click", function(event) {
-                const label = event.target.closest("label");
-                if (!label) return;
+              // 1) Fechar quando clicar em qualquer opção de rádio do menu lateral
+              document.addEventListener("click", function(event) {
+                if (!isMobile()) return;
 
-                // Dá um tempinho para o módulo carregar e então fecha o menu
+                // procura um label de radio (onde fica o texto dos módulos)
+                const labelRadio = event.target.closest('label[data-baseweb="radio"]') || event.target.closest("label");
+                if (!labelRadio) return;
+
+                // Dá um tempinho pro Streamlit mudar o conteúdo da página
                 setTimeout(function() {
                   fecharSidebar();
-                }, 350);
-              });
+                }, 400);
+              }, true);
 
-              // 2) Gesto de "puxar" (swipe) para fechar a sidebar no mobile
+              // 2) Gesto de "puxar" (swipe) para fechar a sidebar
               let touchStartX = null;
 
-              sidebar.addEventListener("touchstart", function(e) {
+              document.addEventListener("touchstart", function(e) {
                 if (!isMobile()) return;
                 const touch = e.touches[0];
                 touchStartX = touch.clientX;
-              });
+              }, { passive: true });
 
-              sidebar.addEventListener("touchend", function(e) {
+              document.addEventListener("touchend", function(e) {
                 if (!isMobile()) return;
                 if (touchStartX === null) return;
 
                 const touch = e.changedTouches[0];
                 const deltaX = touch.clientX - touchStartX;
 
-                // Se arrastou para a esquerda mais de 50px, fecha
-                if (deltaX < -50) {
+                // Se arrastar para a esquerda mais de 60px, tenta fechar
+                if (deltaX < -60) {
                   fecharSidebar();
                 }
 
                 touchStartX = null;
               });
-            });
+            })();
             </script>
             """,
             unsafe_allow_html=True,
