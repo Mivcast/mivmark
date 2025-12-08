@@ -12,8 +12,10 @@ from backend import models
 from backend.database import Base, engine
 
 # 🔹 Carrega variáveis do .env (pasta raiz do projeto)
-BASE_DIR = Path(__file__).resolve().parent.parent  # .../backend/..
-load_dotenv(BASE_DIR / ".env")
+BASE_DIR = Path(__file__).resolve().parent
+SITES_DIR = BASE_DIR.parent / "data" / "sites_gerados"
+
+app.mount("/sites", StaticFiles(directory=SITES_DIR, html=True), name="sites")
 
 
 # 🔹 Função utilitária para obter cliente OpenAI (usada em mark_ia.py)

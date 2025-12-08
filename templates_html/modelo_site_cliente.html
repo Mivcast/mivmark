@@ -371,38 +371,62 @@
 
 
 
-<!-- 🔵 Chat do Atendente Virtual Público -->
-    <iframe
-        id="chat-frame"
-        src="/chat_publico?empresa={{empresa_slug}}"
-        style="border:none;width:100%;flex:1;"
-    ></iframe>
+  <!-- 🔵 Chat do Atendente Virtual Público -->
+  <div id="chat-container"
+       style="position:fixed;bottom:90px;right:20px;width:360px;height:430px;max-width:90vw;max-height:80vh;
+              background:#ffffff;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.25);
+              display:none;flex-direction:column;z-index:9999;overflow:hidden;">
+    <div style="background:#2563eb;color:#fff;padding:10px 14px;
+                display:flex;align-items:center;justify-content:space-between;
+                font-size:14px;">
+      <span>🤖 Atendente Virtual</span>
+      <button type="button"
+              onclick="toggleChat()"
+              style="background:transparent;border:none;color:#fff;font-size:16px;cursor:pointer;">
+        ✕
+      </button>
+    </div>
+    <iframe id="chat-frame"
+            src="{{chat_url}}"
+            style="border:none;width:100%;flex:1;"></iframe>
+  </div>
 
+  <!-- Botão flutuante -->
+  <button id="chat-toggle-btn"
+          onclick="toggleChat()"
+          style="position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:999px;
+                 border:none;background:#2563eb;color:#fff;font-size:24px;
+                 display:flex;align-items:center;justify-content:center;
+                 box-shadow:0 10px 25px rgba(0,0,0,0.35);z-index:9998;cursor:pointer;">
+    💬
+  </button>
 
+  <script>
+  function toggleChat() {
+      const box = document.getElementById("chat-container");
+      if (!box) return;
+      box.style.display = (box.style.display === "none" || box.style.display === "") ? "flex" : "none";
+  }
 
+  function adaptarChatMobile() {
+      const box = document.getElementById("chat-container");
+      if (!box) return;
 
-<!-- Botão flutuante para celular -->
-<button id="chat-toggle-btn" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;background:#007bff;color:#fff;border:none;border-radius:50%;width:60px;height:60px;box-shadow:0 0 10px rgba(0,0,0,0.3);font-size:24px;z-index:9998;display:flex;align-items:center;justify-content:center;">💬</button>
+      if (window.innerWidth <= 768) {
+          box.style.width = "90vw";
+          box.style.height = "75vh";
+          box.style.right = "5vw";
+      } else {
+          box.style.width = "360px";
+          box.style.height = "430px";
+          box.style.right = "20px";
+      }
+  }
 
-<script>
-function toggleChat() {
-    const chat = document.getElementById("chat-container");
-    chat.style.display = chat.style.display === "none" ? "flex" : "none";
-}
+  window.addEventListener("load", adaptarChatMobile);
+  window.addEventListener("resize", adaptarChatMobile);
+  </script>
 
-function adaptarChatMobile() {
-    if (window.innerWidth <= 768) {
-        document.getElementById("chat-container").style.width = "90vw";
-        document.getElementById("chat-container").style.height = "80vh";
-        document.getElementById("chat-container").style.bottom = "80px";
-    }
-}
-
-window.addEventListener("load", () => {
-    document.getElementById("chat-toggle-btn").style.display = "flex";
-    adaptarChatMobile();
-});
-</script>
 
 </body>
 

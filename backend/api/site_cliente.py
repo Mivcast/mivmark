@@ -10,10 +10,13 @@ import shutil
 
 router = APIRouter()
 
-# Diretórios base independentes da pasta onde o servidor é iniciado
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-CAMINHO_MODELO = BASE_DIR / "templates_html" / "modelo_site_cliente.html"
-PASTA_SAIDA = BASE_DIR / "data" / "sites_gerados"
+BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
+RAIZ_PROJETO = BASE_DIR.parent                    # C:\Projetos\mivmark
+
+CAMINHO_MODELO = RAIZ_PROJETO / "templates_html" / "modelo_site_cliente.html"
+PASTA_SAIDA = RAIZ_PROJETO / "data" / "sites_gerados"
+ASSETS_ORIGEM = RAIZ_PROJETO / "templates_html" / "assets"
+ASSETS_DESTINO = PASTA_SAIDA / "assets"
 
 
 class DadosSiteCliente(BaseModel):
@@ -24,10 +27,26 @@ class DadosSiteCliente(BaseModel):
     informacoes_adicionais: str | None = None
 
 
+def garantir_assets():
+    """
+    Garante que a pasta data/sites_gerados/assets exista no servidor
+    copiando a partir de templates_html/assets.
+    Isso resolve o CSS/imagens quebrados no Render.
+    """
+    if not ASSETS_ORIGEM.exists():
+        return
+
+    ASSETS_DESTINO.parent.mkdir(parents=True, exist_ok=True)
+
+    # copia tudo, sobrescrevendo se já existir
+    shutil.copytree(
+        ASSETS_ORIGEM,
+        ASSETS_DESTINO,
+        dirs_exist_ok=True
+    )
+
+
 def gerar_site_cliente(dados: DadosSiteCliente):
-    """
-    Gera o site HTML do cliente com base no modelo Jinja e nos dados da empresa.
-    """
     db = SessionLocal()
     try:
         empresa = (
@@ -38,24 +57,30 @@ def gerar_site_cliente(dados: DadosSiteCliente):
         if not empresa:
             raise HTTPException(
                 status_code=404,
-                detail="Empresa não encontrada para este usuário.",
+                detail="Empresa não encontrada para este usuário."
             )
 
         if not CAMINHO_MODELO.exists():
             raise HTTPException(
                 status_code=500,
-                detail="Modelo de site não encontrado.",
+                detail="Modelo de site não encontrado."
             )
 
-        template = Template(CAMINHO_MODELO.read_text(encoding="utf-8"))
+        # garante CSS/imagens
+        garantir_assets()
 
-        # Slug da empresa (usado no nome do arquivo e no chat)
-        slug_empresa = (empresa.nome_empresa or "site").replace(" ", "_")
+        with CAMINHO_MODELO.open("r", encoding="utf-8") as f:
+            template = Template(f.read())
+
+        slug_empresa = (empresa.nome_empresa or "site").strip().replace(" ", "_")
+
+        # URL que o iframe do chat vai abrir
+        chat_url = f"/chat_publico?empresa={slug_empresa}"
 
         site_renderizado = template.render(
             nome_empresa=empresa.nome_empresa or "",
-            nicho=getattr(empresa, "nicho", "") or "",
-            descricao=getattr(empresa, "descricao", "") or "",
+            nicho=empresa.nicho or "",
+            descricao=empresa.descricao or "",
             logo_url=getattr(empresa, "logo_url", "") or "",
             whatsapp=getattr(empresa, "whatsapp", "") or "",
             instagram=getattr(empresa, "instagram", "") or "",
@@ -72,25 +97,18 @@ def gerar_site_cliente(dados: DadosSiteCliente):
             informacoes_adicionais=dados.informacoes_adicionais or "",
             agendamento_ativo=dados.agendamento_ativo,
             horarios_disponiveis=dados.horarios_disponiveis or [],
-            empresa_slug=slug_empresa,  # usado no iframe do chat
+            empresa_slug=slug_empresa,
+            chat_url=chat_url,
         )
 
-        # Garante que a pasta de saída existe
         PASTA_SAIDA.mkdir(parents=True, exist_ok=True)
-
-        # 🔹 Copia/atualiza a pasta assets (CSS, JS, imagens) para data/sites_gerados/assets
-        origem_assets = BASE_DIR / "templates_html" / "assets"
-        destino_assets = PASTA_SAIDA / "assets"
-        if origem_assets.is_dir():
-            shutil.copytree(origem_assets, destino_assets, dirs_exist_ok=True)
-
         nome_arquivo = f"{slug_empresa}.html"
         caminho_saida = PASTA_SAIDA / nome_arquivo
-        caminho_saida.write_text(site_renderizado, encoding="utf-8")
 
-        # URL pública do site (Render)
-        # Ex.: SITES_BASE_URL=https://mivmark-backend.onrender.com/sites
-        base_url = os.getenv("SITES_BASE_URL")
+        with caminho_saida.open("w", encoding="utf-8") as f_out:
+            f_out.write(site_renderizado)
+
+        base_url = os.getenv("SITES_BASE_URL")  # ex: https://mivmark-backend.onrender.com/sites
         url_publica = (
             f"{base_url.rstrip('/')}/{nome_arquivo}"
             if base_url

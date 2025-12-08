@@ -372,12 +372,14 @@
 
 
 <!-- 🔵 Chat do Atendente Virtual Público -->
-<div id="chat-container" style="position:fixed;bottom:20px;right:20px;width:350px;height:500px;max-width:95vw;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.2);z-index:9999;background:#fff;display:none;flex-direction:column;">
-    <div style="background:#007bff;color:#fff;padding:10px;border-top-left-radius:10px;border-top-right-radius:10px;cursor:pointer;" onclick="toggleChat()">🤖 Atendente Virtual</div>
-        <iframe id="chat-frame" src="/chat_publico?empresa=Restaurante do joao" style="border:none;width:100%;flex:1;"></iframe>
+    <iframe
+        id="chat-frame"
+        src="/chat_publico?empresa=Restaurante_do_joao"
+        style="border:none;width:100%;flex:1;"
+    ></iframe>
 
 
-</div>
+
 
 <!-- Botão flutuante para celular -->
 <button id="chat-toggle-btn" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;background:#007bff;color:#fff;border:none;border-radius:50%;width:60px;height:60px;box-shadow:0 0 10px rgba(0,0,0,0.3);font-size:24px;z-index:9998;display:flex;align-items:center;justify-content:center;">💬</button>
