@@ -6,81 +6,60 @@ from backend.models import Empresa
 from jinja2 import Template
 from pathlib import Path
 import os
-import shutil
 
 router = APIRouter()
 
-BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
-RAIZ_PROJETO = BASE_DIR.parent                    # C:\Projetos\mivmark
+# 🗂 Diretórios a partir da raiz do projeto (C:\Projetos\mivmark)
+RAIZ_PROJETO = Path(__file__).resolve().parents[2]  # .../backend/api -> .../backend -> .../mivmark
 
 CAMINHO_MODELO = RAIZ_PROJETO / "templates_html" / "modelo_site_cliente.html"
 PASTA_SAIDA = RAIZ_PROJETO / "data" / "sites_gerados"
-ASSETS_ORIGEM = RAIZ_PROJETO / "templates_html" / "assets"
-ASSETS_DESTINO = PASTA_SAIDA / "assets"
 
 
 class DadosSiteCliente(BaseModel):
     usuario_id: int
-    bio: str
+    bio: str | None = None
     agendamento_ativo: bool = False
     horarios_disponiveis: list[str] = []
     informacoes_adicionais: str | None = None
 
 
-def garantir_assets():
+def _slug_nome(nome: str) -> str:
     """
-    Garante que a pasta data/sites_gerados/assets exista no servidor
-    copiando a partir de templates_html/assets.
-    Isso resolve o CSS/imagens quebrados no Render.
+    Gera um slug simples: tudo minúsculo, espaços viram underscore.
+    Ex.: 'Restaurante do Judas' -> 'restaurante_do_judas'
     """
-    if not ASSETS_ORIGEM.exists():
-        return
-
-    ASSETS_DESTINO.parent.mkdir(parents=True, exist_ok=True)
-
-    # copia tudo, sobrescrevendo se já existir
-    shutil.copytree(
-        ASSETS_ORIGEM,
-        ASSETS_DESTINO,
-        dirs_exist_ok=True
-    )
+    nome = (nome or "").strip().lower().replace(" ", "_")
+    # Evita caracteres estranhos em nome de arquivo
+    permitidos = "abcdefghijklmnopqrstuvwxyz0123456789_-"
+    return "".join(ch for ch in nome if ch in permitidos) or "site"
 
 
 def gerar_site_cliente(dados: DadosSiteCliente):
+    """
+    Gera o site HTML do cliente com base no modelo Jinja e nos dados da empresa.
+    O HTML fica em: data/sites_gerados/NOME_EMPRESA.html
+    """
     db = SessionLocal()
     try:
-        empresa = (
-            db.query(Empresa)
-            .filter(Empresa.usuario_id == dados.usuario_id)
-            .first()
-        )
+        empresa = db.query(Empresa).filter(Empresa.usuario_id == dados.usuario_id).first()
         if not empresa:
-            raise HTTPException(
-                status_code=404,
-                detail="Empresa não encontrada para este usuário."
-            )
+            raise HTTPException(status_code=404, detail="Empresa não encontrada para este usuário.")
 
         if not CAMINHO_MODELO.exists():
-            raise HTTPException(
-                status_code=500,
-                detail="Modelo de site não encontrado."
-            )
-
-        # garante CSS/imagens
-        garantir_assets()
+            raise HTTPException(status_code=500, detail="Modelo de site não encontrado.")
 
         with CAMINHO_MODELO.open("r", encoding="utf-8") as f:
             template = Template(f.read())
 
-        slug_empresa = (empresa.nome_empresa or "site").strip().replace(" ", "_")
+        slug_empresa = _slug_nome(getattr(empresa, "nome_empresa", "site"))
 
-        # URL que o iframe do chat vai abrir
-        chat_url = f"/chat_publico?empresa={slug_empresa}"
-
+        # Renderiza o HTML com TODOS os dados que o modelo usa
         site_renderizado = template.render(
-            nome_empresa=empresa.nome_empresa or "",
-            nicho=empresa.nicho or "",
-            descricao=empresa.descricao or "",
+            # Dados da empresa
+            nome_empresa=getattr(empresa, "nome_empresa", "") or "",
+            nicho=getattr(empresa, "nicho", "") or "",
+            descricao=getattr(empresa, "descricao", "") or "",
             logo_url=getattr(empresa, "logo_url", "") or "",
             whatsapp=getattr(empresa, "whatsapp", "") or "",
             instagram=getattr(empresa, "instagram", "") or "",
@@ -93,27 +72,30 @@ def gerar_site_cliente(dados: DadosSiteCliente):
             cidade=getattr(empresa, "cidade", "") or "",
             cep=getattr(empresa, "cep", "") or "",
             cnpj=getattr(empresa, "cnpj", "") or "",
+
+            # Dados extras específicos do módulo Página e Chat do Cliente
             bio=dados.bio or "",
             informacoes_adicionais=dados.informacoes_adicionais or "",
             agendamento_ativo=dados.agendamento_ativo,
             horarios_disponiveis=dados.horarios_disponiveis or [],
+
+            # Usado pelo chat público para identificar a empresa
             empresa_slug=slug_empresa,
-            chat_url=chat_url,
         )
 
+        # Garante que a pasta de saída exista
         PASTA_SAIDA.mkdir(parents=True, exist_ok=True)
+
         nome_arquivo = f"{slug_empresa}.html"
         caminho_saida = PASTA_SAIDA / nome_arquivo
 
         with caminho_saida.open("w", encoding="utf-8") as f_out:
             f_out.write(site_renderizado)
 
-        base_url = os.getenv("SITES_BASE_URL")  # ex: https://mivmark-backend.onrender.com/sites
-        url_publica = (
-            f"{base_url.rstrip('/')}/{nome_arquivo}"
-            if base_url
-            else None
-        )
+        # Se você configurar SITES_BASE_URL no Render, montamos a URL pública
+        # Ex.: SITES_BASE_URL=https://mivmark-backend.onrender.com/sites
+        base_url = os.getenv("SITES_BASE_URL")
+        url_publica = f"{base_url.rstrip('/')}/{nome_arquivo}" if base_url else None
 
         return {
             "mensagem": "Site gerado com sucesso!",
@@ -121,6 +103,7 @@ def gerar_site_cliente(dados: DadosSiteCliente):
             "arquivo": nome_arquivo,
             "url_publica": url_publica,
         }
+
     finally:
         db.close()
 

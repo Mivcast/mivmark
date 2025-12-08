@@ -1,7 +1,6 @@
 # backend/main.py
 import os
 from pathlib import Path
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -11,25 +10,66 @@ from openai import AsyncOpenAI
 from backend import models
 from backend.database import Base, engine
 
-# 🔹 Carrega variáveis do .env (pasta raiz do projeto)
-BASE_DIR = Path(__file__).resolve().parent
-SITES_DIR = BASE_DIR.parent / "data" / "sites_gerados"
 
-app.mount("/sites", StaticFiles(directory=SITES_DIR, html=True), name="sites")
+# ============================================
+# 🔹 Carrega variáveis do .env
+# ============================================
+load_dotenv()
+
+# Raiz do projeto -> .../mivmark
+RAIZ_PROJETO = Path(__file__).resolve().parents[1]
+
+# Pasta onde os sites são gerados
+DIR_SITES = RAIZ_PROJETO / "data" / "sites_gerados"
+DIR_SITES.mkdir(parents=True, exist_ok=True)
 
 
-# 🔹 Função utilitária para obter cliente OpenAI (usada em mark_ia.py)
+# ============================================
+# 🔹 Cria app FastAPI
+# ============================================
+app = FastAPI(title="MivMark API")
+
+
+# ============================================
+# 🔹 CORS
+# ============================================
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ============================================
+# 🔹 Servir arquivos estáticos dos sites
+# ============================================
+# Exemplo final:
+# https://mivmark-backend.onrender.com/sites/NOME.html
+app.mount("/sites", StaticFiles(directory=str(DIR_SITES), html=True), name="sites")
+
+
+# ============================================
+# 🔹 Cliente OPENAI
+# ============================================
 def get_openai_client():
     api_key = os.getenv("OPENAI_API_KEY")
-    print("DEBUG OPENAI KEY LEN:", len(api_key) if api_key else "NENHUMA")
-    print("DEBUG OPENAI KEY INICIO:", api_key[:10] if api_key else "NENHUMA")
     if not api_key:
         return None
     return AsyncOpenAI(api_key=api_key)
 
 
-# 🔹 Imports dos routers da API
-from backend.api import (  # noqa: E402
+# ============================================
+# 🔹 Criar tabelas
+# ============================================
+Base.metadata.create_all(bind=engine)
+
+
+# ============================================
+# 🔹 Imports e Rotas
+# ============================================
+from backend.api import (
     auth,
     empresa,
     consultoria,
@@ -47,37 +87,10 @@ from backend.api import (  # noqa: E402
     chat_publico,
     mercado_pago_pagamento,
 )
-from backend.api.aplicativo import router as aplicativo_router  # noqa: E402
-from backend.api.planos import router as planos_router  # noqa: E402
-from backend.api.cupons import router as cupons_router  # noqa: E402
+from backend.api.aplicativo import router as aplicativo_router
+from backend.api.planos import router as planos_router
+from backend.api.cupons import router as cupons_router
 
-
-# 🔹 Cria as tabelas automaticamente (uma vez só)
-Base.metadata.create_all(bind=engine)
-
-
-app = FastAPI(title="MivMark API")
-
-
-# 🔹 Configuração de CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # depois você pode trocar pelo domínio real do frontend
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-# 🔹 Monta pasta estática para os sites gerados
-DIR_SITES = BASE_DIR / "data" / "sites_gerados"
-DIR_SITES.mkdir(parents=True, exist_ok=True)
-
-# Assim, qualquer arquivo em data/sites_gerados/xxx.html fica acessível em /sites/xxx.html
-app.mount("/sites", StaticFiles(directory=str(DIR_SITES)), name="sites")
-
-
-# 🔹 Rotas da API
 app.include_router(auth.router)
 app.include_router(empresa.router)
 app.include_router(consultoria.router)
@@ -99,6 +112,9 @@ app.include_router(planos_router)
 app.include_router(cupons_router)
 
 
+# ============================================
+# 🔹 Rota inicial
+# ============================================
 @app.get("/")
 def home():
     return {"mensagem": "MARK backend rodando!"}

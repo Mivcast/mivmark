@@ -1,197 +1,125 @@
 # backend/api/chat_publico.py
-
-from fastapi import APIRouter
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, HTTPException, Query
 from backend.database import SessionLocal
 from backend.models import Empresa
+from pydantic import BaseModel
 from openai import OpenAI
 import os
 
 router = APIRouter()
 
-# 🔑 Cliente OpenAI (SDK novo)
-def get_client():
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        return None
-    return OpenAI(api_key=api_key)
+# Cliente OpenAI (usa OPENAI_API_KEY do .env / Render)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-# 🔹 Widget do chat público (carregado via iframe no site do cliente)
-@router.get("/chat_publico", response_class=HTMLResponse)
-def chat_publico(empresa: str):
+class RespostaChat(BaseModel):
+    resposta: str
+
+
+def montar_contexto(empresa: Empresa) -> str:
     """
-    `empresa` vem em formato slug: Restaurante_do_judas, Sorveteria_do_Ze etc.
+    Monta o texto de contexto para o atendente virtual,
+    usando os dados reais da empresa.
     """
-    html = f"""
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="utf-8" />
-        <title>Atendente Virtual</title>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                margin: 0;
-            }}
-            #chatbox {{
-                position: fixed;
-                bottom: 0;
-                right: 0;
-                width: 320px;
-                max-width: 100vw;
-                height: 420px;
-                display: flex;
-                flex-direction: column;
-                border-radius: 12px 12px 0 0;
-                box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
-                background: #ffffff;
-                overflow: hidden;
-            }}
-            #header {{
-                background: #0067ff;
-                color: #fff;
-                padding: 10px 12px;
-                font-weight: bold;
-                font-size: 14px;
-            }}
-            #mensagens {{
-                flex: 1;
-                overflow-y: auto;
-                padding: 10px;
-                background: #f7f7f7;
-                font-size: 13px;
-            }}
-            #inputArea {{
-                display: flex;
-                border-top: 1px solid #ddd;
-            }}
-            #inputArea input {{
-                flex: 1;
-                padding: 8px 10px;
-                border: none;
-                outline: none;
-                font-size: 13px;
-            }}
-            #inputArea button {{
-                padding: 0 16px;
-                border: none;
-                background: #0067ff;
-                color: #fff;
-                cursor: pointer;
-                font-size: 13px;
-                font-weight: 500;
-            }}
-        </style>
-    </head>
-    <body>
-        <div id="chatbox">
-            <div id="header">🤖 Atendente Virtual</div>
-            <div id="mensagens"></div>
-            <div id="inputArea">
-                <input type="text" id="pergunta" placeholder="Digite sua pergunta..." />
-                <button onclick="enviar()">Enviar</button>
-            </div>
-        </div>
+    partes = []
 
-        <script>
-            const EMPRESA = "{empresa}";
+    partes.append(
+        f"Você é um atendente virtual extremamente educado e objetivo da empresa "
+        f"'{getattr(empresa, 'nome_empresa', '').strip()}'."
+    )
 
-            async function enviar() {{
-                const input = document.getElementById('pergunta');
-                const mensagens = document.getElementById('mensagens');
-                const pergunta = input.value.trim();
-                if (!pergunta) return;
+    nicho = getattr(empresa, "nicho", "") or ""
+    if nicho:
+        partes.append(f"A empresa atua no nicho: {nicho}.")
 
-                mensagens.innerHTML += "<p><strong>Você:</strong> " + pergunta + "</p>";
-                input.value = "";
+    descricao = getattr(empresa, "descricao", "") or ""
+    if descricao:
+        partes.append(f"Descrição da empresa: {descricao}")
 
-                try {{
-                    const resp = await fetch(
-                        "/chat_publico/perguntar?pergunta=" + encodeURIComponent(pergunta) +
-                        "&empresa=" + encodeURIComponent(EMPRESA)
-                    );
-                    const dados = await resp.json();
-                    mensagens.innerHTML += "<p><strong>Atendente:</strong> " + dados.resposta + "</p>";
-                }} catch (e) {{
-                    mensagens.innerHTML += "<p><strong>Atendente:</strong> Erro ao conectar ao servidor.</p>";
-                }}
+    cidade = getattr(empresa, "cidade", "") or ""
+    bairro = getattr(empresa, "bairro", "") or ""
+    rua = getattr(empresa, "rua", "") or ""
+    numero = getattr(empresa, "numero", "") or ""
+    if cidade or bairro or rua:
+        partes.append(
+            "Endereço aproximado: "
+            f"{rua} {numero}, {bairro}, {cidade}."
+        )
 
-                mensagens.scrollTop = mensagens.scrollHeight;
-            }}
-        </script>
-    </body>
-    </html>
+    whatsapp = getattr(empresa, "whatsapp", "") or ""
+    if whatsapp:
+        partes.append(f"WhatsApp para contato: {whatsapp}.")
+
+    instagram = getattr(empresa, "instagram", "") or ""
+    if instagram:
+        partes.append(f"Instagram: {instagram}.")
+
+    facebook = getattr(empresa, "facebook", "") or ""
+    if facebook:
+        partes.append(f"Facebook: {facebook}.")
+
+    tiktok = getattr(empresa, "tiktok", "") or ""
+    if tiktok:
+        partes.append(f"TikTok: {tiktok}.")
+
+    youtube = getattr(empresa, "youtube", "") or ""
+    if youtube:
+        partes.append(f"YouTube: {youtube}.")
+
+    partes.append(
+        "Responda sempre em primeira pessoa pela empresa, "
+        "de forma simples, clara e amigável. "
+        "Se não souber uma informação, diga que o cliente pode falar com a empresa "
+        "pelo WhatsApp informado."
+    )
+
+    return "\n".join(partes)
+
+
+@router.get("/chat_publico/perguntar", response_model=RespostaChat)
+def perguntar(pergunta: str = Query(...), empresa: str = Query(...)):
     """
-    return HTMLResponse(content=html)
-
-
-# 🔹 Endpoint chamado pelo JS acima
-@router.get("/chat_publico/perguntar")
-def responder_chat_publico(pergunta: str, empresa: str):
+    Endpoint simples para o widget público do site.
+    Recebe ?pergunta=...&empresa=Nome ou slug da empresa.
     """
-    Responde o cliente final usando dados reais da empresa + IA.
-    `empresa` vem como slug: Restaurante_do_judas -> "Restaurante do judas"
-    """
+    if not pergunta.strip():
+        raise HTTPException(status_code=400, detail="Pergunta vazia.")
+
     db = SessionLocal()
     try:
-        nome_empresa = empresa.replace("_", " ")
-
-        empresa_dados = (
+        # Tenta achar a empresa pelo nome aproximado ou slug
+        filtro = f"%{empresa.replace('_', ' ').strip()}%"
+        empresa_obj = (
             db.query(Empresa)
-            .filter(Empresa.nome_empresa == nome_empresa)
+            .filter(Empresa.nome_empresa.ilike(filtro))
             .first()
         )
 
-        if not empresa_dados:
-            return JSONResponse(
-                content={"resposta": "Empresa não encontrada. Peça para o responsável configurar os dados no painel MivMark."}
-            )
+        if not empresa_obj:
+            raise HTTPException(status_code=404, detail="Empresa não encontrada.")
 
-        client = get_client()
-        if client is None:
-            return JSONResponse(
-                content={"resposta": "Atendente temporariamente indisponível. Falta configurar a chave da IA no sistema."}
-            )
+        contexto = montar_contexto(empresa_obj)
 
-        # 🔹 Monta contexto com os campos que sabemos que existem no modelo Empresa
-        contexto = f"""
-Você é um atendente virtual simpático, educado e objetivo de uma empresa chamada "{empresa_dados.nome_empresa}".
-
-Dados da empresa:
-- Nicho / segmento: {getattr(empresa_dados, "nicho", "")}
-- Descrição: {getattr(empresa_dados, "descricao", "")}
-- Cidade: {getattr(empresa_dados, "cidade", "")}
-- Endereço: {getattr(empresa_dados, "rua", "")}, {getattr(empresa_dados, "numero", "")}, {getattr(empresa_dados, "bairro", "")}
-- CEP: {getattr(empresa_dados, "cep", "")}
-- WhatsApp: {getattr(empresa_dados, "whatsapp", "")}
-- Instagram: {getattr(empresa_dados, "instagram", "")}
-- Facebook: {getattr(empresa_dados, "facebook", "")}
-- TikTok: {getattr(empresa_dados, "tiktok", "")}
-- YouTube: {getattr(empresa_dados, "youtube", "")}
-
-Regras:
-- Responda SEMPRE em português do Brasil.
-- Fale de forma clara, curta e amigável.
-- Responda apenas sobre serviços, produtos, preços aproximados, horários, endereço, contato e informações comerciais relacionadas à empresa.
-- Se o cliente perguntar algo que foge da empresa, diga educadamente que não tem essa informação.
-"""
-
-        resposta = client.chat.completions.create(
-            model="gpt-4o-mini",
+        # Chamada usando a API nova
+        resposta_api = client.chat.completions.create(
+            model="gpt-4.1-mini",
             messages=[
                 {"role": "system", "content": contexto},
                 {"role": "user", "content": pergunta},
             ],
+            temperature=0.4,
+            max_tokens=400,
         )
 
-        texto_resposta = resposta.choices[0].message.content.strip()
-        return JSONResponse(content={"resposta": texto_resposta})
+        texto = resposta_api.choices[0].message.content.strip()
+        return RespostaChat(resposta=texto)
 
+    except HTTPException:
+        raise
     except Exception as e:
-        # Nunca deixar estourar erro 500 no iframe — sempre responder algo
-        return JSONResponse(
-            content={"resposta": f"Erro ao responder: {str(e)}"}
+        # Retorna erro mas sem quebrar o site
+        return RespostaChat(
+            resposta=f"Desculpe, ocorreu um erro ao responder: {e}"
         )
     finally:
         db.close()

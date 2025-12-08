@@ -371,61 +371,154 @@
 
 
 
-  <!-- 🔵 Chat do Atendente Virtual Público -->
-  <div id="chat-container"
-       style="position:fixed;bottom:90px;right:20px;width:360px;height:430px;max-width:90vw;max-height:80vh;
-              background:#ffffff;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.25);
-              display:none;flex-direction:column;z-index:9999;overflow:hidden;">
-    <div style="background:#2563eb;color:#fff;padding:10px 14px;
-                display:flex;align-items:center;justify-content:space-between;
-                font-size:14px;">
-      <span>🤖 Atendente Virtual</span>
-      <button type="button"
-              onclick="toggleChat()"
-              style="background:transparent;border:none;color:#fff;font-size:16px;cursor:pointer;">
-        ✕
-      </button>
+    <!-- 🔵 Chat do Atendente Virtual Público -->
+    <div id="chat-floating-button" onclick="toggleChat()" 
+         style="position: fixed; right: 24px; bottom: 24px; z-index: 9999; cursor: pointer;">
+      <div style="
+          width: 60px; height: 60px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+          background: #2563eb;">
+        <span style="font-size: 28px; color: #fff;">💬</span>
+      </div>
     </div>
-    <iframe id="chat-frame"
-            src="{{chat_url}}"
-            style="border:none;width:100%;flex:1;"></iframe>
-  </div>
 
-  <!-- Botão flutuante -->
-  <button id="chat-toggle-btn"
-          onclick="toggleChat()"
-          style="position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:999px;
-                 border:none;background:#2563eb;color:#fff;font-size:24px;
-                 display:flex;align-items:center;justify-content:center;
-                 box-shadow:0 10px 25px rgba(0,0,0,0.35);z-index:9998;cursor:pointer;">
-    💬
-  </button>
+    <div id="chat-container" style="
+        position: fixed; right: 24px; bottom: 96px; z-index: 9999;
+        width: 360px; max-width: 95vw; height: 480px;
+        background: #ffffff; border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        display: none; flex-direction: column; overflow: hidden;">
+      <div style="
+          background: #2563eb; color: #fff; padding: 12px 16px;
+          display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-weight: 600; font-size: 15px;">🤖 Atendente Virtual</div>
+          <div style="font-size: 12px; opacity: .9;">
+            {{ nome_empresa }} &mdash; atendimento inteligente
+          </div>
+        </div>
+        <button onclick="toggleChat()" style="
+            border: none; background: transparent; color: #fff;
+            font-size: 18px; cursor: pointer;">×</button>
+      </div>
 
-  <script>
-  function toggleChat() {
-      const box = document.getElementById("chat-container");
-      if (!box) return;
-      box.style.display = (box.style.display === "none" || box.style.display === "") ? "flex" : "none";
-  }
+      <div id="chat-messages" style="
+          flex: 1; padding: 12px; overflow-y: auto; background: #f9fafb;">
+        <div style="
+            font-size: 13px; margin-bottom: 8px;
+            color: #6b7280;">
+          Olá! Sou o atendente virtual da {{ nome_empresa }}.
+          Como posso ajudar você hoje?
+        </div>
+      </div>
 
-  function adaptarChatMobile() {
-      const box = document.getElementById("chat-container");
-      if (!box) return;
+      <div style="
+          padding: 8px; border-top: 1px solid #e5e7eb;
+          background: #f3f4f6;">
+        <div style="display: flex; gap: 6px;">
+          <input id="chat-input" type="text"
+                 placeholder="Digite sua pergunta..."
+                 onkeydown="if(event.key==='Enter'){enviarPergunta();}"
+                 style="
+                   flex: 1; border-radius: 999px; border: 1px solid #d1d5db;
+                   padding: 6px 10px; font-size: 13px; outline: none;">
+          <button onclick="enviarPergunta()" style="
+              border-radius: 999px; border: none;
+              padding: 6px 14px; font-size: 13px;
+              background: #2563eb; color: #fff; cursor: pointer;">
+            Enviar
+          </button>
+        </div>
+      </div>
+    </div>
 
-      if (window.innerWidth <= 768) {
-          box.style.width = "90vw";
-          box.style.height = "75vh";
-          box.style.right = "5vw";
-      } else {
-          box.style.width = "360px";
-          box.style.height = "430px";
-          box.style.right = "20px";
+    <script>
+      const CHAT_EMPRESA = "{{ empresa_slug }}";
+
+      function toggleChat() {
+        const c = document.getElementById('chat-container');
+        if (!c) return;
+        const visible = c.style.display === 'flex';
+        c.style.display = visible ? 'none' : 'flex';
       }
-  }
 
-  window.addEventListener("load", adaptarChatMobile);
-  window.addEventListener("resize", adaptarChatMobile);
-  </script>
+      function adicionarMensagem(origem, texto) {
+        const box = document.getElementById('chat-messages');
+        if (!box) return;
+
+        const linha = document.createElement('div');
+        linha.style.marginBottom = '6px';
+
+        const rotulo = document.createElement('strong');
+        rotulo.style.fontSize = '12px';
+        rotulo.textContent = origem + ': ';
+
+        const span = document.createElement('span');
+        span.style.fontSize = '13px';
+        span.textContent = texto;
+
+        linha.appendChild(rotulo);
+        linha.appendChild(span);
+
+        box.appendChild(linha);
+        box.scrollTop = box.scrollHeight;
+      }
+
+      async function enviarPergunta() {
+        const input = document.getElementById('chat-input');
+        if (!input) return;
+        const pergunta = input.value.trim();
+        if (!pergunta) return;
+
+        adicionarMensagem('Você', pergunta);
+        input.value = '';
+
+        try {
+          const params = new URLSearchParams({
+            pergunta: pergunta,
+            empresa: CHAT_EMPRESA || '{{ nome_empresa }}'
+          });
+
+          const resp = await fetch('/chat_publico/perguntar?' + params.toString());
+          const data = await resp.json();
+
+          const texto = data && data.resposta
+            ? data.resposta
+            : 'Desculpe, não consegui responder agora.';
+          adicionarMensagem('Atendente', texto);
+        } catch (e) {
+          adicionarMensagem(
+            'Atendente',
+            'Desculpe, ocorreu um erro ao responder. Tente novamente em instantes.'
+          );
+        }
+      }
+
+      // Adapta posição do chat no mobile
+      function adaptarChatMobile() {
+        const largura = window.innerWidth;
+        const chat = document.getElementById('chat-container');
+        const btn = document.getElementById('chat-floating-button');
+        if (!chat || !btn) return;
+
+        if (largura < 768) {
+          chat.style.right = '12px';
+          chat.style.bottom = '82px';
+          chat.style.width = '95vw';
+        } else {
+          chat.style.right = '24px';
+          chat.style.bottom = '96px';
+          chat.style.width = '360px';
+        }
+      }
+
+      window.addEventListener('load', adaptarChatMobile);
+      window.addEventListener('resize', adaptarChatMobile);
+    </script>
+  </body>
+</html>
+
 
 
 </body>
