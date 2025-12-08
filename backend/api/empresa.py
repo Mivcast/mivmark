@@ -209,23 +209,24 @@ def gerar_cards_marketing(usuario: Usuario = Depends(get_current_user)):
 # 🚀 ROTA: DADOS DA EMPRESA PARA O MARK (SEM LOGIN)
 # -------------------------------------------------------
 @router.get("/empresa_mark")
-def obter_empresa_para_mark():
+def obter_empresa_para_mark(usuario_id: Optional[int] = None):
     """
     Rota usada exclusivamente pelo MARK IA.
 
-    Por enquanto, para uso local e 1 usuário, ela pega
-    sempre a empresa mais recentemente atualizada na tabela.
-    Assim, o MARK usa SEMPRE os dados mais atuais.
+    - Se `usuario_id` for informado: retorna a empresa desse usuário.
+    - Se não vier `usuario_id`: retorna a empresa mais recente (fallback).
     """
     db: Session = SessionLocal()
     try:
         from backend.models import Empresa  # garante import correto
 
-        empresa = (
-            db.query(Empresa)
-            .order_by(Empresa.atualizado_em.desc())
-            .first()
-        )
+        query = db.query(Empresa)
+
+        # Se o MARK informou o usuário, filtra pela empresa dele
+        if usuario_id is not None:
+            query = query.filter(Empresa.usuario_id == usuario_id)
+
+        empresa = query.order_by(Empresa.atualizado_em.desc()).first()
 
         if not empresa:
             raise HTTPException(status_code=404, detail="Nenhuma empresa cadastrada.")
@@ -233,3 +234,4 @@ def obter_empresa_para_mark():
         return empresa_to_dict(empresa)
     finally:
         db.close()
+

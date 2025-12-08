@@ -74,5 +74,101 @@
   {
     "pergunta": "ola",
     "resposta": "Olá! Tudo certo? Se precisar de alguma informação ou ajuda sobre marketing, branding ou estratégias para o seu negócio, estou à disposição! O que você gostaria de saber?"
+  },
+  {
+    "pergunta": "ola vc pode me ajudar?",
+    "resposta": "Claro! Estou aqui para ajudar. Qual é a sua dúvida ou o que você precisa? Pode ser sobre marketing, branding, redes sociais ou qualquer outra questão relacionada ao seu negócio. Fique à vontade para compartilhar!"
+  },
+  {
+    "pergunta": "queria saber se vc sabe qual é o nome da minha empresa e qual é meu nicho",
+    "resposta": "Infelizmente, não tenho acesso a essas informações específicas sobre a sua empresa e nicho. Mas podemos descobrir isso juntos! Que tal você me contar um pouco sobre o seu negócio? Assim, poderei te ajudar com estratégias e dicas mais direcionadas."
+  },
+  {
+    "pergunta": "ola voce pode me ajudar?",
+    "resposta": "Claro! Estou aqui para ajudar. O que você precisa? Se tiver alguma dúvida sobre marketing, branding ou estratégias para o seu negócio, é só me contar!"
+  },
+  {
+    "pergunta": "voce consegue saber qual é o nicho da minha mepresa?",
+    "resposta": "Não consigo acessar informações específicas sobre a sua empresa ou nicho. No entanto, se você me contar um pouco sobre o que sua empresa faz, posso te ajudar a identificar o nicho e sugerir estratégias adequadas. Que tal?"
+  },
+  {
+    "pergunta": "mark voce esta por ai?",
+    "resposta": "Estou aqui! Como posso te ajudar hoje? Se tiver alguma dúvida ou precisar de orientações sobre marketing, branding ou estratégias para o seu negócio, é só falar!"
+  },
+  {
+    "pergunta": "qual é o melhor tom de voz para minha empresa?",
+    "resposta": "Para determinar o melhor tom de voz para a sua empresa, é importante considerar alguns fatores. Aqui estão algumas perguntas que podem te ajudar a definir isso:\n\n1. **Quem é o seu público-alvo?**: Entender quem são seus clientes (idade, interesses, necessidades) pode ajudar a moldar o tom. Por exemplo, um público jovem pode responder melhor a um tom mais descontraído e informal.\n\n2. **Qual é a personalidade da sua marca?**: Sua marca é mais séria e profissional ou descontraída e amigável? Defina os adjetivos que melhor representam sua empresa.\n\n3. **Qual é a proposta de valor da sua empresa?**: O tom deve refletir o que você oferece. Se você é uma empresa que fornece soluções técnicas, um tom mais técnico pode ser apropriado. Se você é uma marca de moda, um tom mais criativo e inspirador pode funcionar melhor.\n\n4. **Quais são os canais de comunicação?**: O tom pode variar dependendo do canal. Redes sociais podem ter um tom mais leve, enquanto e-mails ou comunicados oficiais podem exigir um tom mais formal.\n\nSe você me contar mais sobre a sua empresa, posso ajudar a definir um tom de voz mais específico e alinhado com a sua estratégia. E se precisar de ajuda prática, o Matheus da MivCast pode te auxiliar nesse processo!"
+  },
+  {
+    "pergunta": "qual é minha empresa?",
+    "resposta": "Atualmente, não tenho acesso ao nome ou informações específicas sobre a sua empresa. Para que eu possa te ajudar melhor, você poderia compartilhar um pouco sobre o que sua empresa faz e qual é o seu nicho? Assim, poderei oferecer orientações e estratégias mais direcionadas!"
+  },
+  {
+    "pergunta": "ola marma",
+    "resposta": "Olá! Parece que houve um pequeno erro de digitação, mas estou aqui para ajudar. Como posso te auxiliar hoje? Se tiver alguma dúvida ou precisar de orientações sobre marketing ou estratégias para o seu negócio, é só me falar!"
+  },
+  {
+    "pergunta": "vc sabe qual é o nicho da minha empresa?",
+    "resposta": "Não tenho acesso às informações específicas sobre a sua empresa ou seu nicho. Para te ajudar a identificar o nicho, seria ótimo se você pudesse compartilhar um pouco sobre o que sua empresa faz, quais produtos ou serviços oferece e quem é o seu público-alvo. Assim, poderei te dar orientações mais precisas!"
+  },
+  {
+    "pergunta": "ola mark vc pode me ajudar?",
+    "resposta": "Claro! Estou aqui para ajudar. Qual é a sua dúvida ou em que área você precisa de orientação? Pode ser sobre marketing, branding, redes sociais ou qualquer outro assunto relacionado ao seu negócio. Fique à vontade para perguntar!"
+  },
+  {
+    "pergunta": "quem é seu criador?",
+    "resposta": "Meu criador é o Matheus Nascimento, fundador da MivCast. Ele é um consultor de marketing que ajuda empresas e prestadores de serviços a fortalecerem suas marcas e crescerem no digital de forma acessível e estratégica. Se precisar de ajuda mais aprofundada, posso te conectar com ele para uma consultoria personalizada! Como posso te ajudar hoje?"
+  },
+  {
+    "pergunta": "qual o sobrenome dele?",
+    "resposta": "O sobrenome do meu criador é Nascimento. Matheus Nascimento é o fundador da MivCast e está sempre pronto para ajudar empresas a crescerem através de estratégias de marketing. Se precisar de mais informações ou de ajuda específica, é só me avisar!"
+  },
+  {
+    "pergunta": "mark qual onome completo do seu criador?",
+    "resposta": "O nome completo do meu criador é Matheus Nascimento Júlio. Ele é o fundador da MivCast e tem uma vasta experiência em ajudar empresas a se destacarem no marketing e branding. Se precisar de alguma orientação ou ajuda específica, estou à disposição!"
+  },
+  {
+    "pergunta": "voce sabe qual é a minha emrpesa?",
+    "resposta": "Não tenho informações sobre a sua empresa no momento. Para te ajudar da melhor forma, poderia me contar um pouco sobre o que você faz, quais produtos ou serviços oferece e quem é o seu público-alvo? Assim, poderei oferecer orientações mais personalizadas!"
+  },
+  {
+    "pergunta": "mar qual é minha empresa?",
+    "resposta": "Parece que não consegui acessar as informações da sua empresa. Para que eu possa te ajudar da melhor maneira, você poderia compartilhar um pouco sobre o seu negócio? Isso inclui o que você oferece, seu público-alvo e quaisquer desafios que esteja enfrentando. Estou aqui para ajudar!"
+  },
+  {
+    "pergunta": "qual é a minha empresa?",
+    "resposta": "Infelizmente, não tenho acesso às informações da sua empresa no momento. Se você puder me fornecer detalhes sobre o seu negócio, como o que você oferece e quem é o seu público-alvo, ficarei feliz em ajudar com estratégias e orientações personalizadas!"
+  },
+  {
+    "pergunta": "qual é meu nicho?",
+    "resposta": "Seu nicho é o de alimentos, mais especificamente, você tem um restaurante que oferece comidas veganas. Se precisar de ajuda para estratégias de marketing, branding ou qualquer outra questão relacionada ao seu negócio, estou aqui para ajudar!"
+  },
+  {
+    "pergunta": "qual é minha empresa",
+    "resposta": "Sua empresa é o \"Restaurante do João\", que se especializa em comidas veganas. Se precisar de ajuda com estratégias de marketing, branding ou qualquer outra questão relacionada ao seu restaurante, estou à disposição para ajudar!"
+  },
+  {
+    "pergunta": "otimo obrigado",
+    "resposta": "De nada! Se precisar de mais alguma coisa, seja sobre marketing, estratégias para o seu restaurante ou qualquer outro assunto, é só avisar. Estou aqui para ajudar! 😊"
+  },
+  {
+    "pergunta": "qual minha empresa",
+    "resposta": "Sua empresa é o \"Restaurante do João\", que oferece comidas veganas. Se precisar de ajuda com estratégias de marketing, branding ou qualquer outra questão relacionada ao seu negócio, estou aqui para ajudar!"
+  },
+  {
+    "pergunta": "como deve ser o tom de voz da miha empresa?",
+    "resposta": "Para o \"Restaurante do João\", que se especializa em comidas veganas, o tom de voz pode ser:\n\n1. **Acolhedor e amigável**: Transmita uma sensação de hospitalidade, como se estivesse recebendo amigos em sua casa. Isso ajuda a criar uma conexão emocional com os clientes.\n\n2. **Informativo e educativo**: Como seu nicho é vegano, é interessante compartilhar informações sobre os benefícios das comidas veganas, ingredientes e receitas. Isso pode ajudar a educar seu público e posicionar sua marca como uma referência no assunto.\n\n3. **Sustentável e consciente**: Destaque a importância de escolhas alimentares sustentáveis e saudáveis. Isso ressoa bem com o público vegano e aqueles que estão em busca de um estilo de vida mais consciente.\n\n4. **Entusiástico e apaixonado**: Mostre sua paixão pela comida vegana e pelo que você faz. Isso pode ser contagiante e inspirar seus clientes a experimentar seus pratos.\n\nSe precisar de ajuda para desenvolver uma identidade de marca mais forte ou criar conteúdo que reflita esse tom de voz, o Matheus da MivCast pode ajudar!"
+  },
+  {
+    "pergunta": "qual minha empresa mark?",
+    "resposta": "Sua empresa é o \"Restaurante do João\", que se especializa em comidas veganas. Se precisar de ajuda com estratégias de marketing, branding ou qualquer outra questão relacionada ao seu restaurante, estou aqui para ajudar!"
+  },
+  {
+    "pergunta": "ola mark",
+    "resposta": "Olá! Como posso te ajudar hoje? Se tiver alguma dúvida sobre marketing, branding ou estratégias para o seu restaurante, estou à disposição!"
+  },
+  {
+    "pergunta": "ola mark",
+    "resposta": "Olá novamente! Como posso ajudar você hoje? Se tiver alguma dúvida ou precisar de sugestões para o \"Restaurante do João\", é só falar!"
   }
 ]

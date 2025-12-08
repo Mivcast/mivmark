@@ -1,26 +1,10 @@
 import streamlit as st
-import os  
 from pathlib import Path
 from agenda import tela_agenda  # ✅ Importa a versão visual com calendário
 from datetime import datetime, timedelta
 
 # ⚙️ A configuração da página deve ser a PRIMEIRA chamada do Streamlit
 st.set_page_config(layout="wide")
-
-hide_streamlit_chrome = """
-<style>
-/* Esconde o menu dos 3 pontinhos do Streamlit */
-#MainMenu {visibility: hidden;}
-
-/* Esconde o rodapé "Made with Streamlit" */
-footer {visibility: hidden;}
-
-/* Esconde o botão "Deploy" padrão do Streamlit */
-.stDeployButton {display: none !important;}
-</style>
-"""
-st.markdown(hide_streamlit_chrome, unsafe_allow_html=True)
-
 
 import httpx
 import datetime
@@ -31,7 +15,7 @@ from admin.planos import aba_gerenciar_planos
 
 
 
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
+API_URL = "https://mivmark-backend.onrender.com"
 
 
 def usuario_tem_acesso(modulo: str) -> bool:
@@ -1698,84 +1682,48 @@ def tela_arquivos():
 
 
 
-def tela_mark_ia():
-    import os
-    import streamlit as st
-    import streamlit.components.v1 as components
-
-    # 🔹 Pega o ID do usuário logado (se tiver)
+def tela_mark():
     dados_usuario = st.session_state.get("dados_usuario", {}) or {}
-    usuario_id = dados_usuario.get("id", "")
+    empresa = (
+        st.session_state.get("empresa_atual")
+        or st.session_state.get("dados_empresa")
+        or {}
+    )
 
-    # 🔹 Lê o HTML do chat
-    caminho_html = os.path.join("frontend", "mark_chat.html")
-    try:
-        with open(caminho_html, "r", encoding="utf-8") as f:
-            html = f.read()
-    except FileNotFoundError:
-        st.error(f"Arquivo não encontrado: {caminho_html}")
-        return
+    # campos reais da empresa (ajusta se for nome_empresa, etc.)
+    empresa_resumo = f"""Nome: {empresa.get('nome_empresa', '')}
+Nicho: {empresa.get('nicho', '')}
+Cidade: {empresa.get('cidade', '')}
+Descrição: {empresa.get('descricao', '')}"""
 
-    # 🔹 Injeta o ID do usuário dentro do HTML
-    html = html.replace("{{USUARIO_ID}}", str(usuario_id))
+    html_path = Path("frontend/mark_chat.html")
+    html_code = html_path.read_text(encoding="utf-8")
 
-    # 🔹 CSS global para o iframe do MARK usar quase toda a tela
-    #     – 100vh = altura total da janela
-    #     – subtraímos ~260px para caber header do sistema + margens
+    # injeta os placeholders
+    html_code = html_code.replace("{{USUARIO_ID}}", str(dados_usuario.get("id", "")))
+    html_code = html_code.replace("{{EMPRESA_RESUMO}}", empresa_resumo)
+
+    # 🔹 tira o espaçamento lá de cima (abaixo do botão "Menu de módulos")
     st.markdown(
         """
         <style>
-          /* Desktop / notebooks grandes */
-              iframe[srcdoc*="MARK.IA Chat"] {
-              width: 100% !important;
-              height: calc(100vh - 280px) !important;  /* antes 260px */
-              border: none;
-              border-radius: 24px;
-              box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
-          }
-
-          /* Tablets e notebooks menores */
-          @media (max-width: 1100px) and (min-width: 769px) {
-              iframe[srcdoc*="MARK.IA Chat"] {
-                  height: calc(100vh - 260px) !important;
-              }
-          }
-
-          /* Celulares em geral */
-          @media (max-width: 768px) {
-              iframe[srcdoc*="MARK.IA Chat"] {
-                  height: calc(100vh - 240px) !important;  /* antes 220px */
-                  border-radius: 18px;
-              }
-          }
+        /* tira padding do conteúdo principal */
+        div.block-container {
+            padding-top: 0rem !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-
-    # 🔹 Renderiza o chat
+    # 🔹 renderiza o chat ocupando uma boa altura
     components.html(
-        html,
-        height=650,        # valor base; o CSS acima sobrescreve com 100vh-calculo
-        scrolling=False,
+        html_code,
+        height=750,          # pode ajustar esse valor depois se quiser
+        scrolling=True,
     )
-
-    # 🔹 Texto de apoio abaixo do chat (disfarça qualquer restinho de espaço)
-    st.markdown(
-        """
-        ### Como usar o MARK IA
-
-        - Digite sua dúvida na caixa de mensagem do chat acima.  
-        - Clique no botão de **microfone** para falar em vez de digitar (quando disponível).  
-        - Use o botão de **limpar conversa** para começar um novo assunto.  
-
-        Caso alguma parte do layout fique um pouquinho cortada em algum dispositivo,
-        é porque logo abaixo do chat ficam estas instruções e textos de apoio. 😄
-        """
-    )
-
-
 
 
 
@@ -2756,6 +2704,7 @@ def tela_checkout_app(app_id):
 # ------------------- INTERFACE PRINCIPAL -------------------
 
 def main():
+    st.set_page_config(page_title="MARK Sistema IA", layout="wide")
 
     query_params = st.query_params
     modo_cadastro = "cadastro" in query_params
@@ -2803,89 +2752,6 @@ def main():
         }
         </style>
         """, unsafe_allow_html=True)
-
-        # 🔁 Script para FECHAR automaticamente o menu lateral no mobile (versão 2)
-        st.markdown(
-            """
-            <script>
-            // Coloca tudo em uma função auto-executável pra evitar conflitos
-            (function() {
-              function isMobile() {
-                return window.innerWidth <= 768;
-              }
-
-              // Tenta achar o botão de toggle do menu do Streamlit
-              function encontrarBotaoToggle() {
-                // alguns possíveis seletores que o Streamlit usa no header
-                const candidatos = Array.from(document.querySelectorAll("button"));
-
-                return candidatos.find(btn => {
-                  const aria = (btn.getAttribute("aria-label") || "").toLowerCase();
-                  const title = (btn.getAttribute("title") || "").toLowerCase();
-                  const texto = (btn.innerText || "").toLowerCase();
-
-                  return (
-                    aria.includes("sidebar") ||
-                    aria.includes("barra lateral") ||
-                    title.includes("sidebar") ||
-                    title.includes("barra lateral") ||
-                    texto.includes("≪") || texto.includes("≫")
-                  );
-                }) || null;
-              }
-
-              function fecharSidebar() {
-                const toggle = encontrarBotaoToggle();
-                if (toggle) {
-                  toggle.click();
-                }
-              }
-
-              // 1) Fechar quando clicar em qualquer opção de rádio do menu lateral
-              document.addEventListener("click", function(event) {
-                if (!isMobile()) return;
-
-                // procura um label de radio (onde fica o texto dos módulos)
-                const labelRadio = event.target.closest('label[data-baseweb="radio"]') || event.target.closest("label");
-                if (!labelRadio) return;
-
-                // Dá um tempinho pro Streamlit mudar o conteúdo da página
-                setTimeout(function() {
-                  fecharSidebar();
-                }, 400);
-              }, true);
-
-              // 2) Gesto de "puxar" (swipe) para fechar a sidebar
-              let touchStartX = null;
-
-              document.addEventListener("touchstart", function(e) {
-                if (!isMobile()) return;
-                const touch = e.touches[0];
-                touchStartX = touch.clientX;
-              }, { passive: true });
-
-              document.addEventListener("touchend", function(e) {
-                if (!isMobile()) return;
-                if (touchStartX === null) return;
-
-                const touch = e.changedTouches[0];
-                const deltaX = touch.clientX - touchStartX;
-
-                // Se arrastar para a esquerda mais de 60px, tenta fechar
-                if (deltaX < -60) {
-                  fecharSidebar();
-                }
-
-                touchStartX = null;
-              });
-            })();
-            </script>
-            """,
-            unsafe_allow_html=True,
-        )
-
-
-
 
         obter_dados_usuario()
         usuario = st.session_state.dados_usuario
@@ -3014,7 +2880,7 @@ def main():
     elif escolha == "📁 **Arquivos**":
         tela_arquivos()
     elif escolha == "🤖 **MARK IA**":
-        tela_mark_ia()
+        tela_mark()
     elif escolha == "🌐 **Página e Chat do Cliente**":
         tela_site_cliente()
     elif escolha == "🚪 **Sair**":
@@ -3025,7 +2891,6 @@ def main():
         st.session_state.admin = False
         st.success("Logout realizado.")
         st.rerun()
-
 
 
 # Executa o app
