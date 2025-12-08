@@ -5,14 +5,18 @@ import streamlit as st
 
 API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
+# Base pública dos sites gerados (normalmente o backend)
+SITES_BASE_URL = os.getenv("SITES_BASE_URL", f"{API_URL}/sites")
+
 
 def tela_site_cliente():
+
     # 🧠 Tenta usar o último arquivo gerado para montar o link de exemplo
     arquivo_exemplo = st.session_state.get("ultimo_site_arquivo")
     if arquivo_exemplo:
-        link_exemplo = f"https://mivmark-frontend.onrender.com/{arquivo_exemplo}"
+        link_exemplo = f"{SITES_BASE_URL}/{arquivo_exemplo}"
     else:
-        link_exemplo = "https://mivmark-frontend.onrender.com/NOME_DA_SUA_EMPRESA.html"
+        link_exemplo = f"{SITES_BASE_URL}/NOME_DA_SUA_EMPRESA.html"
 
     usuario = st.session_state.get("dados_usuario", {}) or {}
     usuario_id = usuario.get("id")
@@ -133,8 +137,9 @@ def tela_site_cliente():
 
         # Se ainda não tem URL pública, montamos o link no formato que você quer
         elif arquivo:
-            link_front = f"https://mivmark-frontend.onrender.com/{arquivo}"
+            link_front = f"{SITES_BASE_URL}/{arquivo}"
             st.markdown(f"🔗 **Seu site está no ar:** [{link_front}]({link_front})")
+
 
         else:
             st.warning(
