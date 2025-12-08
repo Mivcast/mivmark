@@ -1,22 +1,22 @@
+# backend/main.py
+import os
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from dotenv import load_dotenv
+from openai import AsyncOpenAI
+
 from backend import models
-from backend.database import engine
-from backend.api import mark_ia
-from backend.api import agenda  # linha nova
-from backend.api import site_cliente
-from backend.api import usuario
-from backend.api import chat_publico
-from backend.api.aplicativo import router as aplicativo_router  # <- ESSA LINHA AQUI
 from backend.database import Base, engine
-from backend.models import planos  # importa os modelos que você criou
-from backend.api.planos import router as planos_router
-from backend.api.cupons import router as cupons_router
+
+# 🔹 Carrega variáveis do .env (pasta raiz do projeto)
+BASE_DIR = Path(__file__).resolve().parent.parent  # .../backend/..
+load_dotenv(BASE_DIR / ".env")
 
 
-Base.metadata.create_all(bind=engine)
-
-
-
+# 🔹 Função utilitária para obter cliente OpenAI (usada em mark_ia.py)
 def get_openai_client():
     api_key = os.getenv("OPENAI_API_KEY")
     print("DEBUG OPENAI KEY LEN:", len(api_key) if api_key else "NENHUMA")
@@ -26,13 +26,8 @@ def get_openai_client():
     return AsyncOpenAI(api_key=api_key)
 
 
-
-# Carrega variáveis do .env
-from dotenv import load_dotenv
-from pathlib import Path
-load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
-
-from backend.api import (
+# 🔹 Imports dos routers da API
+from backend.api import (  # noqa: E402
     auth,
     empresa,
     consultoria,
@@ -43,24 +38,44 @@ from backend.api import (
     historico_mark,
     mark_ia,
     cursos,
-    marketing
+    marketing,
+    agenda,
+    site_cliente,
+    usuario,
+    chat_publico,
+    mercado_pago_pagamento,
 )
-from backend.api import mercado_pago_pagamento
+from backend.api.aplicativo import router as aplicativo_router  # noqa: E402
+from backend.api.planos import router as planos_router  # noqa: E402
+from backend.api.cupons import router as cupons_router  # noqa: E402
 
-app = FastAPI()
 
-from fastapi.middleware.cors import CORSMiddleware
+# 🔹 Cria as tabelas automaticamente (uma vez só)
+Base.metadata.create_all(bind=engine)
 
+
+app = FastAPI(title="MivMark API")
+
+
+# 🔹 Configuração de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ou use o domínio real do seu frontend/site no lugar do "*"
+    allow_origins=["*"],  # depois você pode trocar pelo domínio real do frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# Rotas da API
+# 🔹 Monta pasta estática para os sites gerados
+DIR_SITES = BASE_DIR / "data" / "sites_gerados"
+DIR_SITES.mkdir(parents=True, exist_ok=True)
+
+# Assim, qualquer arquivo em data/sites_gerados/xxx.html fica acessível em /sites/xxx.html
+app.mount("/sites", StaticFiles(directory=str(DIR_SITES)), name="sites")
+
+
+# 🔹 Rotas da API
 app.include_router(auth.router)
 app.include_router(empresa.router)
 app.include_router(consultoria.router)
@@ -73,7 +88,7 @@ app.include_router(mark_ia.router, prefix="/mark")
 app.include_router(cursos.router)
 app.include_router(mercado_pago_pagamento.router, prefix="/api")
 app.include_router(marketing.router)
-app.include_router(agenda.router)  # linha nova
+app.include_router(agenda.router)
 app.include_router(site_cliente.router)
 app.include_router(usuario.router)
 app.include_router(chat_publico.router)
@@ -81,10 +96,6 @@ app.include_router(aplicativo_router)
 app.include_router(planos_router)
 app.include_router(cupons_router)
 
-
-
-# Cria as tabelas automaticamente
-models.Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def home():

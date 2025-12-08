@@ -1,84 +1,148 @@
-import streamlit as st
-import httpx
-import sys
+# frontend/site_cliente.py
 import os
+import httpx
+import streamlit as st
 
-# Gambiarra saudável pra conseguir importar verificar_acesso
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from verificar_acesso import usuario_tem_acesso
-
-API_URL = "https://mivmark-backend.onrender.com"
-
-# 🌐 URL base onde os sites gerados serão publicados na internet
-# Quando você subir o sistema, ajuste a variável de ambiente PUBLIC_SITE_BASE_URL
-# Exemplo: https://app.mivmark.com/sites_gerados
-PUBLIC_SITE_BASE_URL = os.getenv(
-    "PUBLIC_SITE_BASE_URL",
-    "https://seusite.com.br/sites_gerados"  # ajuste depois para o domínio real
-)
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 
 def tela_site_cliente():
-    # ⚠️ Verificação de acesso: Admin sempre tem acesso total
-    email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
-    if email_usuario != "matheus@email.com":
-        if not usuario_tem_acesso("site"):
-            st.warning("⚠️ Este módulo está disponível apenas para planos pagos.")
-            st.stop()
+    # 🧠 Tenta usar o último arquivo gerado para montar o link de exemplo
+    arquivo_exemplo = st.session_state.get("ultimo_site_arquivo")
+    if arquivo_exemplo:
+        link_exemplo = f"https://mivmark-frontend.onrender.com/{arquivo_exemplo}"
+    else:
+        link_exemplo = "https://mivmark-frontend.onrender.com/NOME_DA_SUA_EMPRESA.html"
 
-    st.title("🌐 Página e Chat do Cliente")
+    usuario = st.session_state.get("dados_usuario", {}) or {}
+    usuario_id = usuario.get("id")
 
-    # Dados do usuário logado
-    usuario_id = st.session_state.dados_usuario.get("id")
-    nome_empresa = st.session_state.dados_usuario.get("nome_empresa", "").replace(" ", "_")
-    nome_arquivo = f"{nome_empresa}.html"
+    if not usuario_id:
+        st.warning("Não foi possível identificar o usuário logado. Faça login novamente.")
+        return
 
-    # 🔗 Link público do site (na internet) – configurável pela PUBLIC_SITE_BASE_URL
-    link_site = f"{PUBLIC_SITE_BASE_URL}/{nome_arquivo}"
-
-    # ✅ Bloco explicativo do MARK com visual amigável
+    # 🔹 Texto de introdução (agora usando o link_exemplo real)
     st.markdown(
         f"""
-    <div style="background:#e8f4ff;padding:20px;border-left:5px solid #007bff;border-radius:10px;margin-bottom:20px">
-        <h4>🎉 Parabéns! Seu site foi criado automaticamente</h4>
-        <p>
-            O site foi gerado com todos os dados preenchidos na aba
-            <a href="?page=empresa"><strong>Empresa</strong></a>.
-            Caso você veja algo no site que queira ajustar, entre na aba <strong>Empresa</strong>,
-            edite as informações por lá e gere o site novamente: o conteúdo será atualizado automaticamente.
-        </p>
-        <p>Você pode visualizar seu site clicando no link abaixo:</p>
-        <a href="{link_site}" target="_blank"><strong>🔗 {link_site}</strong></a><br><br>
-        <p>🧠 Quanto mais informações você preencher na aba <strong>Empresa</strong>, mais completo seu site será!</p>
-    </div>
-    """,
-        unsafe_allow_html=True,
+    # 🌐 Página e Chat do Cliente
+
+    Parabéns! 🎉  
+    O seu **site exclusivo** foi criado com base nos dados cadastrados na aba **Empresa**.
+
+    Assim que você gerar o site, ele ficará disponível em um link como:
+
+    👉 **{link_exemplo}**
+
+    Você poderá **copiar esse link** e usar em:
+    - Bio do Instagram  
+    - WhatsApp Business  
+    - Google Meu Negócio  
+    - QR Code  
+    - Cartões digitais  
+    - Onde você quiser divulgar seu negócio!
+
+    ---
+
+    ### 🤖 Chat Inteligente Integrado
+
+    Seu site também vem com um **Atendente Virtual Inteligente**, totalmente integrado ao seu negócio.  
+    Ele recebe automaticamente as informações da sua empresa e responde seus clientes com:
+    - Explicações sobre seus serviços  
+    - Horários  
+    - Endereço  
+    - Informações adicionais que você cadastrar aqui  
+    - Mensagens personalizadas
+
+    Isso transforma seu site em um **atendimento 24h**, profissional e moderno!
+
+    ---
+
+    ### 📌 Observações importantes
+
+    1. **Deseja usar um domínio próprio?**  
+       Você pode comprar o domínio que quiser (ex.: Registro.br) e fazer redirecionamento para o link do seu site.
+
+    2. **Quer personalizar o design ou criar novas seções?**  
+       A equipe da **MivCast** pode criar melhorias, páginas adicionais e novas versões do seu site.  
+       Basta solicitar um orçamento!
+
+    ---
+    """
     )
 
-    st.markdown("## 🧠 Informações adicionais para o MARK")
-    st.write(
-        "Esse campo serve para você passar mensagens específicas que o seu cliente verá no chat dentro do site. Use com sabedoria!"
+    st.markdown("---")
+
+    st.subheader("Opções adicionais para o site e para o chat inteligente")
+
+    bio = st.text_area(
+        "Mensagem de boas-vindas / Bio para o início do site (opcional):",
+        help=(
+            "Ex.: 'Seja bem-vindo ao Restaurante do João, aqui você encontra "
+            "comida caseira todos os dias...'"
+        ),
     )
 
-    info = st.text_area("📌 Escreva aqui as informações adicionais para o MARK", height=150)
+    info_extra = st.text_area(
+        "Informações adicionais para o atendente virtual (chat) (opcional):",
+        help="Regras, políticas, detalhes de entrega, prazos, formas de pagamento, etc.",
+    )
 
-    if st.button("💾 Regerar Site com essas informações"):
+    col1, col2 = st.columns(2)
+    with col1:
+        agendamento_ativo = st.checkbox("Ativar agendamento on-line?", value=False)
+    with col2:
+        horarios_txt = st.text_input(
+            "Horários disponíveis (separados por vírgula)",
+            placeholder="Ex.: 08h–12h, 14h–18h",
+        )
+
+    horarios_disponiveis = [h.strip() for h in horarios_txt.split(",") if h.strip()]
+
+    if st.button("🚀 Gerar / Atualizar site agora", use_container_width=True):
         payload = {
             "usuario_id": usuario_id,
-            "bio": "",
-            "agendamento_ativo": False,
-            "horarios_disponiveis": [],
-            "informacoes_adicionais": info,
+            "bio": bio,
+            "agendamento_ativo": agendamento_ativo,
+            "horarios_disponiveis": horarios_disponiveis,
+            "informacoes_adicionais": info_extra,
         }
+
         try:
-            r = httpx.post(f"{API_URL}/site-cliente/gerar", json=payload)
-            if r.status_code == 200:
-                st.success("✅ Site atualizado com sucesso!")
-                st.markdown(
-                    f"🔗 [Visualizar site atualizado]({link_site})",
-                    unsafe_allow_html=True,
-                )
-            else:
-                st.error(f"Erro: {r.text}")
+            r = httpx.post(f"{API_URL}/site_cliente/gerar", json=payload, timeout=60.0)
         except Exception as e:
-            st.error(f"Erro ao gerar site: {e}")
+            st.error(f"Erro ao comunicar com o servidor: {e}")
+            return
+
+        if r.status_code != 200:
+            st.error(f"Erro ao gerar o site: {r.status_code} - {r.text}")
+            return
+
+        dados = r.json()
+        arquivo = dados.get("arquivo")
+        url = dados.get("url_publica")
+
+        # 🧠 Guarda na sessão o último arquivo gerado
+        if arquivo:
+            st.session_state["ultimo_site_arquivo"] = arquivo
+
+        st.success("Site gerado com sucesso! ✅")
+
+        # Se o backend já montou URL pública (quando você configurar SITES_BASE_URL no Render)
+        if url:
+            st.markdown(f"🔗 **Seu site está no ar:** [{url}]({url})")
+
+        # Se ainda não tem URL pública, montamos o link no formato que você quer
+        elif arquivo:
+            link_front = f"https://mivmark-frontend.onrender.com/{arquivo}"
+            st.markdown(f"🔗 **Seu site está no ar:** [{link_front}]({link_front})")
+
+        else:
+            st.warning(
+                "O site foi gerado, mas não foi possível montar a URL pública. "
+                "Verifique a variável `SITES_BASE_URL` no backend."
+            )
+
+        st.info(
+            "Dica: você pode copiar esse link e usar nas redes sociais, WhatsApp, "
+            "Google Meu Negócio, etc."
+        )
