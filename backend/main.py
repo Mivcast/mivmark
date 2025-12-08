@@ -9,41 +9,55 @@ from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
 from backend.database import Base, engine
-from backend import models
+from backend import models  # garante que os models sejam registrados
+
 
 # ============================================
-# 🔹 Caminho raiz e .env
+# 🔹 Caminho raiz do projeto e .env
 # ============================================
+# RAIZ_PROJETO = pasta "mivmark"
 RAIZ_PROJETO = Path(__file__).resolve().parents[1]
 
-load_dotenv(dotenv_path=RAIZ_PROJETO / ".env")
+# Carrega .env localmente (no Render usamos Environment Vars)
+env_path = RAIZ_PROJETO / ".env"
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
 
+# Pasta dos sites gerados: mivmark/data/sites_gerados
 DIR_SITES = RAIZ_PROJETO / "data" / "sites_gerados"
 DIR_SITES.mkdir(parents=True, exist_ok=True)
 
+
 # ============================================
-# 🔹 Cria o app FastAPI (PRECISA vir antes do mount)
+# 🔹 Cria o app FastAPI
 # ============================================
 app = FastAPI(title="MivMark API")
 
+
 # ============================================
-# 🔹 Configuração de CORS
+# 🔹 CORS
 # ============================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # depois você pode trocar pelo domínio do frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ============================================
-# 🔹 Monta os sites (AGORA pode usar o app)
-# ============================================
-app.mount("/sites", StaticFiles(directory=str(DIR_SITES), html=True), name="sites")
 
 # ============================================
-# 🔹 OpenAI client
+# 🔹 Servir arquivos estáticos dos sites gerados
+# ============================================
+# Exemplo:
+#   https://mivmark-backend.onrender.com/sites/Restaurante_do_joao.html
+# e assets:
+#   https://mivmark-backend.onrender.com/sites/assets/css/style.css
+app.mount("/sites", StaticFiles(directory=str(DIR_SITES), html=True), name="sites")
+
+
+# ============================================
+# 🔹 Cliente OPENAI (usado em mark_ia / chat_publico)
 # ============================================
 def get_openai_client():
     api_key = os.getenv("OPENAI_API_KEY")
@@ -51,15 +65,17 @@ def get_openai_client():
         return None
     return AsyncOpenAI(api_key=api_key)
 
+
 # ============================================
-# 🔹 Cria tabelas
+# 🔹 Criar tabelas
 # ============================================
 Base.metadata.create_all(bind=engine)
 
+
 # ============================================
-# 🔹 Importa as rotas
+# 🔹 Imports e Rotas
 # ============================================
-from backend.api import (
+from backend.api import (  # noqa: E402
     auth,
     empresa,
     consultoria,
@@ -77,9 +93,9 @@ from backend.api import (
     chat_publico,
     mercado_pago_pagamento,
 )
-from backend.api.aplicativo import router as aplicativo_router
-from backend.api.planos import router as planos_router
-from backend.api.cupons import router as cupons_router
+from backend.api.aplicativo import router as aplicativo_router  # noqa: E402
+from backend.api.planos import router as planos_router  # noqa: E402
+from backend.api.cupons import router as cupons_router  # noqa: E402
 
 app.include_router(auth.router)
 app.include_router(empresa.router)
