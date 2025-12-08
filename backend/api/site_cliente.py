@@ -4,13 +4,16 @@ from pydantic import BaseModel
 from backend.database import SessionLocal
 from backend.models import Empresa
 from jinja2 import Template
+from pathlib import Path
 import os
-import shutil  # 🔹 para copiar a pasta de assets
+import shutil
 
 router = APIRouter()
 
-CAMINHO_MODELO = "templates_html/modelo_site_cliente.html"
-PASTA_SAIDA = "data/sites_gerados"
+# Diretórios base independentes da pasta onde o servidor é iniciado
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+CAMINHO_MODELO = BASE_DIR / "templates_html" / "modelo_site_cliente.html"
+PASTA_SAIDA = BASE_DIR / "data" / "sites_gerados"
 
 
 class DadosSiteCliente(BaseModel):
@@ -35,23 +38,20 @@ def gerar_site_cliente(dados: DadosSiteCliente):
         if not empresa:
             raise HTTPException(
                 status_code=404,
-                detail="Empresa não encontrada para este usuário."
+                detail="Empresa não encontrada para este usuário.",
             )
 
-        # Carrega o modelo HTML
-        if not os.path.exists(CAMINHO_MODELO):
+        if not CAMINHO_MODELO.exists():
             raise HTTPException(
                 status_code=500,
-                detail="Modelo de site não encontrado."
+                detail="Modelo de site não encontrado.",
             )
 
-        with open(CAMINHO_MODELO, "r", encoding="utf-8") as f:
-            template = Template(f.read())
+        template = Template(CAMINHO_MODELO.read_text(encoding="utf-8"))
 
         # Slug da empresa (usado no nome do arquivo e no chat)
         slug_empresa = (empresa.nome_empresa or "site").replace(" ", "_")
 
-        # Renderiza o HTML com os dados da empresa
         site_renderizado = template.render(
             nome_empresa=empresa.nome_empresa or "",
             nicho=getattr(empresa, "nicho", "") or "",
@@ -72,28 +72,24 @@ def gerar_site_cliente(dados: DadosSiteCliente):
             informacoes_adicionais=dados.informacoes_adicionais or "",
             agendamento_ativo=dados.agendamento_ativo,
             horarios_disponiveis=dados.horarios_disponiveis or [],
-            empresa_slug=slug_empresa,  # 🔹 para o iframe do chat
+            empresa_slug=slug_empresa,  # usado no iframe do chat
         )
 
         # Garante que a pasta de saída existe
-        os.makedirs(PASTA_SAIDA, exist_ok=True)
+        PASTA_SAIDA.mkdir(parents=True, exist_ok=True)
 
-        # 🔹 Copia a pasta assets do template para a pasta pública dos sites
-        origem_assets = os.path.join("templates_html", "assets")
-        destino_assets = os.path.join(PASTA_SAIDA, "assets")
-        if os.path.isdir(origem_assets):
+        # 🔹 Copia/atualiza a pasta assets (CSS, JS, imagens) para data/sites_gerados/assets
+        origem_assets = BASE_DIR / "templates_html" / "assets"
+        destino_assets = PASTA_SAIDA / "assets"
+        if origem_assets.is_dir():
             shutil.copytree(origem_assets, destino_assets, dirs_exist_ok=True)
 
-        # Gera HTML direto na pasta /data/sites_gerados com Nome_da_Empresa.html
         nome_arquivo = f"{slug_empresa}.html"
-        caminho_saida = os.path.join(PASTA_SAIDA, nome_arquivo)
+        caminho_saida = PASTA_SAIDA / nome_arquivo
+        caminho_saida.write_text(site_renderizado, encoding="utf-8")
 
-        with open(caminho_saida, "w", encoding="utf-8") as f_out:
-            f_out.write(site_renderizado)
-
-        # Monta URL pública com base em uma env var
-        # Exemplo de valor em produção:
-        # SITES_BASE_URL=https://mivmark-backend.onrender.com/sites
+        # URL pública do site (Render)
+        # Ex.: SITES_BASE_URL=https://mivmark-backend.onrender.com/sites
         base_url = os.getenv("SITES_BASE_URL")
         url_publica = (
             f"{base_url.rstrip('/')}/{nome_arquivo}"
@@ -103,7 +99,7 @@ def gerar_site_cliente(dados: DadosSiteCliente):
 
         return {
             "mensagem": "Site gerado com sucesso!",
-            "caminho": caminho_saida,
+            "caminho": str(caminho_saida),
             "arquivo": nome_arquivo,
             "url_publica": url_publica,
         }
@@ -111,7 +107,6 @@ def gerar_site_cliente(dados: DadosSiteCliente):
         db.close()
 
 
-# 🔹 Rota pública para o frontend chamar
 @router.post("/site_cliente/gerar")
 def api_gerar_site_cliente(dados: DadosSiteCliente):
     return gerar_site_cliente(dados)
