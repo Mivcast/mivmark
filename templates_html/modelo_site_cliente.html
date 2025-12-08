@@ -374,7 +374,11 @@
 <!-- 🔵 Chat do Atendente Virtual Público -->
 <div id="chat-container" style="position:fixed;bottom:20px;right:20px;width:350px;height:500px;max-width:95vw;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.2);z-index:9999;background:#fff;display:none;flex-direction:column;">
     <div style="background:#007bff;color:#fff;padding:10px;border-top-left-radius:10px;border-top-right-radius:10px;cursor:pointer;" onclick="toggleChat()">🤖 Atendente Virtual</div>
-        <iframe id="chat-frame" src="/chat_publico?empresa={{nome_empresa}}" style="border:none;width:100%;flex:1;"></iframe>
+        <iframe
+            id="chat-frame"
+            src="/chat_publico?empresa={{empresa_slug}}"
+            style="border:none;width:100%;flex:1;"
+        ></iframe>
 
 
 </div>

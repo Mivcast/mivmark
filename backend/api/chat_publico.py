@@ -14,19 +14,22 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # HTML do chat (visível na versão web)
 @router.get("/chat_publico", response_class=HTMLResponse)
-def chat_publico():
-    html = """
+def chat_publico(empresa: str):
+    # empresa vem no formato slug: Restaurante_do_judas_alimentos
+    html = f"""
     <!DOCTYPE html>
     <html>
     <head>
         <title>Atendente Virtual</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 0; }
-            #chatbox { position: fixed; bottom: 0; right: 20px; width: 350px; background: white; border: 1px solid #ccc; border-radius: 10px 10px 0 0; display: flex; flex-direction: column; height: 400px; }
-            #mensagens { flex: 1; overflow-y: auto; padding: 10px; }
-            #inputArea { display: flex; }
-            input { flex: 1; padding: 10px; border: none; border-top: 1px solid #ccc; }
-            button { padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
+            body {{ font-family: Arial, sans-serif; margin: 0; }}
+            #chatbox {{ position: fixed; bottom: 0; right: 20px; width: 300px; border: 1px solid #ccc;
+                        border-radius: 10px 10px 0 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                        background: #fff; overflow: hidden; display: flex; flex-direction: column; height: 400px; }}
+            #mensagens {{ flex: 1; overflow-y: auto; padding: 10px; }}
+            #inputArea {{ display: flex; }}
+            input {{ flex: 1; padding: 10px; border: none; border-top: 1px solid #ccc; }}
+            button {{ padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; }}
         </style>
     </head>
     <body>
@@ -39,7 +42,9 @@ def chat_publico():
         </div>
 
         <script>
-            async function enviar() {
+            const EMPRESA = "{empresa}";
+
+            async function enviar() {{
                 const input = document.getElementById('pergunta');
                 const mensagens = document.getElementById('mensagens');
                 const pergunta = input.value;
@@ -48,12 +53,12 @@ def chat_publico():
                 mensagens.innerHTML += `<p><strong>Você:</strong> ${pergunta}</p>`;
                 input.value = "";
 
-                const resposta = await fetch(`/chat_publico/perguntar?pergunta=${encodeURIComponent(pergunta)}&empresa=MivCast_Marketing_Digital`);
+                const resposta = await fetch(`/chat_publico/perguntar?pergunta=${{encodeURIComponent(pergunta)}}&empresa=${{encodeURIComponent(EMPRESA)}}`);
                 const dados = await resposta.json();
 
                 mensagens.innerHTML += `<p><strong>Atendente:</strong> ${dados.resposta}</p>`;
                 mensagens.scrollTop = mensagens.scrollHeight;
-            }
+            }}
         </script>
     </body>
     </html>
