@@ -1,37 +1,33 @@
 # backend/main.py
 import os
 from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
-from backend import models
 from backend.database import Base, engine
-
+from backend import models
 
 # ============================================
-# 🔹 Carrega variáveis do .env
+# 🔹 Caminho raiz e .env
 # ============================================
-load_dotenv()
-
-# Raiz do projeto -> .../mivmark
 RAIZ_PROJETO = Path(__file__).resolve().parents[1]
 
-# Pasta onde os sites são gerados
+load_dotenv(dotenv_path=RAIZ_PROJETO / ".env")
+
 DIR_SITES = RAIZ_PROJETO / "data" / "sites_gerados"
 DIR_SITES.mkdir(parents=True, exist_ok=True)
 
-
 # ============================================
-# 🔹 Cria app FastAPI
+# 🔹 Cria o app FastAPI (PRECISA vir antes do mount)
 # ============================================
 app = FastAPI(title="MivMark API")
 
-
 # ============================================
-# 🔹 CORS
+# 🔹 Configuração de CORS
 # ============================================
 app.add_middleware(
     CORSMiddleware,
@@ -41,17 +37,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # ============================================
-# 🔹 Servir arquivos estáticos dos sites
+# 🔹 Monta os sites (AGORA pode usar o app)
 # ============================================
-# Exemplo final:
-# https://mivmark-backend.onrender.com/sites/NOME.html
 app.mount("/sites", StaticFiles(directory=str(DIR_SITES), html=True), name="sites")
 
-
 # ============================================
-# 🔹 Cliente OPENAI
+# 🔹 OpenAI client
 # ============================================
 def get_openai_client():
     api_key = os.getenv("OPENAI_API_KEY")
@@ -59,15 +51,13 @@ def get_openai_client():
         return None
     return AsyncOpenAI(api_key=api_key)
 
-
 # ============================================
-# 🔹 Criar tabelas
+# 🔹 Cria tabelas
 # ============================================
 Base.metadata.create_all(bind=engine)
 
-
 # ============================================
-# 🔹 Imports e Rotas
+# 🔹 Importa as rotas
 # ============================================
 from backend.api import (
     auth,
@@ -112,9 +102,6 @@ app.include_router(planos_router)
 app.include_router(cupons_router)
 
 
-# ============================================
-# 🔹 Rota inicial
-# ============================================
 @app.get("/")
 def home():
     return {"mensagem": "MARK backend rodando!"}
