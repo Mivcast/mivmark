@@ -412,6 +412,7 @@ def tela_login_personalizada():
         with open(caminho_imagem, "rb") as f:
             imagem_base64 = base64.b64encode(f.read()).decode("utf-8")
 
+    # CSS com imagem de fundo usando base64 e layout 60/40
     st.markdown(f"""
         <style>
         * {{
@@ -423,9 +424,8 @@ def tela_login_personalizada():
             padding: 0 !important;
         }}
 
-        /* 🔹 Geral: mínimo de padding possível */
         .block-container {{
-            padding: 0.1rem 0.6rem 0.3rem !important;
+            padding: 0rem 1rem 0rem !important;
         }}
 
         .left {{
@@ -440,47 +440,30 @@ def tela_login_personalizada():
         .right {{
             flex: 4;
             max-width: 480px;
-            margin: 0 auto;
-            padding: 8px 20px !important;  /* reduzido para aproximar logo + título */
+            margin: auto;
+            padding: 60px 40px;
             background-color: white;
-        }}
-
-        /* 🔹 reduzir espaço logo x título */
-        .right img {{
-            margin-top: 0px !important;
-            margin-bottom: 0px !important;
-            padding: 0 !important;
         }}
 
         h1 {{
             font-size: 32px;
             font-weight: bold;
-            margin-top: -2px !important;  /* puxa o título pra cima */
-            margin-bottom: 2px !important;
+            margin-bottom: 10px;
         }}
 
         .subtitle {{
             color: #666;
-            margin-top: 0px;
-            margin-bottom: 12px;
-            line-height: 1.2;
-            font-size: 15px;
-        }}
-
-        /* 🔹 reduzir espaço dos textos (E-mail, Senha, etc.) */
-        .right > p {{
-            margin-top: 4px !important;
-            margin-bottom: 4px !important;
+            margin-bottom: 40px;
         }}
 
         .stTextInput, .stPassword {{
             width: 90% !important;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }}
 
         .stTextInput > div > input,
         .stPassword > div > input {{
-            padding: 10px;
+            padding: 12px;
             border-radius: 8px;
             border: 1px solid #ccc;
             width: 100%;
@@ -490,10 +473,10 @@ def tela_login_personalizada():
             background-color: #265df2;
             color: white;
             font-weight: bold;
-            padding: 10px;
+            padding: 12px;
             border: none;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 16px;
             cursor: pointer;
             width: 100%;
         }}
@@ -501,64 +484,41 @@ def tela_login_personalizada():
             background-color: #1d47c8;
         }}
 
-        .bottom-text {{
-            font-size: 12px;
-            margin-top: 6px;
-            line-height: 1.2;
+        .link {{
+            font-size: 14px;
+            color: #265df2;
+            margin-top: 10px;
+            margin-bottom: 16px;
         }}
 
-        /* 🔹 MOBILE: espremer ao máximo e colar no topo */
+        .bottom-text {{
+            font-size: 13px;
+            margin-top: 14px;
+        }}
+
         @media(max-width: 768px) {{
 
             .left {{
                 display: none;
             }}
 
-            .main .block-container {{
-                padding-top: 0rem !important;
-                padding-bottom: 0.2rem !important;
-            }}
-
             .right {{
                 flex: 1;
                 width: 100% !important;
                 max-width: 420px !important;
-                padding: 6px 12px !important;  /* ainda menor no mobile */
-                margin: 0px auto 8px !important;
-                border-radius: 10px;
-                box-shadow: 0 0 8px rgba(0,0,0,0.04);
-            }}
-
-            .right img {{
-                margin-bottom: -2px !important;  /* cola mais na palavra Login */
-            }}
-
-            h1 {{
-                font-size: 24px;
-                margin-top: -4px !important;   /* mais perto da logo */
-                margin-bottom: 2px !important;
-            }}
-
-            .subtitle {{
-                font-size: 13px;
-                line-height: 1.15;
-                margin-bottom: 10px !important;
-            }}
-
-            .right > p {{
-                margin-top: 3px !important;
-                margin-bottom: 3px !important;
+                padding: 28px 20px !important;
+                margin: 16px auto !important;
+                border-radius: 16px;
+                box-shadow: 0 0 12px rgba(0,0,0,0.06);
             }}
 
             .stTextInput, .stPassword {{
                 width: 100% !important;
-                margin-bottom: 6px;
             }}
 
             .stTextInput > div > input,
             .stPassword > div > input {{
                 width: 100% !important;
-                padding: 8px;
             }}
         }}
         </style>
@@ -571,7 +531,8 @@ def tela_login_personalizada():
 
     with col2:
         st.markdown('<div class="right">', unsafe_allow_html=True)
-        st.image("frontend/img/mivlogo preta.png", width=80)
+
+        st.image("frontend/img/mivlogo preta.png", width=120)
         st.markdown("<h1>Login</h1>", unsafe_allow_html=True)
         st.markdown("<p class='subtitle'>Acesse sua conta para gerenciar seu sistema.</p>", unsafe_allow_html=True)
 
@@ -630,6 +591,7 @@ def tela_login_personalizada():
         if st.button("Acessar meu Sistema", use_container_width=True):
             login_usuario(email, senha)
 
+        st.markdown("<br/>", unsafe_allow_html=True)
         st.markdown("Ainda não tem cadastro na MivCast?")
 
         if st.button("📩 Cadastre-se agora", use_container_width=True):
@@ -643,7 +605,6 @@ def tela_login_personalizada():
         """, unsafe_allow_html=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
-
 
 
 
