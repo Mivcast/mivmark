@@ -684,7 +684,8 @@ def tela_cadastro():
     import streamlit as st
     import httpx
 
-    API_URL = "https://mivmark-backend.onrender.com"
+    global API_URL  # usa o mesmo API_URL definido no topo do app
+
     st.title("📝 Criar sua conta")
 
     cupons_validos = {
@@ -707,29 +708,46 @@ def tela_cadastro():
     plano_selecionado = st.session_state.plano_escolhido
 
     st.subheader("📦 Escolha um plano")
-    col1, col2 = st.columns(2)
 
-    def card_plano(nome, emoji, cor, preco, tooltip):
-        selecionado = plano_selecionado == nome
-        borda = "3px solid #00c851" if selecionado else "1px solid #ccc"
-        st.markdown(f"""
-            <div style='background-color:{cor}; padding: 15px; border-radius: 12px; border:{borda}; margin-bottom:10px;'>
-                <h4 style='margin-bottom:5px'>{emoji} Plano {nome}</h4>
-                <ul>{tooltip}</ul>
-                <strong>💰 R$ {preco:.2f}</strong>
-            </div>
-        """, unsafe_allow_html=True)
-        if st.button(f"Selecionar {nome}", key=f"btn_{nome}"):
-            st.session_state.plano_escolhido = nome
-            st.rerun()
+    # 🔹 4 colunas na mesma linha
+    cols = st.columns(4)
 
-    with col1:
-        card_plano("Gratuito", "🆓", "#eafaf1", planos_info["Gratuito"], "<li>Empresa</li><li>Saúde</li>")
-        card_plano("Profissional", "🚀", "#fff9e6", planos_info["Profissional"], "<li>Avançado</li><li>Todos do Essencial</li>")
+    def card_plano(nome, emoji, preco, tooltip, col):
+        selecionado = (plano_selecionado == nome)
+        bg = "#265df2" if selecionado else "#ffffff"
+        text_color = "#ffffff" if selecionado else "#000000"
+        border = "3px solid #265df2" if selecionado else "1px solid #ccc"
 
-    with col2:
-        card_plano("Essencial", "💼", "#f0f4ff", planos_info["Essencial"], "<li>Orçamento</li><li>Aplicativos</li>")
-        card_plano("Premium", "👑", "#fbeef7", planos_info["Premium"], "<li>Suporte Premium</li><li>Tudo incluso</li>")
+        with col:
+            st.markdown(
+                f"""
+                <div style='
+                    background-color:{bg};
+                    padding: 15px;
+                    border-radius: 12px;
+                    border:{border};
+                    margin-bottom:10px;
+                    min-height: 170px;
+                    color:{text_color};
+                '>
+                    <h4 style='margin-bottom:5px'>{emoji} Plano {nome}</h4>
+                    <ul style="padding-left:18px; margin-top:4px; margin-bottom:10px; color:{text_color};">
+                        {tooltip}
+                    </ul>
+                    <strong>💰 R$ {preco:.2f}</strong>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            if st.button(f"Selecionar {nome}", key=f"btn_{nome}"):
+                st.session_state.plano_escolhido = nome
+                st.rerun()
+
+    # 📦 Um plano em cada coluna
+    card_plano("Gratuito", "🆓", planos_info["Gratuito"], "<li>Empresa</li><li>Saúde</li>", cols[0])
+    card_plano("Essencial", "💼", planos_info["Essencial"], "<li>Orçamento</li><li>Aplicativos</li>", cols[1])
+    card_plano("Profissional", "🚀", planos_info["Profissional"], "<li>Avançado</li><li>Todos do Essencial</li>", cols[2])
+    card_plano("Premium", "👑", planos_info["Premium"], "<li>Suporte Premium</li><li>Tudo incluso</li>", cols[3])
 
     st.markdown("---")
     st.subheader("📋 Dados de Cadastro")
@@ -764,56 +782,106 @@ def tela_cadastro():
         enviar = st.form_submit_button("Cadastrar")
 
         if enviar:
+            # validação básica
+            if not nome or not email or not senha:
+                st.error("Preencha todos os campos antes de cadastrar.")
+                st.stop()
+
+            # 🔹 Plano Gratuito → cadastro imediato + e-mail de boas-vindas
             if plano_selecionado == "Gratuito":
                 try:
-                    r = httpx.post(f"{API_URL}/usuario/cadastro-gratuito", json={
-                        "nome": nome,
-                        "email": email,
-                        "senha": senha
-                    })
-                    if r.status_code == 200:
-                        st.success("✅ Cadastro realizado com sucesso!")
-                        st.markdown("[🔑 Ir para o login](?login=true)")
-                    else:
-                        st.error(f"❌ {r.json().get('detail', 'Erro ao cadastrar.')}")
+                    resp = httpx.post(
+                        f"{API_URL}/usuario/cadastro-gratuito",
+                        json={
+                            "nome": nome,
+                            "email": email,
+                            "senha": senha
+                        },
+                        timeout=20.0,
+                    )
                 except Exception as e:
                     st.error(f"Erro ao conectar: {e}")
+                else:
+                    if resp.status_code == 200:
+                        try:
+                            _ = resp.json()
+                        except Exception:
+                            _ = None
+                        st.success("✅ Cadastro realizado com sucesso!")
+                        st.info("✉️ Verifique seu e-mail, enviamos seus dados de acesso e o período de teste.")
+                        st.markdown("[🔑 Ir para o login](?login=true)")
+                    else:
+                        detalhe = ""
+                        try:
+                            detalhe = resp.json().get("detail", "")
+                        except Exception:
+                            detalhe = resp.text or "Resposta vazia do servidor."
+                        st.error(f"❌ Erro ao cadastrar ({resp.status_code}): {detalhe}")
+
+            # 🔹 Planos pagos com token já em mãos (após pagamento)
             elif token:
                 try:
-                    r = httpx.post(f"{API_URL}/cadastro", json={
-                        "nome": nome,
-                        "email": email,
-                        "senha": senha,
-                        "token_ativacao": token
-                    })
-                    if r.status_code == 200:
+                    resp = httpx.post(
+                        f"{API_URL}/cadastro",
+                        json={
+                            "nome": nome,
+                            "email": email,
+                            "senha": senha,
+                            "token_ativacao": token
+                        },
+                        timeout=20.0,
+                    )
+                except Exception as e:
+                    st.error(f"Erro ao conectar: {e}")
+                else:
+                    if resp.status_code == 200:
                         st.success("✅ Cadastro ativado com sucesso!")
                         st.markdown("[🔑 Ir para o login](?login=true)")
                     else:
-                        st.error(f"❌ {r.json().get('detail', 'Erro ao cadastrar.')}")
-                except Exception as e:
-                    st.error(f"Erro ao conectar: {e}")
+                        detalhe = ""
+                        try:
+                            detalhe = resp.json().get("detail", "")
+                        except Exception:
+                            detalhe = resp.text or "Resposta vazia do servidor."
+                        st.error(f"❌ Erro ao cadastrar ({resp.status_code}): {detalhe}")
+
+            # 🔹 Planos pagos sem token → gera link do Mercado Pago
             else:
                 try:
-                    r = httpx.post(f"{API_URL}/api/mercado_pago/criar_preferencia", json={
-                        "plano_nome": plano_selecionado,
-                        "preco": preco_final
-                    })
-                    if r.status_code == 200:
-                        pagamento = r.json()
-                        st.success("✅ Cadastro iniciado. Finalize o pagamento para receber o token de ativação no e-mail.")
-                        st.markdown(f"[🔗 Clique aqui para pagar agora]({pagamento['init_point']})")
-                    else:
-                        st.error("Erro ao gerar link de pagamento.")
+                    resp = httpx.post(
+                        f"{API_URL}/api/mercado_pago/criar_preferencia",
+                        json={
+                            "plano_nome": plano_selecionado,
+                            "preco": preco_final
+                        },
+                        timeout=20.0,
+                    )
                 except Exception as e:
                     st.error(f"Erro ao conectar com Mercado Pago: {e}")
+                else:
+                    if resp.status_code == 200:
+                        try:
+                            pagamento = resp.json()
+                        except Exception:
+                            pagamento = {}
+                        init_point = pagamento.get("init_point")
+                        if init_point:
+                            st.success("✅ Cadastro iniciado. Finalize o pagamento para receber o token de ativação no e-mail.")
+                            st.markdown(f"[🔗 Clique aqui para pagar agora]({init_point})")
+                        else:
+                            st.error("Erro ao gerar link de pagamento (resposta incompleta).")
+                    else:
+                        detalhe = ""
+                        try:
+                            detalhe = resp.json().get("detail", "")
+                        except Exception:
+                            detalhe = resp.text or "Erro ao gerar link de pagamento."
+                        st.error(f"Erro ao gerar link de pagamento ({resp.status_code}): {detalhe}")
 
     st.markdown("---")
     if st.button("👨🏻‍💻 Voltar para login"):
         st.query_params = {"login": "true"}
         st.rerun()
-
-
 
 
 
