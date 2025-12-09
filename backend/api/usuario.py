@@ -65,8 +65,7 @@ def gerar_senha_temporaria(tamanho: int = 8) -> str:
 @router.post("/cadastro-gratuito")
 def cadastro_gratuito(dados: CadastroGratuito, db: Session = Depends(get_db)):
     """
-    Cria usuário e libera 7 dias de acesso ao plano Profissional
-    + envia e-mail de boas-vindas com dados de acesso.
+    Cria usuário e libera 7 dias de acesso ao plano Profissional.
     """
 
     usuario_existente = db.query(Usuario).filter(Usuario.email == dados.email).first()
@@ -75,16 +74,13 @@ def cadastro_gratuito(dados: CadastroGratuito, db: Session = Depends(get_db)):
 
     agora = datetime.utcnow()
 
-    # 🔐 agora a senha é salva com HASH bcrypt
-    senha_hashed = hash_senha(dados.senha)
-
     usuario = Usuario(
         nome=dados.nome,
         email=dados.email,
-        senha_hash=senha_hashed,
+        senha_hash=dados.senha,  # mantendo o padrão atual do sistema
         plano_atual="Profissional",
         plano_expira_em=agora + timedelta(days=7),
-        criado_em=agora,
+        # 🔴 REMOVIDO: criado_em=agora  (esse campo não existe no modelo Usuario)
     )
 
     db.add(usuario)
@@ -132,6 +128,7 @@ def cadastro_gratuito(dados: CadastroGratuito, db: Session = Depends(get_db)):
         "plano_atual": usuario.plano_atual,
         "plano_expira_em": usuario.plano_expira_em,
     }
+
 
 
 @router.post("/diagnostico")
