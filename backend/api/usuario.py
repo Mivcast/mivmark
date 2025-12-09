@@ -1,179 +1,266 @@
 # backend/api/usuario.py
 
+from datetime import datetime, timedelta
+import secrets
+import string
+
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
+
 from backend.database import get_db
 from backend.models import Usuario, Diagnostico
 from backend.models.tokens import TokenAtivacao
 from backend.api.auth import get_usuario_logado
-from datetime import datetime, timedelta
-from pydantic import BaseModel
+from backend.utils.email_utils import enviar_email
 
-router = APIRouter(prefix="/usuario", tags=["Usuário"])
+router = APIRouter(prefix="/usuario", tags=["Usuários"])
 
 
-# ============================================================
-# 🚀 CADASTRO GRATUITO – com teste de 7 dias do Plano Profissional
-# ============================================================
+# =========================
+# MODELOS DE DADOS
+# =========================
 
-class CadastroRequest(BaseModel):
+class CadastroGratuito(BaseModel):
     nome: str
-    email: str
+    email: EmailStr
     senha: str
 
 
-@router.post("/cadastro/gratuito")
-def cadastro_gratuito(dados: CadastroRequest, db: Session = Depends(get_db)):
+class DiagnosticoRequest(BaseModel):
+    nota_saude: float
+    respostas_json: dict
+
+
+class EsqueciSenhaRequest(BaseModel):
+    email: EmailStr
+
+
+# =========================
+# FUNÇÕES AUXILIARES
+# =========================
+
+def gerar_senha_temporaria(tamanho: int = 8) -> str:
+    alfabeto = string.ascii_letters + string.digits
+    return "".join(secrets.choice(alfabeto) for _ in range(tamanho))
+
+
+# =========================
+# ROTAS
+# =========================
+
+@router.post("/cadastro-gratuito")
+def cadastro_gratuito(dados: CadastroGratuito, db: Session = Depends(get_db)):
     """
-    Cria um usuário gratuito com teste de 7 dias do plano Profissional.
-    Após 7 dias, o backend (auth) derruba automaticamente para plano 'Gratuito'.
+    Cria usuário e libera 7 dias de acesso ao plano Profissional.
     """
 
-    # Verificar se já existe
-    existente = db.query(Usuario).filter(Usuario.email == dados.email).first()
-    if existente:
-        raise HTTPException(status_code=400, detail="E-mail já cadastrado.")
+    usuario_existente = db.query(Usuario).filter(Usuario.email == dados.email).first()
+    if usuario_existente:
+        raise HTTPException(status_code=400, detail="Já existe um usuário com esse e-mail.")
 
     agora = datetime.utcnow()
 
-    # Senha será hasheada pelo auth no login, então aqui salva direto
     usuario = Usuario(
         nome=dados.nome,
         email=dados.email,
-        senha_hash=dados.senha,  # ⚠ importante: login vai hashear ao validar
-        tipo_usuario="cliente",
-
-        # 🔥 TESTE LIBERADO – 7 dias de acesso ao Plano Profissional
+        senha_hash=dados.senha,  # 🔐 ainda em texto simples, seguindo padrão atual do sistema
         plano_atual="Profissional",
         plano_expira_em=agora + timedelta(days=7),
-
-        data_criacao=agora,
+        criado_em=agora,
     )
 
     db.add(usuario)
     db.commit()
     db.refresh(usuario)
 
+    # E-mail de boas-vindas + teste de 7 dias
+    assunto = "Bem-vindo ao MivMark 🎯 – 7 dias de acesso Profissional liberados"
+    corpo_html = f"""
+    <p>Olá, <strong>{usuario.nome}</strong>!</p>
+
+    <p>Seu cadastro no <strong>MivMark</strong> foi realizado com sucesso. 🙌</p>
+
+    <p>Você ganhou <strong>7 dias de acesso ao plano Profissional</strong>
+    para conhecer praticamente todas as funções do sistema.</p>
+
+    <p>Dados de acesso:</p>
+    <ul>
+        <li><strong>E-mail:</strong> {usuario.email}</li>
+        <li><strong>Senha:</strong> {dados.senha}</li>
+    </ul>
+
+    <p>Após esses 7 dias, você pode escolher o plano que fizer mais sentido para o seu momento.</p>
+
+    <p>
+        Acesse o sistema pelo link:<br>
+        <a href="https://mivmark-frontend.onrender.com" target="_blank">
+            https://mivmark-frontend.onrender.com
+        </a>
+    </p>
+
+    <p>Qualquer dúvida, é só responder este e-mail.<br>
+    <strong>Matheus – MivCast / MivMark</strong></p>
+    """
+
+    try:
+        enviar_email(usuario.email, assunto, corpo_html)
+    except Exception as e:
+        print(f"[CADASTRO] Erro ao enviar e-mail de boas-vindas: {e}")
+
     return {
-        "mensagem": "Cadastro criado! Você ganhou 7 dias do plano Profissional.",
-        "usuario_id": usuario.id,
+        "id": usuario.id,
+        "nome": usuario.nome,
+        "email": usuario.email,
         "plano_atual": usuario.plano_atual,
         "plano_expira_em": usuario.plano_expira_em,
     }
 
 
-# ============================================================
-# 🧠 SALVAR DIAGNÓSTICO DE SAÚDE
-# ============================================================
-
-@router.put("/nota_saude")
+@router.post("/diagnostico")
 def salvar_diagnostico(
-    dados: dict,
-    usuario: Usuario = Depends(get_usuario_logado),
+    dados: DiagnosticoRequest,
+    usuario=Depends(get_usuario_logado),
     db: Session = Depends(get_db),
 ):
-    usuario = db.merge(usuario)
+    """
+    Salva ou atualiza o diagnóstico de saúde da empresa do usuário logado.
+    """
 
-    nota = dados.get("nota")
-    respostas = dados.get("respostas")
-
-    if nota is not None:
-        usuario.nota_saude = f"{nota:.2f}%"
-    if respostas is not None:
-        usuario.respostas_saude = respostas
-
-    db.commit()
-    db.refresh(usuario)
-
-    return {"mensagem": "Diagnóstico salvo com sucesso"}
-
-
-@router.get("/diagnosticos")
-def listar_diagnosticos(
-    usuario: Usuario = Depends(get_usuario_logado),
-    db: Session = Depends(get_db),
-):
-    diagnosticos = (
+    diagnostico = (
         db.query(Diagnostico)
         .filter(Diagnostico.usuario_id == usuario.id)
-        .order_by(Diagnostico.data_avaliacao.desc())
-        .all()
+        .first()
     )
 
-    return [
-        {
-            "id": d.id,
-            "data_avaliacao": d.data_avaliacao.isoformat() if d.data_avaliacao else None,
-            "nota_geral": d.nota_geral,
-            "respostas": d.respostas
-        }
-        for d in diagnosticos
-    ]
+    if diagnostico:
+        diagnostico.nota_saude = dados.nota_saude
+        diagnostico.respostas_json = dados.respostas_json
+        diagnostico.atualizado_em = datetime.utcnow()
+    else:
+        diagnostico = Diagnostico(
+            usuario_id=usuario.id,
+            nota_saude=dados.nota_saude,
+            respostas_json=dados.respostas_json,
+            criado_em=datetime.utcnow(),
+        )
+        db.add(diagnostico)
+
+    db.commit()
+    db.refresh(diagnostico)
+
+    return {
+        "id": diagnostico.id,
+        "nota_saude": diagnostico.nota_saude,
+        "respostas_json": diagnostico.respostas_json,
+    }
 
 
-# ============================================================
-# 🔑 ATIVAÇÃO DE TOKEN – Planos pagos
-# ============================================================
+@router.get("/diagnostico")
+def obter_diagnostico(
+    usuario=Depends(get_usuario_logado),
+    db: Session = Depends(get_db),
+):
+    """
+    Retorna o diagnóstico salvo do usuário logado (se existir).
+    """
 
-class TokenAtivacaoRequest(BaseModel):
-    token: str
+    diagnostico = (
+        db.query(Diagnostico)
+        .filter(Diagnostico.usuario_id == usuario.id)
+        .first()
+    )
+
+    if not diagnostico:
+        return None
+
+    return {
+        "id": diagnostico.id,
+        "nota_saude": diagnostico.nota_saude,
+        "respostas_json": diagnostico.respostas_json,
+    }
 
 
 @router.post("/ativar_token")
-def ativar_token(
-    dados: TokenAtivacaoRequest,
-    usuario: Usuario = Depends(get_usuario_logado),
-    db: Session = Depends(get_db),
-):
-    token_str = (dados.token or "").strip()
+def ativar_token(token: str, db: Session = Depends(get_db)):
+    """
+    Ativa um token de plano pago e vincula ao usuário.
+    """
 
-    if not token_str:
-        raise HTTPException(status_code=400, detail="Token não informado.")
+    token_registro = (
+        db.query(TokenAtivacao)
+        .filter(TokenAtivacao.token == token, TokenAtivacao.usado_em == None)
+        .first()
+    )
 
-    token = db.query(TokenAtivacao).filter(TokenAtivacao.token == token_str).first()
+    if not token_registro:
+        raise HTTPException(status_code=400, detail="Token inválido ou já utilizado.")
 
-    if not token:
-        raise HTTPException(status_code=400, detail="Token inválido.")
-
-    if not token.ativo:
-        raise HTTPException(status_code=400, detail="Token já foi utilizado.")
-
-    # Expirado?
-    if token.expira_em and token.expira_em < datetime.utcnow():
-        token.ativo = False
-        db.commit()
+    if token_registro.expira_em and token_registro.expira_em < datetime.utcnow():
         raise HTTPException(status_code=400, detail="Token expirado.")
 
-    # Vinculado a outro usuário?
-    if token.usuario_id and token.usuario_id != usuario.id:
-        raise HTTPException(
-            status_code=400,
-            detail="Este token já foi vinculado a outra conta.",
-        )
+    usuario = db.query(Usuario).filter(Usuario.email == token_registro.email_cliente).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado para este token.")
 
-    # Associar ao usuário atual (se ainda não tiver)
-    if not token.usuario_id:
-        token.usuario_id = usuario.id
+    usuario.plano_atual = token_registro.plano_nome
+    usuario.plano_expira_em = datetime.utcnow() + timedelta(days=30)
 
-    # Plano definido no token ou padrão 'Profissional'
-    plano = token.plano or "Profissional"
-    usuario.plano_atual = plano
-
-    # Expiração existente ou 1 ano
-    if token.expira_em:
-        usuario.plano_expira_em = token.expira_em
-    else:
-        usuario.plano_expira_em = datetime.utcnow() + timedelta(days=365)
-        token.expira_em = usuario.plano_expira_em
-
-    token.ativo = False
+    token_registro.usado_em = datetime.utcnow()
 
     db.commit()
     db.refresh(usuario)
-    db.refresh(token)
 
     return {
-        "mensagem": "Plano ativado com sucesso!",
-        "plano": usuario.plano_atual,
-        "expira_em": usuario.plano_expira_em.isoformat() if usuario.plano_expira_em else None,
+        "mensagem": "Plano ativado com sucesso.",
+        "plano_atual": usuario.plano_atual,
+        "plano_expira_em": usuario.plano_expira_em,
     }
+
+
+@router.post("/esqueci-senha")
+def esqueci_senha(dados: EsqueciSenhaRequest, db: Session = Depends(get_db)):
+    """
+    Gera uma nova senha temporária e envia por e-mail.
+    """
+
+    usuario = db.query(Usuario).filter(Usuario.email == dados.email).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Nenhum usuário encontrado com esse e-mail.")
+
+    nova_senha = gerar_senha_temporaria(10)
+    usuario.senha_hash = nova_senha
+    db.commit()
+    db.refresh(usuario)
+
+    assunto = "MivMark – Nova senha de acesso"
+    corpo_html = f"""
+    <p>Olá, <strong>{usuario.nome}</strong>!</p>
+
+    <p>Você solicitou a redefinição da sua senha no <strong>MivMark</strong>.</p>
+
+    <p>Sua nova senha temporária é:</p>
+    <p style="font-size: 18px;">
+        <strong>{nova_senha}</strong>
+    </p>
+
+    <p>
+        Use essa senha para entrar no sistema e, depois, altere-a no seu cadastro
+        para algo fácil de lembrar e seguro.
+    </p>
+
+    <p>
+        Acesse:<br>
+        <a href="https://mivmark-frontend.onrender.com" target="_blank">
+            https://mivmark-frontend.onrender.com
+        </a>
+    </p>
+    """
+
+    try:
+        enviar_email(usuario.email, assunto, corpo_html)
+    except Exception as e:
+        print(f"[ESQUECI SENHA] Erro ao enviar e-mail: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao enviar e-mail. Tente novamente mais tarde.")
+
+    return {"detail": "Nova senha enviada para o seu e-mail."}

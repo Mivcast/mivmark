@@ -399,20 +399,17 @@ def tela_inicio():
 
 def tela_login_personalizada():
     import streamlit as st
-    import httpx
     import base64
     from pathlib import Path
 
-    API_URL = st.session_state.get("API_URL", "http://127.0.0.1:8000")
-
     # Caminho da imagem de fundo
-    caminho_imagem = Path("frontend/img/telalogin.jpg")
+    caminho_imagem = Path("frontend/img/telalogin.jpg")  # ou .png se for o caso
     imagem_base64 = ""
     if caminho_imagem.exists():
         with open(caminho_imagem, "rb") as f:
             imagem_base64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # CSS da página
+    # CSS com imagem de fundo usando base64 e layout 60/40
     st.markdown(f"""
         <style>
         * {{
@@ -424,8 +421,9 @@ def tela_login_personalizada():
             padding: 0 !important;
         }}
 
+        /* 👉 NÃO zeramos mais tudo, deixamos uma borda lateral */
         .block-container {{
-            padding: 0rem 1rem 0rem !important;
+            padding: 0rem 1rem 0rem !important;  /* 1rem de borda nos lados */
         }}
 
         .left {{
@@ -456,7 +454,7 @@ def tela_login_personalizada():
             margin-bottom: 40px;
         }}
 
-        /* INPUTS */
+        /* 🔵 INPUTS E CAMPOS */
         .stTextInput, .stPassword {{
             width: 90% !important;
             margin-bottom: 10px;
@@ -470,7 +468,7 @@ def tela_login_personalizada():
             width: 100%;
         }}
 
-        /* BOTÕES */
+        /* 🔵 BOTÕES */
         .stButton button {{
             background-color: #265df2;
             color: white;
@@ -482,23 +480,37 @@ def tela_login_personalizada():
             cursor: pointer;
             width: 100%;
         }}
-
         .stButton button:hover {{
             background-color: #1d47c8;
         }}
 
-        /* MOBILE */
+        .link {{
+            font-size: 14px;
+            color: #265df2;
+            margin-top: 10px;
+            margin-bottom: 16px;
+        }}
+
+        .bottom-text {{
+            font-size: 13px;
+            margin-top: 14px;
+        }}
+
+        /* 📱 Ajustes para mobile */
         @media(max-width: 768px) {{
+
+            /* Esconde a imagem da esquerda */
             .left {{
                 display: none;
             }}
 
+            /* Deixa o conteúdo da direita CENTRALIZADO, com borda e menos padding */
             .right {{
                 flex: 1;
                 width: 100% !important;
                 max-width: 420px !important;
-                padding: 28px 20px !important;
-                margin: 16px auto !important;
+                padding: 28px 20px !important;       /* menos espaço vertical e boa borda lateral */
+                margin: 16px auto !important;         /* centraliza e dá respiro em cima/baixo */
                 border-radius: 16px;
                 box-shadow: 0 0 12px rgba(0,0,0,0.06);
             }}
@@ -506,13 +518,17 @@ def tela_login_personalizada():
             .stTextInput, .stPassword {{
                 width: 100% !important;
             }}
+
+            .stTextInput > div > input,
+            .stPassword > div > input {{
+                width: 100% !important;
+            }}
         }}
         </style>
     """, unsafe_allow_html=True)
 
-    # Layout
+    # Layout com colunas
     col1, col2 = st.columns([6, 4])
-
     with col1:
         st.markdown('<div class="left"></div>', unsafe_allow_html=True)
 
@@ -523,12 +539,11 @@ def tela_login_personalizada():
         st.markdown("<h1>Login</h1>", unsafe_allow_html=True)
         st.markdown("<p class='subtitle'>Acesse sua conta para gerenciar seu sistema.</p>", unsafe_allow_html=True)
 
-        # CAMPOS
         st.markdown("**E-mail**")
         email = st.text_input(
             "E-mail",
-            placeholder="Digite seu e-mail",
-            label_visibility="collapsed"
+            placeholder="Digite seu e-mail ou usuário",
+            label_visibility="collapsed",
         )
 
         st.markdown("**Senha**")
@@ -536,52 +551,31 @@ def tela_login_personalizada():
             "Senha",
             placeholder="Digite sua senha",
             type="password",
-            label_visibility="collapsed"
+            label_visibility="collapsed",
         )
 
-        # BOTÃO LOGIN
+        st.markdown("<div class='link'>Esqueci minha senha</div>", unsafe_allow_html=True)
+
+        # 🔹 Botão de login: apenas chama login_usuario, que já cuida do fluxo todo
         if st.button("Acessar meu Sistema", use_container_width=True):
             login_usuario(email, senha)
 
-        # 🔐 EXPANDER – ESQUECI MINHA SENHA
-        with st.expander("Esqueci minha senha"):
-            st.write("Digite o e-mail cadastrado. Enviaremos uma nova senha temporária.")
-
-            email_rec = st.text_input("Seu e-mail cadastrado", key="email_rec", placeholder="email@exemplo.com")
-
-            if st.button("Enviar nova senha", key="btn_rec", use_container_width=True):
-                if not email_rec:
-                    st.warning("Por favor, informe seu e-mail.")
-                else:
-                    try:
-                        resp = httpx.post(f"{API_URL}/usuario/esqueci-senha",
-                                          json={"email": email_rec},
-                                          timeout=20)
-
-                        if resp.status_code == 200:
-                            st.success("Nova senha enviada! Verifique sua caixa de e-mail.")
-                        elif resp.status_code == 404:
-                            st.error("E-mail não encontrado no sistema.")
-                        else:
-                            st.error("Erro ao enviar nova senha.")
-                    except Exception as e:
-                        st.error(f"Erro de conexão: {e}")
-
+        # 🔹 Chamada pro cadastro logo abaixo do botão de login (sem o usuário precisar rolar tanto)
         st.markdown("<br/>", unsafe_allow_html=True)
-
         st.markdown("Ainda não tem cadastro na MivCast?")
+
         if st.button("📩 Cadastre-se agora", use_container_width=True):
             st.query_params = {"cadastro": "true"}
             st.rerun()
 
+        # 🔹 Texto do teste gratuito fica por último
         st.markdown("""
         <p class="bottom-text">
-        🆓 <b>Teste gratuito:</b> crie seu cadastro e ganhe <b>7 dias de acesso ao plano Profissional</b>.
+        🆓 <b>Teste gratuito:</b> crie seu cadastro e ganhe <b>7 dias de acesso ao plano Profissional</b> para conhecer todas as funções.
         </p>
         """, unsafe_allow_html=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
-
 
 
 

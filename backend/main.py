@@ -10,6 +10,7 @@ from openai import AsyncOpenAI
 
 from backend.database import Base, engine
 from backend import models  # garante que os models sejam registrados
+from backend.api import email_teste
 
 
 # ============================================
@@ -116,6 +117,7 @@ app.include_router(chat_publico.router)
 app.include_router(aplicativo_router)
 app.include_router(planos_router)
 app.include_router(cupons_router)
+app.include_router(email_teste.router)
 
 
 @app.get("/")
