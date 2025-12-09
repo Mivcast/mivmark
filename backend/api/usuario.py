@@ -140,8 +140,11 @@ def salvar_diagnostico(
 ):
     """
     Salva ou atualiza o diagnóstico de saúde da empresa do usuário logado.
+    Usa o model Diagnostico (nota_geral, respostas) e também
+    atualiza os campos nota_saude / respostas_saude do Usuario.
     """
 
+    # Busca diagnóstico existente deste usuário (apenas 1 por usuário)
     diagnostico = (
         db.query(Diagnostico)
         .filter(Diagnostico.usuario_id == usuario.id)
@@ -149,25 +152,31 @@ def salvar_diagnostico(
     )
 
     if diagnostico:
-        diagnostico.nota_saude = dados.nota_saude
-        diagnostico.respostas_json = dados.respostas_json
-        diagnostico.atualizado_em = datetime.utcnow()
+        # Atualiza registro existente
+        diagnostico.nota_geral = str(dados.nota_saude)
+        diagnostico.respostas = dados.respostas_json
+        diagnostico.data_avaliacao = datetime.utcnow()
     else:
+        # Cria um novo diagnóstico
         diagnostico = Diagnostico(
             usuario_id=usuario.id,
-            nota_saude=dados.nota_saude,
-            respostas_json=dados.respostas_json,
-            criado_em=datetime.utcnow(),
+            nota_geral=str(dados.nota_saude),
+            respostas=dados.respostas_json,
+            data_avaliacao=datetime.utcnow(),
         )
         db.add(diagnostico)
+
+    # Também salva um resumo direto no usuário
+    usuario.nota_saude = str(dados.nota_saude)
+    usuario.respostas_saude = dados.respostas_json
 
     db.commit()
     db.refresh(diagnostico)
 
     return {
         "id": diagnostico.id,
-        "nota_saude": diagnostico.nota_saude,
-        "respostas_json": diagnostico.respostas_json,
+        "nota_saude": float(dados.nota_saude),
+        "respostas_json": dados.respostas_json,
     }
 
 
@@ -177,7 +186,8 @@ def obter_diagnostico(
     db: Session = Depends(get_db),
 ):
     """
-    Retorna o diagnóstico salvo do usuário logado (se existir).
+    Retorna o diagnóstico salvo do usuário logado (se existir),
+    já no formato esperado pelo frontend.
     """
 
     diagnostico = (
@@ -189,10 +199,16 @@ def obter_diagnostico(
     if not diagnostico:
         return None
 
+    # Converte a nota_geral (String) para float, se possível
+    try:
+        nota = float(diagnostico.nota_geral) if diagnostico.nota_geral is not None else None
+    except ValueError:
+        nota = None
+
     return {
         "id": diagnostico.id,
-        "nota_saude": diagnostico.nota_saude,
-        "respostas_json": diagnostico.respostas_json,
+        "nota_saude": nota,
+        "respostas_json": diagnostico.respostas or {},
     }
 
 
