@@ -397,6 +397,7 @@ def tela_inicio():
 
 
 
+
 def tela_login_personalizada():
     import streamlit as st
     import httpx
@@ -405,13 +406,21 @@ def tela_login_personalizada():
 
     global API_URL  # usa a mesma API_URL global do app
 
-    # Caminho da imagem de fundo
+    # 🔹 Imagem de fundo da esquerda
     caminho_imagem = Path("frontend/img/telalogin.jpg")  # ou .png se for o caso
     imagem_base64 = ""
     if caminho_imagem.exists():
         with open(caminho_imagem, "rb") as f:
             imagem_base64 = base64.b64encode(f.read()).decode("utf-8")
 
+    # 🔹 Logo em base64 (pra usar em <img> HTML, sem espaço extra do Streamlit)
+    logo_path = Path("frontend/img/mivlogo preta.png")
+    logo_base64 = ""
+    if logo_path.exists():
+        with open(logo_path, "rb") as f:
+            logo_base64 = base64.b64encode(f.read()).decode("utf-8")
+
+    # 🔹 CSS geral
     st.markdown(f"""
         <style>
         * {{
@@ -423,7 +432,7 @@ def tela_login_personalizada():
             padding: 0 !important;
         }}
 
-        /* 🔹 Geral: mínimo de padding possível */
+        /* Geral: mínimo de padding possível */
         .block-container {{
             padding: 0.1rem 0.6rem 0.3rem !important;
         }}
@@ -441,21 +450,22 @@ def tela_login_personalizada():
             flex: 4;
             max-width: 480px;
             margin: 0 auto;
-            padding: 8px 20px !important;  /* reduzido para aproximar logo + título */
+            padding: 8px 20px !important;  /* pouco padding pra colar tudo no topo */
             background-color: white;
         }}
 
-        /* 🔹 reduzir espaço logo x título */
-        .right img {{
-            margin-top: 0px !important;
-            margin-bottom: 0px !important;
+        /* Logo da MivCast sem margem/padding extra */
+        .logo-login {{
+            margin: 0 !important;
             padding: 0 !important;
+            display: block;
         }}
 
+        /* Título Login bem próximo da logo */
         h1 {{
             font-size: 32px;
             font-weight: bold;
-            margin-top: -2px !important;  /* puxa o título pra cima */
+            margin-top: -24px !important;  /* puxa o título pra cima, encostando na logo */
             margin-bottom: 2px !important;
         }}
 
@@ -467,7 +477,7 @@ def tela_login_personalizada():
             font-size: 15px;
         }}
 
-        /* 🔹 reduzir espaço dos textos (E-mail, Senha, etc.) */
+        /* Reduzir espaço dos textos (E-mail, Senha, etc.) */
         .right > p {{
             margin-top: 4px !important;
             margin-bottom: 4px !important;
@@ -507,7 +517,7 @@ def tela_login_personalizada():
             line-height: 1.2;
         }}
 
-        /* 🔹 MOBILE: espremer ao máximo e colar no topo */
+        /* MOBILE: espremer ao máximo e colar no topo */
         @media(max-width: 768px) {{
 
             .left {{
@@ -529,15 +539,16 @@ def tela_login_personalizada():
                 box-shadow: 0 0 8px rgba(0,0,0,0.04);
             }}
 
-            .right img {{
-                margin-bottom: -2px !important;  /* cola mais na palavra Login */
+            .logo-login {{
+                margin: 0 !important;
+                padding: 0 !important;
             }}
 
-            h1 {{
-                font-size: 24px;
-                margin-top: -4px !important;   /* mais perto da logo */
-                margin-bottom: 2px !important;
-            }}
+           h1 {{
+               font-size: 24px;
+               margin-top: -28px !important;   /* ainda mais colado no mobile */
+               margin-bottom: 2px !important;
+           }}
 
             .subtitle {{
                 font-size: 13px;
@@ -571,7 +582,18 @@ def tela_login_personalizada():
 
     with col2:
         st.markdown('<div class="right">', unsafe_allow_html=True)
-        st.image("frontend/img/mivlogo preta.png", width=80)
+
+        # Logo em HTML com base64 (sem espaço extra do Streamlit)
+        if logo_base64:
+            st.markdown(
+                f"""
+                <img src="data:image/png;base64,{logo_base64}"
+                     width="80"
+                     class="logo-login">
+                """,
+                unsafe_allow_html=True,
+            )
+
         st.markdown("<h1>Login</h1>", unsafe_allow_html=True)
         st.markdown("<p class='subtitle'>Acesse sua conta para gerenciar seu sistema.</p>", unsafe_allow_html=True)
 
