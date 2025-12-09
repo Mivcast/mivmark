@@ -660,7 +660,7 @@ def tela_login_personalizada():
 
         st.markdown("""
         <p class="bottom-text">
-        🆓 <b>Teste gratuito:</b> crie seu cadastro e ganhe <b>7 dias de acesso ao plano Profissional</b> para conhecer todas as funções.
+        🆓 <b>Teste 07 dias GRÁTIS </b>o Plano Profissional
         </p>
         """, unsafe_allow_html=True)
 
