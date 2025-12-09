@@ -8,6 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
+from passlib.context import CryptContext  # 🔐 para hash de senha
+
 from backend.database import get_db
 from backend.models import Usuario, Diagnostico
 from backend.models.tokens import TokenAtivacao
@@ -15,6 +17,17 @@ from backend.api.auth import get_usuario_logado
 from backend.utils.email_utils import enviar_email
 
 router = APIRouter(prefix="/usuario", tags=["Usuários"])
+
+# =========================
+# CONTEXTO DE SENHA
+# =========================
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def hash_senha(senha: str) -> str:
+    """Gera o hash seguro da senha."""
+    return pwd_context.hash(senha)
 
 
 # =========================
@@ -52,7 +65,8 @@ def gerar_senha_temporaria(tamanho: int = 8) -> str:
 @router.post("/cadastro-gratuito")
 def cadastro_gratuito(dados: CadastroGratuito, db: Session = Depends(get_db)):
     """
-    Cria usuário e libera 7 dias de acesso ao plano Profissional.
+    Cria usuário e libera 7 dias de acesso ao plano Profissional
+    + envia e-mail de boas-vindas com dados de acesso.
     """
 
     usuario_existente = db.query(Usuario).filter(Usuario.email == dados.email).first()
@@ -61,10 +75,13 @@ def cadastro_gratuito(dados: CadastroGratuito, db: Session = Depends(get_db)):
 
     agora = datetime.utcnow()
 
+    # 🔐 agora a senha é salva com HASH bcrypt
+    senha_hashed = hash_senha(dados.senha)
+
     usuario = Usuario(
         nome=dados.nome,
         email=dados.email,
-        senha_hash=dados.senha,  # 🔐 ainda em texto simples, seguindo padrão atual do sistema
+        senha_hash=senha_hashed,
         plano_atual="Profissional",
         plano_expira_em=agora + timedelta(days=7),
         criado_em=agora,
@@ -221,7 +238,7 @@ def ativar_token(token: str, db: Session = Depends(get_db)):
 @router.post("/esqueci-senha")
 def esqueci_senha(dados: EsqueciSenhaRequest, db: Session = Depends(get_db)):
     """
-    Gera uma nova senha temporária e envia por e-mail.
+    Gera uma nova senha temporária, SALVA com hash e envia por e-mail.
     """
 
     usuario = db.query(Usuario).filter(Usuario.email == dados.email).first()
@@ -229,7 +246,9 @@ def esqueci_senha(dados: EsqueciSenhaRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Nenhum usuário encontrado com esse e-mail.")
 
     nova_senha = gerar_senha_temporaria(10)
-    usuario.senha_hash = nova_senha
+
+    # 🔐 salva a senha temporária já com hash, compatível com o /login
+    usuario.senha_hash = hash_senha(nova_senha)
     db.commit()
     db.refresh(usuario)
 
