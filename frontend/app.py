@@ -403,7 +403,7 @@ def tela_login_personalizada():
     import base64
     from pathlib import Path
 
-    API_URL = st.session_state.get("API_URL", "http://127.0.0.1:8000")
+    global API_URL  
 
     # Caminho da imagem de fundo
     caminho_imagem = Path("frontend/img/telalogin.jpg")
