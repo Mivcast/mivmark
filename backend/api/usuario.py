@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import secrets
 import string
 
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
@@ -77,10 +78,10 @@ def cadastro_gratuito(dados: CadastroGratuito, db: Session = Depends(get_db)):
     usuario = Usuario(
         nome=dados.nome,
         email=dados.email,
-        senha_hash=dados.senha,  # mantendo o padrão atual do sistema
+        # 🔐 agora salvando a senha já com HASH bcrypt
+        senha_hash=hash_senha(dados.senha),
         plano_atual="Profissional",
         plano_expira_em=agora + timedelta(days=7),
-        # 🔴 REMOVIDO: criado_em=agora  (esse campo não existe no modelo Usuario)
     )
 
     db.add(usuario)
