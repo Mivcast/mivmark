@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ nome_empresa }} | {{ nicho }}</title>
-  <meta name="description" content="{{ descricao if descricao else 'Página oficial de ' ~ nome_empresa ~ ' – informações, contatos e atendimento.' }}">
+  <meta name="description" content="{{ descricao }}">
   <style>
     :root {
       --cor-primary: #2563eb;
@@ -115,8 +115,6 @@
     /* HERO ----------------------------------------------------------- */
 
     .hero {
-      /* se quiser um banner full, basta trocar o fundo abaixo por uma imagem padrão:
-         background: url('/static/banner_padrao.jpg') center/cover no-repeat; */
       background: radial-gradient(circle at top left, #1e40af 0, #0f172a 40%, #020617 90%);
       color: white;
     }
@@ -390,7 +388,7 @@
       color: var(--cor-text-soft);
     }
 
-    /* SEÇÃO CALL-TO-ACTIONS ------------------------------------------ */
+    /* SEÇÃO CALL-TO-ACTIONS (ORÇAMENTO / DÚVIDAS / AGENDAMENTO) ------- */
 
     .quick-actions {
       display: grid;
@@ -891,17 +889,17 @@
         </div>
 
         <h1 class="hero-title">
-          Seu atendimento profissional <span>começa aqui.</span>
+          Seu <span>atendimento profissional</span> começando aqui e agora.
         </h1>
 
         <p class="hero-sub">
-          {{ bio if bio else "Organizamos o atendimento do seu negócio para que cada pessoa seja recebida com clareza, respeito e atenção aos detalhes." }}
+          {{ bio if bio else "Cuidamos de cada cliente com atenção aos detalhes, prazos bem definidos e comunicação clara em todas as etapas do serviço." }}
         </p>
 
         <div class="hero-highlights">
-          <span>🎯 Atendimento pensado para a sua realidade</span>
-          <span>📅 Combinação de horários com antecedência</span>
-          <span>🤝 Relacionamento de confiança e transparência</span>
+          <span>🎯 Soluções sob medida para você</span>
+          <span>📅 Horários combinados com antecedência</span>
+          <span>🤝 Relacionamento de confiança</span>
         </div>
 
         <div class="hero-ctas">
@@ -914,12 +912,12 @@
             🤖 Iniciar atendimento no chat
           </button>
           <a class="btn btn-ghost" href="#servicos">
-            👀 Ver o que podemos fazer
+            👀 Ver principais serviços
           </a>
         </div>
 
         <p class="hero-mini-info">
-          Você escolhe como prefere falar: WhatsApp ou chat aqui mesmo no site.
+          Respostas rápidas, retorno organizado e tudo pensado para simplificar sua vida.
         </p>
       </div>
 
@@ -938,17 +936,17 @@
           <div class="kpi">
             <div class="kpi-label">Avaliação</div>
             <div class="kpi-value">5⭐</div>
-            <div class="kpi-extra">Impressão geral dos clientes</div>
+            <div class="kpi-extra">Média dos clientes atendidos</div>
           </div>
           <div class="kpi">
             <div class="kpi-label">Atendimento</div>
             <div class="kpi-value">Top</div>
-            <div class="kpi-extra">Foco em cada pessoa</div>
+            <div class="kpi-extra">Foco total em cada caso</div>
           </div>
           <div class="kpi">
             <div class="kpi-label">Confiabilidade</div>
             <div class="kpi-value">100%</div>
-            <div class="kpi-extra">Compromisso com o combinado</div>
+            <div class="kpi-extra">Serviços feitos como combinado</div>
           </div>
         </div>
 
@@ -962,7 +960,7 @@
     </div>
   </section>
 
-  <!-- AÇÕES RÁPIDAS -->
+  <!-- SEÇÃO DE AÇÕES RÁPIDAS ------------------------------------------ -->
   <section class="section">
     <div class="section-header">
       <div>
@@ -980,7 +978,7 @@
           <div class="quick-icon">📄</div>
           <div>Solicitar orçamento</div>
         </div>
-        <p>Explique o que precisa e receba uma proposta organizada, de acordo com a sua necessidade.</p>
+        <p>Conte o que você precisa e receba uma proposta organizada, sem compromisso.</p>
         <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
           Pedir orçamento no chat
         </button>
@@ -991,7 +989,7 @@
           <div class="quick-icon">❓</div>
           <div>Tirar dúvidas</div>
         </div>
-        <p>Tem perguntas sobre como funciona, valores ou prazos? Nosso atendente virtual responde.</p>
+        <p>Tem alguma pergunta sobre serviços, valores ou prazos? Nosso atendente virtual te ajuda.</p>
         <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
           Enviar dúvida no chat
         </button>
@@ -1002,7 +1000,7 @@
           <div class="quick-icon">📆</div>
           <div>Agendar atendimento</div>
         </div>
-        <p>Combine datas, horários e detalhes para organizar o atendimento da melhor forma.</p>
+        <p>Combine datas, horários e detalhes para ser atendido(a) com tranquilidade.</p>
         <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
           Combinar horário pelo chat
         </button>
@@ -1010,13 +1008,13 @@
     </div>
   </section>
 
+  <!-- SOBRE / FAQ -->
   <main>
-    <!-- SOBRE / FAQ -->
     <section id="sobre" class="section">
       <div class="section-header">
         <div>
           <h2 class="section-title">Sobre o {{ nome_empresa }}</h2>
-          <p class="section-sub">Conheça um pouco mais sobre a forma como cuidamos de cada atendimento.</p>
+          <p class="section-sub">Conheça melhor quem está por trás do seu atendimento.</p>
         </div>
         <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
           👋 Falar com nosso atendente virtual
@@ -1028,7 +1026,7 @@
           <h3>Quem somos</h3>
           <p>
             {{ descricao if descricao else
-            "Trabalhamos para que cada atendimento seja organizado, seguro e respeitoso, alinhando o que o cliente precisa com o que o nosso negócio pode oferecer." }}
+            "Somos uma empresa comprometida em entregar um serviço de alto padrão, com foco em segurança, organização e atenção a cada detalhe." }}
           </p>
 
           {% if informacoes_adicionais %}
@@ -1038,9 +1036,9 @@
           {% endif %}
 
           <div class="pill-list">
-            <span class="pill">🤝 Atenção a cada pessoa</span>
-            <span class="pill">⏱️ Cuidado com prazos</span>
-            <span class="pill">🔍 Comunicação clara</span>
+            <span class="pill">🤝 Atendimento humanizado</span>
+            <span class="pill">⏱️ Compromisso com prazos</span>
+            <span class="pill">🔍 Transparência em cada etapa</span>
           </div>
         </article>
 
@@ -1048,23 +1046,24 @@
           <h3>Perguntas frequentes</h3>
 
           <div class="faq-item">
-            <div class="faq-q">O que torna o atendimento de vocês diferente?</div>
+            <div class="faq-q">O que torna a sua empresa diferente das outras?</div>
             <div class="faq-a">
-              Buscamos entender a realidade de cada pessoa e organizar o atendimento de forma simples, objetiva e respeitosa.
+              Atendimento próximo, foco em qualidade e respeito aos prazos. Cada cliente é tratado como único.
             </div>
           </div>
 
           <div class="faq-item">
-            <div class="faq-q">É seguro falar sobre meus dados e necessidades?</div>
+            <div class="faq-q">É seguro contratar os serviços de vocês?</div>
             <div class="faq-a">
-              Sim. Tratamos todas as informações com cuidado, sigilo e responsabilidade, seguindo o que foi combinado.
+              Sim. Trabalhamos com responsabilidade, transparência e compromisso em todas as etapas do serviço.
             </div>
           </div>
 
           <div class="faq-item">
-            <div class="faq-q">Como funciona depois do primeiro contato?</div>
+            <div class="faq-q">Como funciona o processo após o primeiro contato?</div>
             <div class="faq-a">
-              Conversamos para entender o que você precisa, explicamos as possibilidades e combinamos os próximos passos com clareza.
+              Conversamos para entender sua necessidade, montamos uma proposta personalizada e iniciamos o serviço
+              com acompanhamento até a conclusão.
             </div>
           </div>
 
@@ -1091,40 +1090,40 @@
       </div>
     </section>
 
-    <!-- SERVIÇOS -->
+    <!-- SERVIÇOS ------------------------------------------------------ -->
     <section id="servicos" class="section">
       <div class="section-header">
         <div>
-          <h2 class="section-title">Etapas do atendimento</h2>
-          <p class="section-sub">De forma simples, é assim que organizamos o caminho com cada cliente.</p>
+          <h2 class="section-title">Principais serviços</h2>
+          <p class="section-sub">Uma visão geral do que podemos fazer por você.</p>
         </div>
         <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
-          ✍️ Ver como isso se aplica ao meu caso
+          ✍️ Ver qual serviço é ideal para mim
         </button>
       </div>
 
       <div class="services-grid">
         <div class="service-card">
           <div class="service-icon">🧩</div>
-          <div class="service-title">Atendimento e orientação inicial</div>
+          <div class="service-title">Consultoria e orientação</div>
           <div class="service-text">
-            Você explica o que precisa, nós ouvimos com atenção e mostramos as possibilidades para o seu caso.
+            Entendemos sua necessidade e sugerimos o melhor caminho dentro dos nossos serviços.
           </div>
         </div>
 
         <div class="service-card">
           <div class="service-icon">⚙️</div>
-          <div class="service-title">Organização do serviço ou projeto</div>
+          <div class="service-title">Execução completa</div>
           <div class="service-text">
-            Definimos etapas, combinamos prazos e ajustamos os detalhes de acordo com a sua realidade.
+            Planejamento, organização e acompanhamento de todas as etapas até a entrega final.
           </div>
         </div>
 
         <div class="service-card">
           <div class="service-icon">📊</div>
-          <div class="service-title">Acompanhamento e ajustes</div>
+          <div class="service-title">Ajustes e melhorias</div>
           <div class="service-text">
-            Mantemos contato, esclarecemos dúvidas e fazemos os ajustes necessários ao longo do caminho.
+            Analisamos o que já existe, identificamos pontos de melhoria e sugerimos ajustes práticos.
           </div>
         </div>
 
@@ -1132,7 +1131,7 @@
           <div class="service-icon">🤝</div>
           <div class="service-title">Atendimento personalizado</div>
           <div class="service-text">
-            Cada pessoa é atendida de forma individual, respeitando seu tempo, seus limites e suas prioridades.
+            Comunicação direta e acompanhamento próximo, sempre respeitando sua rotina e prioridades.
           </div>
         </div>
 
@@ -1140,7 +1139,7 @@
           <div class="service-icon">🛡️</div>
           <div class="service-title">Segurança e clareza</div>
           <div class="service-text">
-            Tudo é alinhado por mensagens, documentos ou contratos, evitando mal-entendidos e surpresas.
+            Tudo é combinado e registrado com transparência, evitando surpresas e ruídos de comunicação.
           </div>
         </div>
 
@@ -1148,24 +1147,24 @@
           <div class="service-icon">💡</div>
           <div class="service-title">Soluções sob medida</div>
           <div class="service-text">
-            Sempre que possível, adaptamos o atendimento à fase do seu negócio, projeto ou necessidade pessoal.
+            Adaptamos cada serviço ao seu contexto, objetivos e possibilidades atuais.
           </div>
         </div>
       </div>
 
       <div style="margin-top:16px; text-align:center;">
         <button class="btn btn-chat-inline" type="button" onclick="toggleChat(true)">
-          🤖 Falar com o atendente e entender o melhor caminho
+          🤖 Falar com o atendente e escolher o serviço certo
         </button>
       </div>
     </section>
 
-    <!-- DEPOIMENTOS -->
+    <!-- DEPOIMENTOS --------------------------------------------------- -->
     <section id="depoimentos" class="section">
       <div class="section-header">
         <div>
           <h2 class="section-title">Depoimentos de clientes</h2>
-          <p class="section-sub">Algumas impressões de quem já passou pelo nosso atendimento.</p>
+          <p class="section-sub">Algumas opiniões de quem já foi atendido por nós.</p>
         </div>
         <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
           💬 Quero ter essa experiência também
@@ -1177,33 +1176,33 @@
           <div class="testimonial">
             <strong>Fernanda M.</strong>
             <div class="stars">★★★★★</div>
-            Atendimento excelente, tudo muito bem explicado e dentro do combinado.
+            Atendimento excelente! Serviço de qualidade, tudo dentro do prazo. Recomendo de olhos fechados.
           </div>
           <div class="testimonial">
             <strong>José A.</strong>
             <div class="stars">★★★★★</div>
-            Fui ouvido com atenção, tive minhas dúvidas respondidas e fiquei muito satisfeito.
+            Profissionalismo do início ao fim. Fiquei muito satisfeito com o resultado.
           </div>
           <div class="testimonial">
             <strong>Patrícia G.</strong>
             <div class="stars">★★★★★</div>
-            Gostei da clareza, da organização e do cuidado em cada etapa do atendimento.
+            Ótimo custo-benefício, atenção aos detalhes e cuidado em cada etapa.
           </div>
           <div class="testimonial">
             <strong>Tiago F.</strong>
             <div class="stars">★★★★★</div>
-            Atendimento confiável, direto ao ponto e sempre com respeito. Recomendo.
+            Empresa confiável, entrega exatamente o que promete. Recomendo!
           </div>
         </div>
       </div>
     </section>
 
-    <!-- CONTATO / LOCALIZAÇÃO -->
+    <!-- CONTATO / LOCALIZAÇÃO ---------------------------------------- -->
     <section id="contato" class="section">
       <div class="section-header">
         <div>
           <h2 class="section-title">Contato e localização</h2>
-          <p class="section-sub">Fale com a gente e vamos ver, juntos, o que faz mais sentido para você.</p>
+          <p class="section-sub">Entre em contato e vamos conversar com calma sobre o que você precisa.</p>
         </div>
         <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
           📩 Falar com atendente virtual
@@ -1252,7 +1251,8 @@
         <div class="safe-card">
           <h3>🛡️ Sua contratação é 100% segura</h3>
           <p>
-            Nosso objetivo é que todo o processo seja claro, respeitoso e alinhado ao que foi combinado com você.
+            Nosso atendimento é organizado para que tudo seja feito com clareza e segurança,
+            desde o primeiro contato até a entrega final do serviço.
           </p>
           <p style="margin-top:6px;">
             Se preferir, você pode iniciar a conversa agora mesmo pelo chat inteligente aqui da página.
@@ -1282,10 +1282,9 @@
 
 </div> <!-- /page-wrapper -->
 
-<!-- CHAT FLUTUANTE -->
+<!-- CHAT FLUTUANTE (usa /chat_publico/perguntar) -->
 <button class="chat-bubble-btn" id="chatToggleBtn" aria-label="Abrir chat">
-  <!-- Trocar aqui o ícone do botão se quiser:
-       💬, 🗨️, 🤖, 📲, 📩, ☎️, 👩‍💻, 👨‍💻 -->
+  <!-- Trocar aqui o ícone do botão, opções: 💬, 🗨️, 🤖, 📲, 📩, ☎️, 👩‍💻, 👨‍💻 -->
   🤖
 </button>
 

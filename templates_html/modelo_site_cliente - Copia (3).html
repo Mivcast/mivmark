@@ -4,18 +4,19 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ nome_empresa }} | {{ nicho }}</title>
-  <meta name="description" content="{{ descricao if descricao else 'Página oficial de ' ~ nome_empresa ~ ' – informações, contatos e atendimento.' }}">
+  <meta name="description" content="{{ descricao }}">
   <style>
     :root {
       --cor-primary: #2563eb;
       --cor-primary-dark: #1d4ed8;
-      --cor-secondary: #0ea5e9;
       --cor-bg: #0f172a;
       --cor-card: #ffffff;
       --cor-text: #0f172a;
       --cor-text-soft: #6b7280;
       --radius-lg: 20px;
-      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.16);
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.18);
+      /* TROQUE A URL ABAIXO PELA IMAGEM PADRÃO QUE VOCÊ QUISER USAR */
+      --hero-image: url("https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=1600");
     }
 
     * {
@@ -49,9 +50,9 @@
       top: 0;
       z-index: 20;
       backdrop-filter: blur(18px);
-      background: rgba(15, 23, 42, 0.96);
+      background: rgba(15, 23, 42, 0.92);
       color: #e5e7eb;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
     }
 
     .top-bar {
@@ -71,8 +72,8 @@
     }
 
     .logo-area img {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       border-radius: 999px;
       object-fit: cover;
       border: 2px solid rgba(148, 163, 184, 0.6);
@@ -115,43 +116,63 @@
     /* HERO ----------------------------------------------------------- */
 
     .hero {
-      /* se quiser um banner full, basta trocar o fundo abaixo por uma imagem padrão:
-         background: url('/static/banner_padrao.jpg') center/cover no-repeat; */
-      background: radial-gradient(circle at top left, #1e40af 0, #0f172a 40%, #020617 90%);
+      /* imagem de ponta a ponta com overlay */
+      background:
+        linear-gradient(120deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.90)),
+        var(--hero-image);
+      background-size: cover;
+      background-position: center;
       color: white;
     }
 
     .hero-inner {
       max-width: 1120px;
       margin: 0 auto;
-      padding: 36px 16px 28px;
+      padding: 40px 16px 32px;
       display: grid;
-      grid-template-columns: minmax(0, 6.2fr) minmax(0, 5fr);
-      gap: 28px;
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+      gap: 32px;
       align-items: center;
     }
 
-    .hero-left-top {
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      font-size: 11px;
+      margin-bottom: 14px;
+    }
+
+    .hero-badge span {
+      font-size: 10px;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    .hero-brand {
       display: flex;
       align-items: center;
       gap: 14px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .hero-logo-big {
-      width: 70px;
-      height: 70px;
-      border-radius: 999px;
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
       overflow: hidden;
-      border: 2px solid rgba(191, 219, 254, 0.9);
-      background: radial-gradient(circle at top, #1d4ed8, #020617);
+      border: 2px solid rgba(148, 163, 184, 0.7);
+      background: #020617;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 800;
       font-size: 26px;
       text-transform: uppercase;
-      color: white;
     }
 
     .hero-logo-big img {
@@ -161,7 +182,7 @@
     }
 
     .hero-brand-name {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.02em;
     }
@@ -171,24 +192,6 @@
       color: #cbd5f5;
     }
 
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 9px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      font-size: 11px;
-      margin-bottom: 10px;
-    }
-
-    .hero-badge span {
-      font-size: 10px;
-      text-transform: uppercase;
-      opacity: 0.8;
-    }
-
     .hero-title {
       font-size: clamp(26px, 3vw + 12px, 34px);
       font-weight: 800;
@@ -196,15 +199,11 @@
       margin-bottom: 10px;
     }
 
-    .hero-title span {
-      color: #a5b4fc;
-    }
-
     .hero-sub {
       font-size: 14px;
       max-width: 520px;
-      color: #e2e8f0;
-      margin-bottom: 16px;
+      color: #cbd5f5;
+      margin-bottom: 18px;
     }
 
     .hero-highlights {
@@ -219,7 +218,7 @@
     .hero-highlights span {
       padding: 4px 9px;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.5);
       background: rgba(15, 23, 42, 0.8);
     }
 
@@ -261,7 +260,7 @@
     .btn-ghost {
       background: transparent;
       color: #e5e7eb;
-      border: 1px solid rgba(148, 163, 184, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.6);
     }
 
     .btn-ghost:hover {
@@ -286,15 +285,15 @@
 
     .hero-mini-info {
       font-size: 11px;
-      color: #cbd5f5;
+      color: #94a3b8;
     }
 
     .hero-card {
-      background: #020617;
+      background: rgba(15, 23, 42, 0.98);
       border-radius: var(--radius-lg);
       padding: 18px 18px 16px;
       box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148, 163, 184, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.5);
     }
 
     .hero-card-header {
@@ -319,14 +318,14 @@
 
     .kpi {
       padding: 8px 9px;
-      border-radius: 14px;
-      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.25), rgba(15, 23, 42, 0.98));
-      border: 1px solid rgba(148, 163, 184, 0.5);
+      border-radius: 12px;
+      background: radial-gradient(circle at top, rgba(37, 99, 235, 0.22), rgba(15, 23, 42, 0.95));
+      border: 1px solid rgba(148, 163, 184, 0.45);
     }
 
     .kpi-label {
       font-size: 11px;
-      color: #bae6fd;
+      color: #cbd5f5;
       margin-bottom: 2px;
     }
 
@@ -343,7 +342,7 @@
     .hero-card-footer {
       font-size: 11px;
       color: #9ca3af;
-      border-top: 1px dashed rgba(148, 163, 184, 0.6);
+      border-top: 1px dashed rgba(148, 163, 184, 0.5);
       padding-top: 8px;
       display: flex;
       justify-content: space-between;
@@ -358,7 +357,7 @@
       gap: 4px;
     }
 
-    /* SEÇÕES GERAIS --------------------------------------------------- */
+    /* SEÇÕES ---------------------------------------------------------- */
 
     main {
       flex: 1;
@@ -374,7 +373,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       gap: 10px;
       flex-wrap: wrap;
     }
@@ -390,55 +389,11 @@
       color: var(--cor-text-soft);
     }
 
-    /* SEÇÃO CALL-TO-ACTIONS ------------------------------------------ */
-
-    .quick-actions {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-      margin-top: 8px;
-    }
-
-    .quick-card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 14px 14px 12px;
-      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-      border: 1px solid rgba(209, 213, 219, 0.9);
-      font-size: 13px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .quick-card-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 600;
-    }
-
-    .quick-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      background: #eff6ff;
-      color: #1d4ed8;
-    }
-
-    .quick-card p {
-      color: var(--cor-text-soft);
-    }
-
-    /* SOBRE / FAQ ----------------------------------------------------- */
+    /* Sobre + FAQ + Depoimentos em cards ----------------------------- */
 
     .cards-grid {
       display: grid;
-      grid-template-columns: minmax(0, 2.1fr) minmax(0, 2.3fr);
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
       gap: 18px;
       align-items: flex-start;
     }
@@ -448,7 +403,7 @@
       border-radius: var(--radius-lg);
       padding: 18px 18px 16px;
       box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
-      border: 1px solid rgba(209, 213, 219, 0.9);
+      border: 1px solid rgba(209, 213, 219, 0.85);
     }
 
     .card h3 {
@@ -479,15 +434,15 @@
     .pill {
       padding: 4px 8px;
       border-radius: 999px;
-      background: #ecfeff;
-      color: #0369a1;
-      border: 1px solid #bae6fd;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
     }
 
     .faq-item + .faq-item {
       margin-top: 10px;
       padding-top: 10px;
-      border-top: 1px dashed rgba(209, 213, 219, 0.9);
+      border-top: 1px dashed rgba(209, 213, 219, 0.85);
     }
 
     .faq-q {
@@ -501,54 +456,9 @@
       color: var(--cor-text-soft);
     }
 
-    /* SEÇÃO SERVIÇOS -------------------------------------------------- */
-
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-      margin-top: 6px;
-    }
-
-    .service-card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 14px 14px 12px;
-      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-      border: 1px solid rgba(209, 213, 219, 0.9);
-      font-size: 13px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .service-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      background: #eff6ff;
-      color: #1d4ed8;
-      margin-bottom: 2px;
-    }
-
-    .service-title {
-      font-weight: 600;
-      font-size: 13px;
-    }
-
-    .service-text {
-      color: var(--cor-text-soft);
-    }
-
-    /* DEPOIMENTOS ----------------------------------------------------- */
-
     .testimonials {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 10px;
       margin-top: 10px;
     }
@@ -788,7 +698,7 @@
 
     /* RESPONSIVO ------------------------------------------------------ */
 
-    @media (max-width: 980px) {
+    @media (max-width: 900px) {
       .hero-inner {
         grid-template-columns: minmax(0, 1fr);
       }
@@ -805,17 +715,11 @@
       .contact-grid {
         grid-template-columns: minmax(0, 1fr);
       }
-      .quick-actions {
-        grid-template-columns: minmax(0, 1fr);
-      }
-      .services-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 600px) {
       .hero-inner {
-        padding-top: 26px;
+        padding-top: 28px;
       }
       .hero-title {
         font-size: 24px;
@@ -823,9 +727,6 @@
       .hero-ctas {
         flex-direction: column;
         align-items: stretch;
-      }
-      .services-grid {
-        grid-template-columns: minmax(0, 1fr);
       }
       .chat-body {
         height: 220px;
@@ -843,7 +744,7 @@
         {% if logo_url %}
           <img src="{{ logo_url }}" alt="Logo {{ nome_empresa }}">
         {% else %}
-          <div style="width:40px;height:40px;border-radius:999px;background:#1d4ed8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;">
+          <div style="width:42px;height:42px;border-radius:999px;background:#1d4ed8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;">
             {{ nome_empresa[:1] | upper }}
           </div>
         {% endif %}
@@ -872,7 +773,12 @@
   <section class="hero">
     <div class="hero-inner">
       <div>
-        <div class="hero-left-top">
+        <div class="hero-badge">
+          <span>Site oficial</span>
+          <strong>{{ nome_empresa }}</strong>
+        </div>
+
+        <div class="hero-brand">
           <div class="hero-logo-big">
             {% if logo_url %}
               <img src="{{ logo_url }}" alt="Logo {{ nome_empresa }}">
@@ -883,43 +789,39 @@
           <div>
             <div class="hero-brand-name">{{ nome_empresa }}</div>
             <div class="hero-brand-niche">{{ nicho }}</div>
-            <div class="hero-badge" style="margin-top:6px;">
-              <span>Site oficial</span>
-              <strong>Atendimento verificado ✅</strong>
-            </div>
           </div>
         </div>
 
-        <h1 class="hero-title">
-          Seu atendimento profissional <span>começa aqui.</span>
-        </h1>
+        <h2 class="hero-title">
+          Soluções em {{ nicho }} com foco em resultados reais para você. 🚀
+        </h2>
 
         <p class="hero-sub">
-          {{ bio if bio else "Organizamos o atendimento do seu negócio para que cada pessoa seja recebida com clareza, respeito e atenção aos detalhes." }}
+          {{ bio if bio else "Atendemos com proximidade, clareza e organização, para que cada etapa do serviço seja simples e segura para você." }}
         </p>
 
         <div class="hero-highlights">
-          <span>🎯 Atendimento pensado para a sua realidade</span>
-          <span>📅 Combinação de horários com antecedência</span>
-          <span>🤝 Relacionamento de confiança e transparência</span>
+          <span>✅ Atendimento personalizado</span>
+          <span>✅ Foco em qualidade</span>
+          <span>✅ Confiança e transparência</span>
         </div>
 
         <div class="hero-ctas">
           {% if whatsapp %}
           <a class="btn btn-primary" href="https://wa.me/{{ whatsapp }}" target="_blank" rel="noopener">
-            💚 Falar pelo WhatsApp
+            💚 Falar agora pelo WhatsApp
           </a>
           {% endif %}
           <button class="btn btn-chat-inline" type="button" onclick="toggleChat(true)">
-            🤖 Iniciar atendimento no chat
+            🤖 Atendimento imediato no chat
           </button>
-          <a class="btn btn-ghost" href="#servicos">
-            👀 Ver o que podemos fazer
+          <a class="btn btn-ghost" href="#depoimentos">
+            ⭐ Ver o que nossos clientes dizem
           </a>
         </div>
 
         <p class="hero-mini-info">
-          Você escolhe como prefere falar: WhatsApp ou chat aqui mesmo no site.
+          Respostas rápidas, horários combinados e um atendimento pensado para facilitar sua vida.
         </p>
       </div>
 
@@ -936,19 +838,19 @@
 
         <div class="hero-kpis">
           <div class="kpi">
-            <div class="kpi-label">Avaliação</div>
+            <div class="kpi-label">Qualidade</div>
             <div class="kpi-value">5⭐</div>
-            <div class="kpi-extra">Impressão geral dos clientes</div>
+            <div class="kpi-extra">Avaliação média dos clientes</div>
           </div>
           <div class="kpi">
             <div class="kpi-label">Atendimento</div>
             <div class="kpi-value">Top</div>
-            <div class="kpi-extra">Foco em cada pessoa</div>
+            <div class="kpi-extra">Foco total em cada cliente</div>
           </div>
           <div class="kpi">
             <div class="kpi-label">Confiabilidade</div>
             <div class="kpi-value">100%</div>
-            <div class="kpi-extra">Compromisso com o combinado</div>
+            <div class="kpi-extra">Serviço feito como combinado</div>
           </div>
         </div>
 
@@ -962,64 +864,16 @@
     </div>
   </section>
 
-  <!-- AÇÕES RÁPIDAS -->
-  <section class="section">
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">Como podemos te ajudar hoje?</h2>
-        <p class="section-sub">Escolha a opção que faz mais sentido e fale com a gente em poucos cliques.</p>
-      </div>
-      <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
-        💬 Abrir chat agora
-      </button>
-    </div>
-
-    <div class="quick-actions">
-      <div class="quick-card">
-        <div class="quick-card-header">
-          <div class="quick-icon">📄</div>
-          <div>Solicitar orçamento</div>
-        </div>
-        <p>Explique o que precisa e receba uma proposta organizada, de acordo com a sua necessidade.</p>
-        <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
-          Pedir orçamento no chat
-        </button>
-      </div>
-
-      <div class="quick-card">
-        <div class="quick-card-header">
-          <div class="quick-icon">❓</div>
-          <div>Tirar dúvidas</div>
-        </div>
-        <p>Tem perguntas sobre como funciona, valores ou prazos? Nosso atendente virtual responde.</p>
-        <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
-          Enviar dúvida no chat
-        </button>
-      </div>
-
-      <div class="quick-card">
-        <div class="quick-card-header">
-          <div class="quick-icon">📆</div>
-          <div>Agendar atendimento</div>
-        </div>
-        <p>Combine datas, horários e detalhes para organizar o atendimento da melhor forma.</p>
-        <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
-          Combinar horário pelo chat
-        </button>
-      </div>
-    </div>
-  </section>
-
+  <!-- SOBRE / FAQ / DEPOIMENTOS -->
   <main>
-    <!-- SOBRE / FAQ -->
     <section id="sobre" class="section">
       <div class="section-header">
         <div>
           <h2 class="section-title">Sobre o {{ nome_empresa }}</h2>
-          <p class="section-sub">Conheça um pouco mais sobre a forma como cuidamos de cada atendimento.</p>
+          <p class="section-sub">Entenda melhor quem somos, o que fazemos e como podemos te ajudar.</p>
         </div>
         <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
-          👋 Falar com nosso atendente virtual
+          💬 Tirar dúvidas no chat
         </button>
       </div>
 
@@ -1028,7 +882,7 @@
           <h3>Quem somos</h3>
           <p>
             {{ descricao if descricao else
-            "Trabalhamos para que cada atendimento seja organizado, seguro e respeitoso, alinhando o que o cliente precisa com o que o nosso negócio pode oferecer." }}
+            "Somos uma empresa comprometida em entregar um serviço de alto padrão, com foco em segurança, organização e atenção a cada detalhe." }}
           </p>
 
           {% if informacoes_adicionais %}
@@ -1038,9 +892,15 @@
           {% endif %}
 
           <div class="pill-list">
-            <span class="pill">🤝 Atenção a cada pessoa</span>
-            <span class="pill">⏱️ Cuidado com prazos</span>
-            <span class="pill">🔍 Comunicação clara</span>
+            <span class="pill">🤝 Atendimento humanizado</span>
+            <span class="pill">⏱️ Compromisso com prazos</span>
+            <span class="pill">🔍 Transparência em cada etapa</span>
+          </div>
+
+          <div style="margin-top:10px;">
+            <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
+              👋 Falar com nosso atendente virtual
+            </button>
           </div>
         </article>
 
@@ -1048,23 +908,24 @@
           <h3>Perguntas frequentes</h3>
 
           <div class="faq-item">
-            <div class="faq-q">O que torna o atendimento de vocês diferente?</div>
+            <div class="faq-q">O que torna a sua empresa diferente das outras?</div>
             <div class="faq-a">
-              Buscamos entender a realidade de cada pessoa e organizar o atendimento de forma simples, objetiva e respeitosa.
+              Atendimento próximo, foco em qualidade e respeito aos prazos. Cada cliente é tratado como único.
             </div>
           </div>
 
           <div class="faq-item">
-            <div class="faq-q">É seguro falar sobre meus dados e necessidades?</div>
+            <div class="faq-q">É seguro contratar os serviços de vocês?</div>
             <div class="faq-a">
-              Sim. Tratamos todas as informações com cuidado, sigilo e responsabilidade, seguindo o que foi combinado.
+              Sim. Trabalhamos com responsabilidade, transparência e compromisso em todas as etapas do serviço.
             </div>
           </div>
 
           <div class="faq-item">
-            <div class="faq-q">Como funciona depois do primeiro contato?</div>
+            <div class="faq-q">Como funciona o processo após o primeiro contato?</div>
             <div class="faq-a">
-              Conversamos para entender o que você precisa, explicamos as possibilidades e combinamos os próximos passos com clareza.
+              Conversamos para entender sua necessidade, montamos uma proposta personalizada e iniciamos o serviço
+              com acompanhamento até a conclusão.
             </div>
           </div>
 
@@ -1084,91 +945,21 @@
 
           <div style="margin-top:10px;">
             <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
-              📲 Tirar dúvidas direto no chat
+              📲 Iniciar atendimento agora no chat
             </button>
           </div>
         </article>
       </div>
     </section>
 
-    <!-- SERVIÇOS -->
-    <section id="servicos" class="section">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Etapas do atendimento</h2>
-          <p class="section-sub">De forma simples, é assim que organizamos o caminho com cada cliente.</p>
-        </div>
-        <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
-          ✍️ Ver como isso se aplica ao meu caso
-        </button>
-      </div>
-
-      <div class="services-grid">
-        <div class="service-card">
-          <div class="service-icon">🧩</div>
-          <div class="service-title">Atendimento e orientação inicial</div>
-          <div class="service-text">
-            Você explica o que precisa, nós ouvimos com atenção e mostramos as possibilidades para o seu caso.
-          </div>
-        </div>
-
-        <div class="service-card">
-          <div class="service-icon">⚙️</div>
-          <div class="service-title">Organização do serviço ou projeto</div>
-          <div class="service-text">
-            Definimos etapas, combinamos prazos e ajustamos os detalhes de acordo com a sua realidade.
-          </div>
-        </div>
-
-        <div class="service-card">
-          <div class="service-icon">📊</div>
-          <div class="service-title">Acompanhamento e ajustes</div>
-          <div class="service-text">
-            Mantemos contato, esclarecemos dúvidas e fazemos os ajustes necessários ao longo do caminho.
-          </div>
-        </div>
-
-        <div class="service-card">
-          <div class="service-icon">🤝</div>
-          <div class="service-title">Atendimento personalizado</div>
-          <div class="service-text">
-            Cada pessoa é atendida de forma individual, respeitando seu tempo, seus limites e suas prioridades.
-          </div>
-        </div>
-
-        <div class="service-card">
-          <div class="service-icon">🛡️</div>
-          <div class="service-title">Segurança e clareza</div>
-          <div class="service-text">
-            Tudo é alinhado por mensagens, documentos ou contratos, evitando mal-entendidos e surpresas.
-          </div>
-        </div>
-
-        <div class="service-card">
-          <div class="service-icon">💡</div>
-          <div class="service-title">Soluções sob medida</div>
-          <div class="service-text">
-            Sempre que possível, adaptamos o atendimento à fase do seu negócio, projeto ou necessidade pessoal.
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:16px; text-align:center;">
-        <button class="btn btn-chat-inline" type="button" onclick="toggleChat(true)">
-          🤖 Falar com o atendente e entender o melhor caminho
-        </button>
-      </div>
-    </section>
-
-    <!-- DEPOIMENTOS -->
     <section id="depoimentos" class="section">
       <div class="section-header">
         <div>
           <h2 class="section-title">Depoimentos de clientes</h2>
-          <p class="section-sub">Algumas impressões de quem já passou pelo nosso atendimento.</p>
+          <p class="section-sub">Algumas opiniões de quem já foi atendido por nós.</p>
         </div>
         <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
-          💬 Quero ter essa experiência também
+          💬 Quero um atendimento assim também
         </button>
       </div>
 
@@ -1177,33 +968,32 @@
           <div class="testimonial">
             <strong>Fernanda M.</strong>
             <div class="stars">★★★★★</div>
-            Atendimento excelente, tudo muito bem explicado e dentro do combinado.
+            Atendimento excelente! Serviço de qualidade, tudo dentro do prazo. Recomendo de olhos fechados.
           </div>
           <div class="testimonial">
             <strong>José A.</strong>
             <div class="stars">★★★★★</div>
-            Fui ouvido com atenção, tive minhas dúvidas respondidas e fiquei muito satisfeito.
+            Profissionalismo do início ao fim. Fiquei muito satisfeito com o resultado.
           </div>
           <div class="testimonial">
             <strong>Patrícia G.</strong>
             <div class="stars">★★★★★</div>
-            Gostei da clareza, da organização e do cuidado em cada etapa do atendimento.
+            Ótimo custo-benefício, atenção aos detalhes e cuidado em cada etapa.
           </div>
           <div class="testimonial">
             <strong>Tiago F.</strong>
             <div class="stars">★★★★★</div>
-            Atendimento confiável, direto ao ponto e sempre com respeito. Recomendo.
+            Empresa confiável, entrega exatamente o que promete. Recomendo!
           </div>
         </div>
       </div>
     </section>
 
-    <!-- CONTATO / LOCALIZAÇÃO -->
     <section id="contato" class="section">
       <div class="section-header">
         <div>
           <h2 class="section-title">Contato e localização</h2>
-          <p class="section-sub">Fale com a gente e vamos ver, juntos, o que faz mais sentido para você.</p>
+          <p class="section-sub">Fale com a gente e faça seu orçamento sem compromisso.</p>
         </div>
         <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
           📩 Falar com atendente virtual
@@ -1250,12 +1040,14 @@
         </div>
 
         <div class="safe-card">
-          <h3>🛡️ Sua contratação é 100% segura</h3>
+          <h3>🛡️ Sua compra é 100% segura</h3>
           <p>
-            Nosso objetivo é que todo o processo seja claro, respeitoso e alinhado ao que foi combinado com você.
+            Nosso atendimento é organizado para que tudo seja feito com clareza e segurança,
+            desde o primeiro contato até a entrega final do serviço.
           </p>
           <p style="margin-top:6px;">
-            Se preferir, você pode iniciar a conversa agora mesmo pelo chat inteligente aqui da página.
+            Precisa de ajuda agora? Envie uma mensagem pelo botão de WhatsApp ou use o
+            atendente virtual aqui da página.
           </p>
           <div style="margin-top:10px;">
             <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
@@ -1282,11 +1074,11 @@
 
 </div> <!-- /page-wrapper -->
 
-<!-- CHAT FLUTUANTE -->
+<!-- CHAT FLUTUANTE (usa /chat_publico/perguntar) -->
 <button class="chat-bubble-btn" id="chatToggleBtn" aria-label="Abrir chat">
-  <!-- Trocar aqui o ícone do botão se quiser:
-       💬, 🗨️, 🤖, 📲, 📩, ☎️, 👩‍💻, 👨‍💻 -->
-  🤖
+  <!-- PARA MUDAR O ÍCONE DO BOTÃO, TROQUE O EMOJI ABAIXO:
+       opções: 💬, 🗨️, 🤖, 📲, 📩, ☎️, 👩‍💻, 👨‍💻 -->
+  💬
 </button>
 
 <div class="chat-widget" id="chatWidget">
