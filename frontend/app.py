@@ -1695,67 +1695,6 @@ def tela_branding():
 
 
 
-def tela_historico():
-    st.header("🧠 Histórico")
-
-    historico = []
-
-    # Campo de busca
-    termo_busca = st.text_input(
-        "🔎 Buscar no histórico (palavra, frase ou parte da data):",
-        placeholder="Ex.: Google Ads, orçamento, Instagram..."
-    ).strip()
-
-    params = {}
-    if termo_busca:
-        params["busca"] = termo_busca
-
-    try:
-        response = httpx.get(
-            f"{API_URL}/mark/historico",
-            params=params,
-            headers=get_headers(),   # ✅ agora envia o token
-            timeout=30,
-        )
-        if response.status_code == 200:
-            historico = response.json()
-            if not historico:
-                if termo_busca:
-                    st.info("Nenhum registro encontrado para essa busca.")
-                else:
-                    st.info("Nenhuma interação registrada ainda.")
-            else:
-                # Mostra do mais recente para o mais antigo
-                for h in historico:
-                    data_str = h.get("data_envio", "")
-                    remetente = h.get("remetente", "").capitalize()
-                    mensagem = h.get("mensagem", "")
-
-                    st.markdown(f"🕒 *{data_str}*")
-                    st.markdown(f"**{remetente}:** {mensagem}")
-                    st.markdown("---")
-        else:
-            st.error(f"Erro ao carregar histórico: {response.status_code}")
-    except Exception as e:
-        st.error(f"Erro ao carregar histórico: {e}")
-
-    # ✅ Botão de exportar histórico em TXT
-    if historico:
-        conteudo = "\n\n".join(
-            [
-                f"{h.get('data_envio', '')} - {h.get('remetente', '')}: {h.get('mensagem', '')}"
-                for h in historico
-            ]
-        )
-        st.download_button(
-            "📤 Exportar histórico (.txt)",
-            data=conteudo,
-            file_name="historico_mark.txt",
-            mime="text/plain",
-        )
-
-
-
 
 
 
@@ -1861,10 +1800,11 @@ def tela_mark_ia():
     import os
     import streamlit as st
     import streamlit.components.v1 as components
+    import httpx  # garantir que httpx está disponível
 
     # 🔹 Pega o ID do usuário logado (se tiver)
     dados_usuario = st.session_state.get("dados_usuario", {}) or {}
-    usuario_id = dados_usuario.get("id", "")
+    usuario_id = dados_usuario.get("id", None)
 
     # 🔹 Lê o HTML do chat
     caminho_html = os.path.join("frontend", "mark_chat.html")
@@ -1876,18 +1816,16 @@ def tela_mark_ia():
         return
 
     # 🔹 Injeta o ID do usuário dentro do HTML
-    html = html.replace("{{USUARIO_ID}}", str(usuario_id))
+    html = html.replace("{{USUARIO_ID}}", str(usuario_id or ""))
 
     # 🔹 CSS global para o iframe do MARK usar quase toda a tela
-    #     – 100vh = altura total da janela
-    #     – subtraímos ~260px para caber header do sistema + margens
     st.markdown(
         """
         <style>
           /* Desktop / notebooks grandes */
-              iframe[srcdoc*="MARK.IA Chat"] {
+          iframe[srcdoc*="MARK.IA Chat"] {
               width: 100% !important;
-              height: calc(100vh - 280px) !important;  /* antes 260px */
+              height: calc(100vh - 280px) !important;
               border: none;
               border-radius: 24px;
               box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
@@ -1903,7 +1841,7 @@ def tela_mark_ia():
           /* Celulares em geral */
           @media (max-width: 768px) {
               iframe[srcdoc*="MARK.IA Chat"] {
-                  height: calc(100vh - 240px) !important;  /* antes 220px */
+                  height: calc(100vh - 240px) !important;
                   border-radius: 18px;
               }
           }
@@ -1912,15 +1850,14 @@ def tela_mark_ia():
         unsafe_allow_html=True,
     )
 
-
     # 🔹 Renderiza o chat
     components.html(
         html,
-        height=650,        # valor base; o CSS acima sobrescreve com 100vh-calculo
+        height=650,
         scrolling=False,
     )
 
-    # 🔹 Texto de apoio abaixo do chat (disfarça qualquer restinho de espaço)
+    # 🔹 Texto de apoio abaixo do chat
     st.markdown(
         """
         ### Como usar o MARK IA
@@ -1930,10 +1867,157 @@ def tela_mark_ia():
         - Use o botão de **limpar conversa** para começar um novo assunto.  
 
         Caso alguma parte do layout fique um pouquinho cortada em algum dispositivo,
-        é porque logo abaixo do chat ficam estas instruções e textos de apoio. 😄
+        é porque logo abaixo do chat ficam estas instruções e textos de apoio.
         """
     )
 
+
+    # ===============================
+    # 🔎 BUSCA NO HISTÓRICO DO MARK
+    # ===============================
+
+    st.subheader("🔍 Buscar no histórico")
+
+    termo_busca = st.text_input(
+        "Digite uma palavra, frase ou parte da data:",
+        placeholder="Ex.: Google Ads, orçamento, Instagram..."
+    ).strip()
+
+    params = {}
+    if termo_busca:
+        params["busca"] = termo_busca
+
+    # 🔐 Cabeçalho com token (se existir)
+    token = st.session_state.get("access_token", "")
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    # Sempre inicializa a lista
+    registros = []
+
+    try:
+        r_hist = httpx.get(
+            f"{API_URL}/mark/historico_v2",
+            params=params,
+            headers=headers or None,   # se estiver vazio, manda None
+            timeout=30,
+        )
+
+        if r_hist.status_code == 200:
+            registros = r_hist.json()
+
+            if not registros:
+                if termo_busca:
+                    st.info("Nenhum registro encontrado para essa busca.")
+                else:
+                    st.info("Nenhuma interação registrada ainda.")
+            else:
+                st.markdown("---")
+
+                for h in registros:
+                    data = h.get("data_envio") or ""
+                    remetente = h.get("remetente", "").capitalize()
+                    mensagem = h.get("mensagem", "")
+
+                    st.markdown(f"### 🕒 {data}")
+                    st.markdown(f"**{remetente}:** {mensagem}")
+                    st.markdown("---")
+
+        else:
+            st.error(f"Erro ao carregar histórico: {r_hist.status_code}")
+
+    except Exception as e:
+        st.error(f"Erro ao carregar histórico: {e}")
+
+
+    # =====================================
+    # 📤 EXPORTAR HISTÓRICO COMO .TXT
+    # =====================================
+
+    if registros:
+        conteudo_txt = "\n\n".join(
+            [
+                f"{h.get('data_envio', '')} - {h.get('remetente', '').capitalize()}: {h.get('mensagem', '')}"
+                for h in registros
+            ]
+        )
+
+        st.download_button(
+            "📤 Exportar histórico (.txt)",
+            data=conteudo_txt,
+            file_name="historico_mark.txt",
+            mime="text/plain",
+        )
+
+
+
+
+
+    # ===============================
+    # BLOCO: Histórico abaixo do chat
+    # ===============================
+    st.markdown("---")
+    st.markdown("### 🧠 Histórico de Conversas com o MARK")
+
+    # ❌ Sem header Authorization aqui
+    try:
+        r = httpx.get(f"{API_URL}/mark/historico_v2", timeout=10.0)
+        if r.status_code == 200:
+            historico_total = r.json()
+        else:
+            st.warning(f"Não foi possível carregar o histórico (status {r.status_code}).")
+            historico_total = []
+    except Exception as e:
+        st.error(f"Erro ao buscar histórico: {e}")
+        historico_total = []
+
+    # 🔹 Filtra só do usuário logado (se tiver ID)
+    if usuario_id:
+        historico = [
+            h for h in historico_total
+            if h.get("usuario_id") == usuario_id
+        ]
+    else:
+        historico = historico_total
+
+    # Exibição formatada
+    if not historico:
+        st.info("Nenhuma conversa registrada ainda.")
+    else:
+        historico = sorted(
+            historico,
+            key=lambda x: (x.get("data_envio") or ""),
+            reverse=True,
+        )
+
+        for item in historico:
+            remetente_raw = (item.get("remetente") or "").lower()
+            remetente = "Você" if remetente_raw == "usuário" else "MARK IA"
+            mensagem = item.get("mensagem", "")
+            data = item.get("data_envio", "") or ""
+            if data:
+                data = data.replace("T", " ").split(".")[0]
+
+            st.markdown(
+                f"""
+                <div style="
+                    margin-bottom: 12px;
+                    padding: 12px;
+                    border-radius: 10px;
+                    background: {'#e0edff' if remetente=='Você' else '#f7f7f7'};
+                    ">
+                    <b>{remetente}</b> — <small>{data}</small>
+                    <br>
+                    <div style="margin-top: 6px; font-size: 15px;">
+                        {mensagem}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+    st.markdown("---")
 
 
 
@@ -3103,7 +3187,6 @@ def main():
             "📅 **Agenda**",
             "📣 **Central de Marketing**",
             "🏷️ **Central da Marca (Branding)**",
-            "🧠 **Histórico**",
             "📁 **Arquivos**",
             "🤖 **MARK IA**",
             "🌐 **Página e Chat do Cliente**",
@@ -3168,8 +3251,6 @@ def main():
         tela_marketing()
     elif escolha == "🏷️ **Central da Marca (Branding)**":
         tela_branding()
-    elif escolha == "🧠 **Histórico**":
-        tela_historico()
     elif escolha == "📁 **Arquivos**":
         tela_arquivos()
     elif escolha == "🤖 **MARK IA**":

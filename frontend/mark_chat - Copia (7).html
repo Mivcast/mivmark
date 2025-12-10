@@ -267,34 +267,15 @@ const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 // Última resposta salva para botão de voz
 let ultimaResposta = "";
 
-
-// Detecta API (funciona dentro de iframe srcdoc)
-let API_URL = "https://mivmark-backend.onrender.com"; // padrão: backend da Render
-
-try {
-  const host =
-    (window.parent && window.parent.location && window.parent.location.hostname) ||
-    window.location.hostname ||
-    "";
-
-  console.log("hostname detectado para API_URL:", host);
-
-  if (host === "localhost" || host === "127.0.0.1") {
-    // ambiente de desenvolvimento local
-    API_URL = "http://127.0.0.1:8000";
-  }
-} catch (e) {
-  console.warn("Não consegui ler hostname, usando backend padrão:", e);
+// Detecta API
+let API_URL;
+if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+  API_URL = "http://127.0.0.1:8000";
+} else {
+  API_URL = "https://mivmark-backend.onrender.com";
 }
 
-console.log("API_URL em uso:", API_URL);
-
-
 const USUARIO_ID = "{{USUARIO_ID}}";
-console.log("USUARIO_ID in chat:", USUARIO_ID);
-console.log("USUARIO_ID in chat:", USUARIO_ID, "tipo:", typeof USUARIO_ID);
-
-
 
 // Elementos
 const chatMessages = document.getElementById("chatMessages");
@@ -386,48 +367,7 @@ async function enviarMensagem(textoParam=null, origemVoz=false) {
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    
     ultimaResposta = resposta;
-
-    // 🔹 Depois que a resposta terminou de chegar, salva no histórico do banco
-    console.log("Antes de registrar histórico. uid =", uid);
-    console.log("Payload registrar_historico:", {
-      mensagem: texto,
-      resposta: resposta,
-      usuario_id: uid
-    });
-
-    if (uid) {
-      try {
-        const respHist = await fetch(`${API_URL}/mark/registrar_historico`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            mensagem: texto,
-            resposta: resposta,
-            usuario_id: uid
-          })
-        });
-
-        console.log("registrar_historico status:", respHist.status);
-
-        let dataResp = null;
-        try {
-          dataResp = await respHist.json();
-        } catch (e) {
-          console.warn("Não consegui ler JSON de registrar_historico:", e);
-        }
-
-        console.log("registrar_historico body:", dataResp);
-
-      } catch (e) {
-        console.error("Erro ao registrar histórico (fetch falhou):", e);
-      }
-    } else {
-      console.warn("NÃO VAI REGISTRAR HISTÓRICO: uid está vazio ou inválido.");
-    }
-
-
 
     // 🔊 Voz automática em PC/Android
     if (origemVoz && resposta) {
