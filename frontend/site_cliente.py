@@ -28,34 +28,23 @@ def tela_site_cliente():
     # 🔹 Texto de introdução (agora usando o link_exemplo real)
     st.markdown(
         f"""
-    # 🌐 Página e Chat do Cliente
+    
+    # Parabéns! Você Ganhou um Site com Chat Inteligente 🎉 
 
-    Parabéns! 🎉  
-    O seu **site exclusivo** foi criado com base nos dados cadastrados na aba **Empresa**.
+    ### 🌐 Site Institucional
+ 
+    🚀Você acaba de Ganhar um **Site exclusivo** que foi criado com base nos dados cadastrados na aba **Empresa**.
 
-    Assim que você gerar o site, ele ficará disponível em um link como:
-
-    👉 **{link_exemplo}**
-
-    Você poderá **copiar esse link** e usar em:
-    - Bio do Instagram  
-    - WhatsApp Business  
-    - Google Meu Negócio  
-    - QR Code  
-    - Cartões digitais  
-    - Onde você quiser divulgar seu negócio!
+    No final desta pagina terá o Botao para **Gerar o Site**👇🏼
+    
+    🎯Você poderá usar o site para divulgar seu negócio onde quiser! (▪️Bio do Instagram, ▪️WhatsApp Business, ▪️Google Meu Negócio, ▪️QR Code, ▪️Cartões digitais, etc...)
 
     ---
 
     ### 🤖 Chat Inteligente Integrado
 
-    Seu site também vem com um **Atendente Virtual Inteligente**, totalmente integrado ao seu negócio.  
-    Ele recebe automaticamente as informações da sua empresa e responde seus clientes com:
-    - Explicações sobre seus serviços  
-    - Horários  
-    - Endereço  
-    - Informações adicionais que você cadastrar aqui  
-    - Mensagens personalizadas
+    🚀Seu site também vem com um **Atendente Virtual Inteligente**, totalmente integrado ao seu negócio.  
+    🎯Ele recebe automaticamente as informações da sua empresa e responde seus clientes com: ▪️Explicações sobre seus serviços ▪️Horários  ▪️Endereço ▪️Informações adicionais que você cadastrar aqui▪️Mensagens personalizadas
 
     Isso transforma seu site em um **atendimento 24h**, profissional e moderno!
 
