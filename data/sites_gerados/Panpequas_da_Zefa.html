@@ -1,406 +1,1337 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Panpequas da Zefa | restaurante</title>
-  <meta content="" name="descriptison">
-  <meta content="" name="keywords">
-  <!-- Favicons -->
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+  <meta name="description" content="panquecas de carne">
+  <style>
+    :root {
+      --cor-primary: #2563eb;
+      --cor-primary-dark: #1d4ed8;
+      --cor-secondary: #0ea5e9;
+      --cor-bg: #0f172a;
+      --cor-card: #ffffff;
+      --cor-text: #0f172a;
+      --cor-text-soft: #6b7280;
+      --radius-lg: 20px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.16);
+    }
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  <!-- Vendor CSS Files -->
-  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="assets/vendor/icofont/icofont.min.css" rel="stylesheet">
-  <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-  <link href="assets/vendor/animate.css/animate.min.css" rel="stylesheet">
-  <link href="assets/vendor/owl.carousel/assets/owl.carousel.min.css" rel="stylesheet">
-  <link href="assets/vendor/venobox/venobox.css" rel="stylesheet">
-  <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f3f4f6;
+      color: var(--cor-text);
+      line-height: 1.6;
+    }
 
-  <!-- Template Main CSS File -->
-  <link href="assets/css/style.css" rel="stylesheet">
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
+    .page-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* CABEÇALHO ------------------------------------------------------ */
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(15, 23, 42, 0.96);
+      color: #e5e7eb;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .top-bar {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-area img {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      object-fit: cover;
+      border: 2px solid rgba(148, 163, 184, 0.6);
+      background: white;
+    }
+
+    .logo-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .logo-text span {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    nav ul {
+      display: flex;
+      align-items: center;
+      list-style: none;
+      gap: 16px;
+      font-size: 14px;
+    }
+
+    nav a {
+      padding: 6px 10px;
+      border-radius: 999px;
+      transition: background 0.2s, color 0.2s;
+      color: #e5e7eb;
+    }
+
+    nav a:hover {
+      background: rgba(148, 163, 184, 0.25);
+    }
+
+    .cta-header {
+      display: none;
+    }
+
+    /* HERO ----------------------------------------------------------- */
+
+    .hero {
+      /* se quiser um banner full, basta trocar o fundo abaixo por uma imagem padrão:
+         background: url('/static/banner_padrao.jpg') center/cover no-repeat; */
+      background: radial-gradient(circle at top left, #1e40af 0, #0f172a 40%, #020617 90%);
+      color: white;
+    }
+
+    .hero-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 36px 16px 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 6.2fr) minmax(0, 5fr);
+      gap: 28px;
+      align-items: center;
+    }
+
+    .hero-left-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .hero-logo-big {
+      width: 70px;
+      height: 70px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 2px solid rgba(191, 219, 254, 0.9);
+      background: radial-gradient(circle at top, #1d4ed8, #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 26px;
+      text-transform: uppercase;
+      color: white;
+    }
+
+    .hero-logo-big img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hero-brand-name {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-brand-niche {
+      font-size: 13px;
+      color: #cbd5f5;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      font-size: 11px;
+      margin-bottom: 10px;
+    }
+
+    .hero-badge span {
+      font-size: 10px;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    .hero-title {
+      font-size: clamp(26px, 3vw + 12px, 34px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+    }
+
+    .hero-title span {
+      color: #a5b4fc;
+    }
+
+    .hero-sub {
+      font-size: 14px;
+      max-width: 520px;
+      color: #e2e8f0;
+      margin-bottom: 16px;
+    }
+
+    .hero-highlights {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+
+    .hero-highlights span {
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    .hero-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--cor-primary);
+      color: #ffffff;
+      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: var(--cor-primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 14px 35px rgba(37, 99, 235, 0.45);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: #e5e7eb;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    .btn-chat-inline {
+      background: #22c55e;
+      color: #022c22;
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-chat-inline:hover {
+      background: #16a34a;
+      transform: translateY(-1px);
+    }
+
+    .btn-sm {
+      padding: 7px 14px;
+      font-size: 12px;
+    }
+
+    .hero-mini-info {
+      font-size: 11px;
+      color: #cbd5f5;
+    }
+
+    .hero-card {
+      background: #020617;
+      border-radius: var(--radius-lg);
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .hero-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: #cbd5f5;
+    }
+
+    .hero-card-header strong {
+      font-size: 13px;
+    }
+
+    .hero-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .kpi {
+      padding: 8px 9px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.25), rgba(15, 23, 42, 0.98));
+      border: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      color: #bae6fd;
+      margin-bottom: 2px;
+    }
+
+    .kpi-value {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .kpi-extra {
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .hero-card-footer {
+      font-size: 11px;
+      color: #9ca3af;
+      border-top: 1px dashed rgba(148, 163, 184, 0.6);
+      padding-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .hero-card-footer span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* SEÇÕES GERAIS --------------------------------------------------- */
+
+    main {
+      flex: 1;
+    }
+
+    .section {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 26px 16px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .section-sub {
+      font-size: 13px;
+      color: var(--cor-text-soft);
+    }
+
+    /* SEÇÃO CALL-TO-ACTIONS ------------------------------------------ */
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .quick-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .quick-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+
+    .quick-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .quick-card p {
+      color: var(--cor-text-soft);
+    }
+
+    /* SOBRE / FAQ ----------------------------------------------------- */
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 2.3fr);
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .card {
+      background: var(--cor-card);
+      border-radius: var(--radius-lg);
+      padding: 18px 18px 16px;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+      border: 1px solid rgba(209, 213, 219, 0.9);
+    }
+
+    .card h3 {
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .card p {
+      font-size: 13px;
+      color: var(--cor-text-soft);
+    }
+
+    .card ul {
+      margin-top: 6px;
+      padding-left: 18px;
+      font-size: 13px;
+      color: var(--cor-text-soft);
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 11px;
+    }
+
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #ecfeff;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+
+    .faq-item + .faq-item {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(209, 213, 219, 0.9);
+    }
+
+    .faq-q {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    .faq-a {
+      font-size: 13px;
+      color: var(--cor-text-soft);
+    }
+
+    /* SEÇÃO SERVIÇOS -------------------------------------------------- */
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 6px;
+    }
+
+    .service-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .service-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      margin-bottom: 2px;
+    }
+
+    .service-title {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .service-text {
+      color: var(--cor-text-soft);
+    }
+
+    /* DEPOIMENTOS ----------------------------------------------------- */
+
+    .testimonials {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .testimonial {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 9px 10px;
+      border: 1px solid #e5e7eb;
+      font-size: 12px;
+    }
+
+    .testimonial strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .stars {
+      color: #facc15;
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+
+    /* CONTATO / ENDEREÇO --------------------------------------------- */
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2.2fr) minmax(0, 2.8fr);
+      gap: 18px;
+    }
+
+    .contact-info-row {
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .contact-info-row span {
+      font-weight: 600;
+      color: var(--cor-text);
+    }
+
+    .social-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .social-links a {
+      font-size: 12px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      color: #111827;
+    }
+
+    .social-links a:hover {
+      background: #e5e7eb;
+    }
+
+    .safe-card {
+      background: #ecfdf3;
+      border-radius: 16px;
+      border: 1px solid #bbf7d0;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #166534;
+    }
+
+    .safe-card h3 {
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+
+    /* RODAPÉ ---------------------------------------------------------- */
+
+    footer {
+      margin-top: 18px;
+      background: #020617;
+      color: #9ca3af;
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 14px 16px 18px;
+      font-size: 11px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-inner a {
+      color: #e5e7eb;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+    }
+
+    /* CHAT FLUTUANTE -------------------------------------------------- */
+
+    .chat-bubble-btn {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: 54px;
+      height: 54px;
+      border-radius: 999px;
+      border: none;
+      background: var(--cor-primary);
+      color: #ffffff;
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 50;
+      font-size: 24px;
+    }
+
+    .chat-bubble-btn:hover {
+      background: var(--cor-primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .chat-widget {
+      position: fixed;
+      right: 18px;
+      bottom: 84px;
+      width: 320px;
+      max-width: calc(100% - 32px);
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 22px 60px rgba(15, 23, 42, 0.55);
+      overflow: hidden;
+      display: none;
+      flex-direction: column;
+      z-index: 50;
+    }
+
+    .chat-header {
+      background: var(--cor-primary);
+      color: white;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .chat-header strong {
+      font-size: 13px;
+    }
+
+    .chat-close {
+      border: none;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .chat-body {
+      padding: 10px 12px;
+      height: 260px;
+      overflow-y: auto;
+      background: #f9fafb;
+      font-size: 12px;
+    }
+
+    .chat-message {
+      margin-bottom: 8px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .chat-message.me {
+      justify-content: flex-end;
+    }
+
+    .chat-badge {
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .chat-bubble {
+      padding: 7px 9px;
+      border-radius: 12px;
+      max-width: 80%;
+    }
+
+    .chat-message.me .chat-bubble {
+      background: var(--cor-primary);
+      color: white;
+      border-bottom-right-radius: 3px;
+    }
+
+    .chat-message.bot .chat-bubble {
+      background: white;
+      color: #111827;
+      border: 1px solid #e5e7eb;
+      border-bottom-left-radius: 3px;
+    }
+
+    .chat-footer {
+      border-top: 1px solid #e5e7eb;
+      padding: 8px 8px 9px;
+      display: flex;
+      gap: 6px;
+      background: white;
+    }
+
+    .chat-footer input {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      padding: 6px 9px;
+      font-size: 12px;
+    }
+
+    .chat-footer button {
+      border-radius: 999px;
+      border: none;
+      padding: 6px 11px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--cor-primary);
+      color: white;
+      cursor: pointer;
+    }
+
+    .chat-footer button:hover {
+      background: var(--cor-primary-dark);
+    }
+
+    /* RESPONSIVO ------------------------------------------------------ */
+
+    @media (max-width: 980px) {
+      .hero-inner {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .hero-card {
+        order: -1;
+      }
+      nav {
+        display: none;
+      }
+      .cta-header {
+        display: inline-flex;
+      }
+      .cards-grid,
+      .contact-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .quick-actions {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero-inner {
+        padding-top: 26px;
+      }
+      .hero-title {
+        font-size: 24px;
+      }
+      .hero-ctas {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .services-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .chat-body {
+        height: 220px;
+      }
+    }
+  </style>
 </head>
-
 <body>
+<div class="page-wrapper">
 
-
-  <!-- ======= Top Bar ======= -->
-  <div id="topbar" class="d-flex align-items-center fixed-top">
-    <div class="container d-flex">
-      <div class="contact-info mr-auto">
-       
+  <!-- CABEÇALHO -->
+  <header>
+    <div class="top-bar">
+      <div class="logo-area">
+        
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOcAAABHCAYAAAD86FDOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA4RpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo3YmZkYWYwOS0yYTQxLWViNGItOGViNy1kNzg4OGU1ODU3YTkiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RUNFOURBRjE0MTQ3MTFFN0I3MzNCQjAyNERBMDE4NDUiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RUNFOURBRjA0MTQ3MTFFN0I3MzNCQjAyNERBMDE4NDUiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTcgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6N2E3NzU1ODMtYmFjYS05MDQ2LTk5ZjEtM2U4ZWNiM2I0NzM2IiBzdFJlZjpkb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6NjY4YjdmNWItMmE0ZS0xMWU3LTk5NmYt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" alt="Logo Panpequas da Zefa">
+        
+        <div class="logo-text">
+          <h1>Panpequas da Zefa</h1>
+          <span>restaurante</span>
+        </div>
       </div>
-      <div class="languages">
+      <nav>
         <ul>
-          <li>Pt</li>
-
+          <li><a href="#sobre">Sobre</a></li>
+          <li><a href="#servicos">Serviços</a></li>
+          <li><a href="#depoimentos">Depoimentos</a></li>
+          <li><a href="#contato">Contato</a></li>
         </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- ======= Header ======= -->
-  <header id="header" class="fixed-top">
-    <div class="container d-flex align-items-center">
-
-      <h1 class="logo mr-auto"><a href="index.html"><img src="assets/img/data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOcAAABHCAYAAAD86FDOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA4RpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo3YmZkYWYwOS0yYTQxLWViNGItOGViNy1kNzg4OGU1ODU3YTkiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RUNFOURBRjE0MTQ3MTFFN0I3MzNCQjAyNERBMDE4NDUiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RUNFOURBRjA0MTQ3MTFFN0I3MzNCQjAyNERBMDE4NDUiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTcgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6N2E3NzU1ODMtYmFjYS05MDQ2LTk5ZjEtM2U4ZWNiM2I0NzM2IiBzdFJlZjpkb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6NjY4YjdmNWItMmE0ZS0xMWU3LTk5NmYt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" alt="" class="img-fluid"></a></h1>
-      <!-- Uncomment below if you prefer to use an image logo -->
-      <!-- <a href="index.html" class="logo mr-auto"><img src="assets/img/logo.webp" alt="" class="img-fluid"></a>-->
-
-      <nav class="nav-menu d-none d-lg-block">
-        <ul>
+      </nav>
       
-        
-          <li class="book-a-table text-center"><a href="" target="_blank">Chat on-line</a></li>
-        </ul>
-      </nav><!-- .nav-menu -->
-
     </div>
-  </header><!-- End Header -->
+  </header>
 
-  <!-- ======= Hero Section ======= -->
-  <section id="hero" class="d-flex align-items-center">
-    <div class="container position-relative text-center text-lg-left" data-aos="zoom-in" data-aos-delay="100">
-      <div class="row">
-        <div class="col-lg-8">
-          <h1>Panpequas da Zefa<span> restaurante</span></h1>
-     
-          <div class="btns">
-            <a href="" class="btn-book animated fadeInUp scrollto" target="_blank">Nosso WhastApp</a>
-            <a href="" class="btn-book animated fadeInUp scrollto" target="_blank">Nosso Instagram</a>
-            <a href="" class="btn-book animated fadeInUp scrollto" target="_blank">Nosso Facebook</a>
-            <a href="" class="btn-book animated fadeInUp scrollto" target="_blank">Nosso Tik Tok</a>
-            <a href="" class="btn-book animated fadeInUp scrollto" target="_blank">Nosso Youtube</a>
-
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-left-top">
+          <div class="hero-logo-big">
+            
+              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOcAAABHCAYAAAD86FDOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA4RpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo3YmZkYWYwOS0yYTQxLWViNGItOGViNy1kNzg4OGU1ODU3YTkiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RUNFOURBRjE0MTQ3MTFFN0I3MzNCQjAyNERBMDE4NDUiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RUNFOURBRjA0MTQ3MTFFN0I3MzNCQjAyNERBMDE4NDUiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTcgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6N2E3NzU1ODMtYmFjYS05MDQ2LTk5ZjEtM2U4ZWNiM2I0NzM2IiBzdFJlZjpkb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6NjY4YjdmNWItMmE0ZS0xMWU3LTk5NmYt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" alt="Logo Panpequas da Zefa">
+            
           </div>
-        </div>
-     
-
-      </div>
-    </div>
-  </section><!-- End Hero -->
-
-  <main id="main">
-
-
-
-
-
-
-
-<b>
-
-    <!-- ======= About Section ======= -->
-    <section id="about" class="about">
-      <div class="container" data-aos="fade-up">
-
-        <div class="row">
-          <div class="col-lg-4 order-1 order-lg-2" data-aos="zoom-in" data-aos-delay="100">
-            <div class="about-img">
-              <img src="assets/img/data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOcAAABHCAYAAAD86FDOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA4RpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo3YmZkYWYwOS0yYTQxLWViNGItOGViNy1kNzg4OGU1ODU3YTkiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RUNFOURBRjE0MTQ3MTFFN0I3MzNCQjAyNERBMDE4NDUiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RUNFOURBRjA0MTQ3MTFFN0I3MzNCQjAyNERBMDE4NDUiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTcgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6N2E3NzU1ODMtYmFjYS05MDQ2LTk5ZjEtM2U4ZWNiM2I0NzM2IiBzdFJlZjpkb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6NjY4YjdmNWItMmE0ZS0xMWU3LTk5NmYt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" alt="" >
-
+          <div>
+            <div class="hero-brand-name">Panpequas da Zefa</div>
+            <div class="hero-brand-niche">restaurante</div>
+            <div class="hero-badge" style="margin-top:6px;">
+              <span>Site oficial</span>
+              <strong>Atendimento verificado ✅</strong>
             </div>
           </div>
-          <div class="col-lg-8 pt-4 pt-lg-0 order-2 order-lg-1 content">
-   <h1><span>Panpequas da Zefa</span></h1>
-        
-            <p class="font-italic">
-             panquecas de carne
-            </p>
-        
-   
+        </div>
+
+        <h1 class="hero-title">
+          Seu atendimento profissional <span>começa aqui.</span>
+        </h1>
+
+        <p class="hero-sub">
+          Organizamos o atendimento do seu negócio para que cada pessoa seja recebida com clareza, respeito e atenção aos detalhes.
+        </p>
+
+        <div class="hero-highlights">
+          <span>🎯 Atendimento pensado para a sua realidade</span>
+          <span>📅 Combinação de horários com antecedência</span>
+          <span>🤝 Relacionamento de confiança e transparência</span>
+        </div>
+
+        <div class="hero-ctas">
+          
+          <button class="btn btn-chat-inline" type="button" onclick="toggleChat(true)">
+            🤖 Iniciar atendimento no chat
+          </button>
+          <a class="btn btn-ghost" href="#servicos">
+            👀 Ver o que podemos fazer
+          </a>
+        </div>
+
+        <p class="hero-mini-info">
+          Você escolhe como prefere falar: WhatsApp ou chat aqui mesmo no site.
+        </p>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-card-header">
+          <div>
+            <strong>Resumo do negócio</strong><br/>
+            <span>restaurante</span>
           </div>
+          <div style="font-size:11px;color:#9ca3af;">
+            CNPJ: Informação em atualização
+          </div>
+        </div>
 
+        <div class="hero-kpis">
+          <div class="kpi">
+            <div class="kpi-label">Avaliação</div>
+            <div class="kpi-value">5⭐</div>
+            <div class="kpi-extra">Impressão geral dos clientes</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Atendimento</div>
+            <div class="kpi-value">Top</div>
+            <div class="kpi-extra">Foco em cada pessoa</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Confiabilidade</div>
+            <div class="kpi-value">100%</div>
+            <div class="kpi-extra">Compromisso com o combinado</div>
+          </div>
+        </div>
+
+        <div class="hero-card-footer">
+          <span>📍   -  -  </span>
+          
         </div>
       </div>
-    </section><!-- End About Section -->
+    </div>
+  </section>
 
-
-</b>
-
-
-
-
-
-
-<!-- ======= Por que nos escolher Section ======= -->
-<section id="why-us" class="why-us">
-  <div class="container" data-aos="fade-up">
-
-    <div class="section-title">
-      <h2>Perguntas</h2>
-      <p>Dúvidas Frequentes</p>
+  <!-- AÇÕES RÁPIDAS -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Como podemos te ajudar hoje?</h2>
+        <p class="section-sub">Escolha a opção que faz mais sentido e fale com a gente em poucos cliques.</p>
+      </div>
+      <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
+        💬 Abrir chat agora
+      </button>
     </div>
 
-    <div class="row">
-
-      <div class="col-lg-4">
-        <div class="box" data-aos="zoom-in" data-aos-delay="100">
-          <h4>O que torna a sua empresa diferente das outras?</h4>
-          <p>Nos destacamos pelo atendimento personalizado, compromisso com prazos e a qualidade do nosso serviço. Cada cliente é único, e tratamos cada projeto com total dedicação.</p>
+    <div class="quick-actions">
+      <div class="quick-card">
+        <div class="quick-card-header">
+          <div class="quick-icon">📄</div>
+          <div>Solicitar orçamento</div>
         </div>
+        <p>Explique o que precisa e receba uma proposta organizada, de acordo com a sua necessidade.</p>
+        <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
+          Pedir orçamento no chat
+        </button>
       </div>
 
-      <div class="col-lg-4 mt-4 mt-lg-0">
-        <div class="box" data-aos="zoom-in" data-aos-delay="200">
-          <h4>É seguro contratar os serviços de vocês?</h4>
-          <p>Sim! Temos experiência comprovada, avaliações positivas de clientes e oferecemos contrato com garantia e total transparência em todas as etapas.</p>
+      <div class="quick-card">
+        <div class="quick-card-header">
+          <div class="quick-icon">❓</div>
+          <div>Tirar dúvidas</div>
         </div>
+        <p>Tem perguntas sobre como funciona, valores ou prazos? Nosso atendente virtual responde.</p>
+        <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
+          Enviar dúvida no chat
+        </button>
       </div>
 
-      <div class="col-lg-4 mt-4 mt-lg-0">
-        <div class="box" data-aos="zoom-in" data-aos-delay="300">
-          <h4>Como funciona o processo após o primeiro contato?</h4>
-          <p>Após o primeiro contato, entendemos suas necessidades, enviamos uma proposta personalizada e, se aprovado, iniciamos o serviço com acompanhamento do início ao fim.</p>
+      <div class="quick-card">
+        <div class="quick-card-header">
+          <div class="quick-icon">📆</div>
+          <div>Agendar atendimento</div>
         </div>
+        <p>Combine datas, horários e detalhes para organizar o atendimento da melhor forma.</p>
+        <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
+          Combinar horário pelo chat
+        </button>
       </div>
-
     </div>
-  </div>
-</section><!-- End Por que nos escolher Section -->
+  </section>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- ======= Seção de Depoimentos ======= -->
-<section id="testimonials" class="testimonials section-bg">
-  <div class="container" data-aos="fade-up">
-
-    <div class="section-title">
-      <h2>Depoimentos</h2>
-      <p>O que alguns clientes dizem sobre nós</p>
-    </div>
-
-    <div class="row">
-
-      <div class="col-lg-4">
-        <div class="box" data-aos="zoom-in">
-          <h4>Fernanda M.<br>⭐⭐⭐⭐⭐</h4>
-          <p>Fui muito bem atendida! Serviço de qualidade e entrega dentro do prazo. Super recomendo.</p>
+  <main>
+    <!-- SOBRE / FAQ -->
+    <section id="sobre" class="section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Sobre o Panpequas da Zefa</h2>
+          <p class="section-sub">Conheça um pouco mais sobre a forma como cuidamos de cada atendimento.</p>
         </div>
+        <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
+          👋 Falar com nosso atendente virtual
+        </button>
       </div>
 
-      <div class="col-lg-4">
-        <div class="box" data-aos="zoom-in">
-          <h4>José A.<br>⭐⭐⭐⭐⭐</h4>
-          <p>Profissionalismo e atenção do início ao fim. Estou muito satisfeito com o resultado!</p>
-        </div>
-      </div>
+      <div class="cards-grid">
+        <article class="card">
+          <h3>Quem somos</h3>
+          <p>
+            panquecas de carne
+          </p>
 
-      <div class="col-lg-4">
-        <div class="box" data-aos="zoom-in">
-          <h4>Ana Paula R.<br>⭐⭐⭐⭐⭐</h4>
-          <p>Atendimento excelente, preço justo e trabalho impecável. Voltarei a contratar com certeza!</p>
-        </div>
-      </div>
+          
 
-      <div class="col-lg-4">
-        <div class="box" data-aos="zoom-in">
-          <h4>Marcos C.<br>⭐⭐⭐⭐⭐</h4>
-          <p>Foi tudo perfeito do início ao fim. Atendimento rápido e muito atencioso.</p>
-        </div>
-      </div>
+          <div class="pill-list">
+            <span class="pill">🤝 Atenção a cada pessoa</span>
+            <span class="pill">⏱️ Cuidado com prazos</span>
+            <span class="pill">🔍 Comunicação clara</span>
+          </div>
+        </article>
 
-      <div class="col-lg-4">
-        <div class="box" data-aos="zoom-in">
-          <h4>Luciana S.<br>⭐⭐⭐⭐⭐</h4>
-          <p>Adorei o resultado final! Superou minhas expectativas. Equipe muito bem preparada.</p>
-        </div>
-      </div>
+        <article class="card">
+          <h3>Perguntas frequentes</h3>
 
-      <div class="col-lg-4">
-        <div class="box" data-aos="zoom-in">
-          <h4>Tiago F.<br>⭐⭐⭐⭐⭐</h4>
-          <p>Empresa confiável, entregou exatamente o que prometeu. Recomendo de olhos fechados!</p>
-        </div>
-      </div>
-
-      <div class="col-lg-4">
-        <div class="box" data-aos="zoom-in">
-          <h4>Juliana T.<br>⭐⭐⭐⭐⭐</h4>
-          <p>Atendimento ágil, serviço de qualidade e muita simpatia. Gostei muito da experiência!</p>
-        </div>
-      </div>
-
-      <div class="col-lg-4">
-        <div class="box" data-aos="zoom-in">
-          <h4>André B.<br>⭐⭐⭐⭐⭐</h4>
-          <p>Fiquei muito satisfeito com o serviço! Tudo feito com capricho e dentro do combinado.</p>
-        </div>
-      </div>
-
-      <div class="col-lg-4">
-        <div class="box" data-aos="zoom-in">
-          <h4>Patrícia G.<br>⭐⭐⭐⭐⭐</h4>
-          <p>Ótimo custo-benefício, atendimento de qualidade e entrega no prazo. Nota 10!</p>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
-
-
-
-</b>
-
-
-
-
-
-<br><br>
-<center>
-<h1>Sua Compra é 100% Segura</h1>
-
-<h4>Fique tranquilo, comprar em nosso site é seguro e totalmente confiável</h4>
-
-
-  <!-- ======= Footer ======= -->
-<section id="contato"></section>
-  <footer id="footer">
-    <div class="footer-top">
-      <div class="container">
-        <div class="row">
-
-          <div class="col-lg-4 col-md-6">
-            <div class="footer-info">
-              <h3>Panpequas da Zefa</h3>
-              <p>
-               	
-               
-               
-               
-               	
-               
-
-
-
-                <strong>Fone:</strong> +55 (17) 99706-1273<br>
-    
-              </p>
-             
+          <div class="faq-item">
+            <div class="faq-q">O que torna o atendimento de vocês diferente?</div>
+            <div class="faq-a">
+              Buscamos entender a realidade de cada pessoa e organizar o atendimento de forma simples, objetiva e respeitosa.
             </div>
           </div>
 
-          <div class="col-lg-4 col-md-6 footer-links">
-           <div class="social-links mt-3">
-                <a href="" class="facebook"><i class="bx bxl-facebook"></i></a>
-                <a href="" class="instagram"><i class="bx bxl-instagram"></i></a>
-                <a href="" class="youtube"><i class="bx bxl-youtube"></i></a>
-                <a href="" class="whatsapp"><i class="bx bxl-whatsapp"></i></a>
-              </div>
-
+          <div class="faq-item">
+            <div class="faq-q">É seguro falar sobre meus dados e necessidades?</div>
+            <div class="faq-a">
+              Sim. Tratamos todas as informações com cuidado, sigilo e responsabilidade, seguindo o que foi combinado.
+            </div>
           </div>
 
-         
-
-          <div class="col-lg-4 col-md-6 footer-newsletter">
-            <h4>Dúvidas e Informações</h4>
-            <p>Precisa de mais ajuda? entre com contato comnossa empresa</p>
-
-
-            <form action="" method="post">
-              <a href="" target="_blank">Clique aqui e Fale Conosco</a>
-            </form>
-
-
-
-
+          <div class="faq-item">
+            <div class="faq-q">Como funciona depois do primeiro contato?</div>
+            <div class="faq-a">
+              Conversamos para entender o que você precisa, explicamos as possibilidades e combinamos os próximos passos com clareza.
+            </div>
           </div>
 
+          
+
+          <div style="margin-top:10px;">
+            <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
+              📲 Tirar dúvidas direto no chat
+            </button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- SERVIÇOS -->
+    <section id="servicos" class="section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Etapas do atendimento</h2>
+          <p class="section-sub">De forma simples, é assim que organizamos o caminho com cada cliente.</p>
+        </div>
+        <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
+          ✍️ Ver como isso se aplica ao meu caso
+        </button>
+      </div>
+
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon">🧩</div>
+          <div class="service-title">Atendimento e orientação inicial</div>
+          <div class="service-text">
+            Você explica o que precisa, nós ouvimos com atenção e mostramos as possibilidades para o seu caso.
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">⚙️</div>
+          <div class="service-title">Organização do serviço ou projeto</div>
+          <div class="service-text">
+            Definimos etapas, combinamos prazos e ajustamos os detalhes de acordo com a sua realidade.
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">📊</div>
+          <div class="service-title">Acompanhamento e ajustes</div>
+          <div class="service-text">
+            Mantemos contato, esclarecemos dúvidas e fazemos os ajustes necessários ao longo do caminho.
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">🤝</div>
+          <div class="service-title">Atendimento personalizado</div>
+          <div class="service-text">
+            Cada pessoa é atendida de forma individual, respeitando seu tempo, seus limites e suas prioridades.
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">🛡️</div>
+          <div class="service-title">Segurança e clareza</div>
+          <div class="service-text">
+            Tudo é alinhado por mensagens, documentos ou contratos, evitando mal-entendidos e surpresas.
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">💡</div>
+          <div class="service-title">Soluções sob medida</div>
+          <div class="service-text">
+            Sempre que possível, adaptamos o atendimento à fase do seu negócio, projeto ou necessidade pessoal.
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="container">
-      <div class="copyright">
-        &copy; Copyright <strong><span>MivCast</span></strong>. Todos os Direitos Reservados
+      <div style="margin-top:16px; text-align:center;">
+        <button class="btn btn-chat-inline" type="button" onclick="toggleChat(true)">
+          🤖 Falar com o atendente e entender o melhor caminho
+        </button>
       </div>
-      <div class="credits">
-        <!-- All the links in the footer should remain intact. -->
-        <!-- You can delete the links only if you purchased the pro version. -->
-        <!-- Licensing information: https://bootstrapmade.com/license/ -->
-  
-        Designed by <a href="https://www.instagram.com/mivcast/">Matheus Nascimento</a>
+    </section>
+
+    <!-- DEPOIMENTOS -->
+    <section id="depoimentos" class="section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Depoimentos de clientes</h2>
+          <p class="section-sub">Algumas impressões de quem já passou pelo nosso atendimento.</p>
+        </div>
+        <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
+          💬 Quero ter essa experiência também
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="testimonials">
+          <div class="testimonial">
+            <strong>Fernanda M.</strong>
+            <div class="stars">★★★★★</div>
+            Atendimento excelente, tudo muito bem explicado e dentro do combinado.
+          </div>
+          <div class="testimonial">
+            <strong>José A.</strong>
+            <div class="stars">★★★★★</div>
+            Fui ouvido com atenção, tive minhas dúvidas respondidas e fiquei muito satisfeito.
+          </div>
+          <div class="testimonial">
+            <strong>Patrícia G.</strong>
+            <div class="stars">★★★★★</div>
+            Gostei da clareza, da organização e do cuidado em cada etapa do atendimento.
+          </div>
+          <div class="testimonial">
+            <strong>Tiago F.</strong>
+            <div class="stars">★★★★★</div>
+            Atendimento confiável, direto ao ponto e sempre com respeito. Recomendo.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTATO / LOCALIZAÇÃO -->
+    <section id="contato" class="section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Contato e localização</h2>
+          <p class="section-sub">Fale com a gente e vamos ver, juntos, o que faz mais sentido para você.</p>
+        </div>
+        <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
+          📩 Falar com atendente virtual
+        </button>
+      </div>
+
+      <div class="contact-grid">
+        <div class="card">
+          <div class="contact-info-row">
+            <span>Endereço:</span><br/>
+              –  –  
+          </div>
+          <div class="contact-info-row">
+            <span>CNPJ:</span> Informação em atualização
+          </div>
+
+          
+
+          <div class="contact-info-row">
+            <span>E-mail:</span> Informe seus dados de contato diretamente pelo WhatsApp.
+          </div>
+
+          <div class="social-links">
+            
+            
+            
+            
+            
+          </div>
+        </div>
+
+        <div class="safe-card">
+          <h3>🛡️ Sua contratação é 100% segura</h3>
+          <p>
+            Nosso objetivo é que todo o processo seja claro, respeitoso e alinhado ao que foi combinado com você.
+          </p>
+          <p style="margin-top:6px;">
+            Se preferir, você pode iniciar a conversa agora mesmo pelo chat inteligente aqui da página.
+          </p>
+          <div style="margin-top:10px;">
+            <button class="btn btn-chat-inline btn-sm" type="button" onclick="toggleChat(true)">
+              🧑‍💻 Abrir chat de atendimento
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- RODAPÉ -->
+  <footer>
+    <div class="footer-inner">
+      <div>
+        © Panpequas da Zefa – Todos os direitos reservados.
+      </div>
+      <div>
+        Site gerado automaticamente pelo sistema MivMark • Desenvolvido por
+        <a href="https://mivcast.com.br" target="_blank" rel="noopener">Matheus Nascimento</a>.
       </div>
     </div>
-  </footer><!-- End Footer -->
+  </footer>
 
-   <a href="#" class="back-to-top"><i class="bx bx-up-arrow-alt"></i></a>
+</div> <!-- /page-wrapper -->
 
-  <div id="preloader"></div>
-  <a href="#" class="back-to-top"><i class="bx bx-up-arrow-alt"></i></a>
+<!-- CHAT FLUTUANTE -->
+<button class="chat-bubble-btn" id="chatToggleBtn" aria-label="Abrir chat">
+  <!-- Trocar aqui o ícone do botão se quiser:
+       💬, 🗨️, 🤖, 📲, 📩, ☎️, 👩‍💻, 👨‍💻 -->
+  🤖
+</button>
 
-  <!-- Vendor JS Files -->
-  <script src="assets/vendor/jquery/jquery.min.js"></script>
-  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/vendor/jquery.easing/jquery.easing.min.js"></script>
-  <script src="assets/vendor/php-email-form/validate.js"></script>
-  <script src="assets/vendor/owl.carousel/owl.carousel.min.js"></script>
-  <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
-  <script src="assets/vendor/venobox/venobox.min.js"></script>
-  <script src="assets/vendor/aos/aos.js"></script>
-
-  <!-- Template Main JS File -->
-  <script src="assets/js/main.js"></script>
-
-
-
-<!-- 🔵 Chat do Atendente Virtual Público -->
-<div id="chat-container" style="position:fixed;bottom:20px;right:20px;width:350px;height:500px;max-width:95vw;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.2);z-index:9999;background:#fff;display:none;flex-direction:column;">
-    <div style="background:#007bff;color:#fff;padding:10px;border-top-left-radius:10px;border-top-right-radius:10px;cursor:pointer;" onclick="toggleChat()">🤖 Atendente Virtual</div>
-    <iframe id="chat-frame" src="https://app.mivcast.com.br/chat_publico?empresa=Panpequas da Zefa" style="border:none;width:100%;flex:1;"></iframe>
-
+<div class="chat-widget" id="chatWidget">
+  <div class="chat-header">
+    <div>
+      <strong>Atendente Virtual</strong><br/>
+      <span>Panpequas da Zefa — atendimento inteligente</span>
+    </div>
+    <button class="chat-close" id="chatCloseBtn">&times;</button>
+  </div>
+  <div class="chat-body" id="chatBody">
+    <div class="chat-message bot">
+      <div class="chat-bubble">
+        <div class="chat-badge">Atendente:</div>
+        <div>Olá! Sou o atendente virtual da Panpequas da Zefa. Como posso te ajudar hoje?</div>
+      </div>
+    </div>
+  </div>
+  <div class="chat-footer">
+    <input id="chatInput" type="text" placeholder="Digite sua pergunta..." />
+    <button id="chatSendBtn">Enviar</button>
+  </div>
 </div>
 
-<!-- Botão flutuante para celular -->
-<button id="chat-toggle-btn" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;background:#007bff;color:#fff;border:none;border-radius:50%;width:60px;height:60px;box-shadow:0 0 10px rgba(0,0,0,0.3);font-size:24px;z-index:9998;display:flex;align-items:center;justify-content:center;">💬</button>
-
 <script>
-function toggleChat() {
-    const chat = document.getElementById("chat-container");
-    chat.style.display = chat.style.display === "none" ? "flex" : "none";
-}
+  const empresaNome = "Panpequas da Zefa";
 
-function adaptarChatMobile() {
-    if (window.innerWidth <= 768) {
-        document.getElementById("chat-container").style.width = "90vw";
-        document.getElementById("chat-container").style.height = "80vh";
-        document.getElementById("chat-container").style.bottom = "80px";
+  const chatWidget = document.getElementById("chatWidget");
+  const chatToggleBtn = document.getElementById("chatToggleBtn");
+  const chatCloseBtn = document.getElementById("chatCloseBtn");
+  const chatBody = document.getElementById("chatBody");
+  const chatInput = document.getElementById("chatInput");
+  const chatSendBtn = document.getElementById("chatSendBtn");
+
+  function toggleChat(open) {
+    const shouldOpen = open !== undefined ? open : chatWidget.style.display !== "flex";
+    chatWidget.style.display = shouldOpen ? "flex" : "none";
+    if (shouldOpen) {
+      chatInput.focus();
     }
-}
+  }
 
-window.addEventListener("load", () => {
-    document.getElementById("chat-toggle-btn").style.display = "flex";
-    adaptarChatMobile();
-});
+  chatToggleBtn.addEventListener("click", () => toggleChat());
+  chatCloseBtn.addEventListener("click", () => toggleChat(false));
+
+  function addMessage(texto, remetente) {
+    const msgEl = document.createElement("div");
+    msgEl.classList.add("chat-message", remetente === "Você" ? "me" : "bot");
+
+    const bubble = document.createElement("div");
+    bubble.classList.add("chat-bubble");
+
+    const badge = document.createElement("div");
+    badge.classList.add("chat-badge");
+    badge.textContent = remetente + ":";
+
+    const content = document.createElement("div");
+    content.textContent = texto;
+
+    bubble.appendChild(badge);
+    bubble.appendChild(content);
+    msgEl.appendChild(bubble);
+    chatBody.appendChild(msgEl);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  async function enviarPergunta() {
+    const pergunta = chatInput.value.trim();
+    if (!pergunta) return;
+
+    addMessage(pergunta, "Você");
+    chatInput.value = "";
+    chatInput.focus();
+
+    try {
+      const url = `/chat_publico/perguntar?pergunta=${encodeURIComponent(pergunta)}&empresa=${encodeURIComponent(empresaNome)}`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+      const resposta = data.resposta || "Não consegui responder agora. Tente novamente em instantes.";
+      addMessage(resposta, "Atendente");
+    } catch (e) {
+      console.error(e);
+      addMessage("Desculpe, ocorreu um erro ao responder. Tente novamente mais tarde.", "Atendente");
+    }
+  }
+
+  chatSendBtn.addEventListener("click", enviarPergunta);
+  chatInput.addEventListener("keydown", function (ev) {
+    if (ev.key === "Enter") {
+      enviarPergunta();
+    }
+  });
 </script>
-
 </body>
-
 </html>

@@ -1,11 +1,9 @@
 # backend/api/chat_publico.py
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import HTMLResponse
 from backend.database import SessionLocal
 from backend.models import Empresa
 from pydantic import BaseModel
 from openai import OpenAI
-from pathlib import Path
 import os
 
 router = APIRouter()
@@ -125,34 +123,3 @@ def perguntar(pergunta: str = Query(...), empresa: str = Query(...)):
         )
     finally:
         db.close()
-
-
-# 🔹 NOVA ROTA: página pública só com o chat MARK IA em tela cheia
-@router.get("/mark/chat/{empresa_id}", response_class=HTMLResponse)
-async def chat_publico_empresa(empresa_id: int):
-    """
-    Retorna o HTML do chat MARK IA em tela cheia.
-    Este link pode ser usado em:
-    - Linktree
-    - Botão do Instagram
-    - Sites externos
-    - Atendimentos independentes
-
-    O empresa_id será injetado no mark_chat.html como {{USUARIO_ID}},
-    para o backend saber qual empresa está sendo atendida.
-    """
-    # Caminho base do projeto: pasta raiz "mivmark"
-    base_dir = Path(__file__).resolve().parents[2]
-    caminho_html = base_dir / "frontend" / "mark_chat.html"
-
-    if not caminho_html.exists():
-        return HTMLResponse(
-            "<h1>Erro: Arquivo mark_chat.html não encontrado.</h1>",
-            status_code=500,
-        )
-
-    # Lê o HTML e coloca o ID da empresa no placeholder
-    conteudo = caminho_html.read_text(encoding="utf-8")
-    conteudo = conteudo.replace("{{USUARIO_ID}}", str(empresa_id))
-
-    return HTMLResponse(content=conteudo, status_code=200)
