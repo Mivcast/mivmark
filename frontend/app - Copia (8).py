@@ -987,17 +987,15 @@ def tela_empresa():
     </div>
     """, unsafe_allow_html=True)
 
-    # -------- Carregar dados da API --------
     dados = {}
     try:
         r = httpx.get(f"{API_URL}/empresa", headers=get_headers())
         if r.status_code == 200:
             dados = r.json()
-    except Exception:
+    except:
         st.warning("Erro ao buscar dados da empresa.")
 
-    # 🔹 Nome da empresa (variável exclusiva)
-    nome_empresa = st.text_input("Nome da Empresa", value=dados.get("nome_empresa", ""))
+    nome = st.text_input("Nome da Empresa", value=dados.get("nome_empresa", ""))
     descricao_empresa = st.text_area("Descrição", value=dados.get("descricao", ""))
     nicho = st.text_input("Nicho", value=dados.get("nicho", ""))
 
@@ -1031,18 +1029,18 @@ def tela_empresa():
         st.session_state.funcionario_em_edicao = None
 
     for i, f in enumerate(st.session_state.lista_funcionarios):
-        titulo = f"👤 {f.get('nome', '')} - {f.get('funcao', '')}" if f.get("nome") else f"👤 Funcionário {i+1}"
+        titulo = f"👤 {f['nome']} - {f['funcao']}" if f['nome'] else f"👤 Funcionário {i+1}"
         with st.expander(titulo, expanded=st.session_state.funcionario_em_edicao == i):
-            func_nome = st.text_input("Nome", value=f.get("nome", ""), key=f"func_nome_{i}")
+            nome = st.text_input("Nome", value=f["nome"], key=f"func_nome_{i}")
             nasc = st.text_input("Data de Nascimento", value=f.get("data_nascimento", ""), key=f"func_nasc_{i}")
-            funcao = st.text_input("Função", value=f.get("funcao", ""), key=f"func_funcao_{i}")
+            funcao = st.text_input("Função", value=f["funcao"], key=f"func_funcao_{i}")
             tel = st.text_input("Telefone", value=f.get("telefone", ""), key=f"func_tel_{i}")
             obs = st.text_area("Observação", value=f.get("observacao", ""), key=f"func_obs_{i}")
             colsalva, colexc = st.columns(2)
             with colsalva:
                 if st.button("💾 Salvar", key=f"salvar_func_{i}"):
                     f.update({
-                        "nome": func_nome,
+                        "nome": nome,
                         "data_nascimento": nasc,
                         "funcao": funcao,
                         "telefone": tel,
@@ -1075,11 +1073,10 @@ def tela_empresa():
         st.session_state.produto_em_edicao = None
 
     for i, p in enumerate(st.session_state.lista_produtos):
-        titulo = f"📦 {p.get('nome', '')}" if p.get("nome") else f"📦 Produto {i+1}"
+        titulo = f"📦 {p['nome']}" if p['nome'] else f"📦 Produto {i+1}"
         with st.expander(titulo, expanded=st.session_state.produto_em_edicao == i):
-            prod_nome = st.text_input("Nome do Produto", value=p.get("nome", ""), key=f"prod_nome_{i}")
-            preco_val = p.get("preco", 0.0) or 0.0
-            preco = st.number_input("Preço", value=float(preco_val), key=f"prod_preco_{i}", min_value=0.0)
+            nome = st.text_input("Nome do Produto", value=p["nome"], key=f"prod_nome_{i}")
+            preco = st.number_input("Preço", value=p["preco"], key=f"prod_preco_{i}", min_value=0.0)
             descricao = st.text_area("Descrição", value=p.get("descricao", ""), key=f"prod_desc_{i}")
             imagem = st.text_input("Imagem (URL ou base64)", value=p.get("imagem", ""), key=f"prod_img_url_{i}")
             upload = st.file_uploader("Ou envie a imagem do produto", type=["png", "jpg", "jpeg"], key=f"prod_upload_{i}")
@@ -1092,7 +1089,7 @@ def tela_empresa():
             with colsalva:
                 if st.button("💾 Salvar", key=f"salvar_prod_{i}"):
                     p.update({
-                        "nome": prod_nome,
+                        "nome": nome,
                         "preco": preco,
                         "descricao": descricao,
                         "imagem": imagem
@@ -1126,10 +1123,9 @@ def tela_empresa():
 
     adicionais = st.text_area("Informações Adicionais", value=dados.get("informacoes_adicionais", ""))
 
-    # 🔘 Salvar Empresa
     if st.button("Salvar Empresa"):
         payload = {
-            "nome_empresa": nome_empresa,  # <- AGORA CERTO
+            "nome_empresa": nome,
             "descricao": descricao_empresa,
             "nicho": nicho,
             "logo_url": logo_url,
@@ -1151,12 +1147,8 @@ def tela_empresa():
             "informacoes_adicionais": adicionais
         }
 
-        # 🔎 DEBUG (pode remover depois)
-        # st.write("DEBUG payload_enviado:", payload)
-
         try:
             r = httpx.post(f"{API_URL}/empresa", json=payload, headers=get_headers())
-            # st.write("DEBUG status_code:", r.status_code, "body:", r.text)
             if r.status_code == 200:
                 st.success("✅ Empresa salva com sucesso!")
             else:
@@ -1164,7 +1156,6 @@ def tela_empresa():
                 st.error(r.text)
         except Exception as e:
             st.error(f"Erro inesperado: {e}")
-
 
 
 
