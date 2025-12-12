@@ -179,26 +179,67 @@ def tela_site_cliente():
     # 1) SITE GERADO COM CHAT EMBUTIDO
     # --------------------------------------------------------------------
     st.markdown("### 1️⃣ Site com chat integrado")
+
     st.markdown(
-        f"O seu site com chat integrado ficará disponível neste link (exemplo real ou modelo):\n\n"
-        f"`{url_site}`\n\n"
-        "Use esse link em:\n"
-        "- Bio do Instagram\n"
-        "- Botão do WhatsApp Business\n"
-        "- Google Meu Negócio\n"
-        "- QR Code impresso\n"
-        "- Cartões e flyers\n"
+        "O seu site com chat integrado ficará disponível neste link:"
     )
+
+    # Link clicável
+    st.markdown(f"🔗 **[Abrir site com chat]( {url_site} )**")
+
+    # Botão nativo para abrir em nova aba
+    st.link_button(
+        "🌐 Abrir site em nova aba",
+        url_site,
+        use_container_width=True
+    )
+
+    # Campo copiável (com botão de copiar automático)
+    st.markdown("📋 Copiar link:")
+    st.code(url_site, language="text")
+
+    st.markdown(
+    """
+    Use esse link em:
+    - Bio do Instagram  
+    - Botão do WhatsApp Business  
+    - Google Meu Negócio  
+    - QR Code impresso  
+    - Cartões e flyers  
+    """
+    )
+
+
 
     # --------------------------------------------------------------------
     # 2) LINK DIRETO SÓ COM O CHAT
     # --------------------------------------------------------------------
     st.markdown("### 2️⃣ Link direto somente com o Chat (tela cheia)")
+
     st.markdown(
-        f"Este link abre **apenas o chat**, sem o site ao redor:\n\n"
-        f"`{url_chat_publico}`\n"
+        "Este link abre **apenas o chat**, sem o site ao redor:"
     )
-    st.info("Perfeito para Linktree, botão do Instagram, WhatsApp e atendimento rápido.")
+
+    # Link clicável
+    st.markdown(f"💬 **[Abrir chat direto]( {url_chat_publico} )**")
+
+    # Botão para abrir em nova aba
+    st.link_button(
+        "💬 Abrir chat em tela cheia",
+        url_chat_publico,
+        use_container_width=True
+    )
+
+    # Campo copiável
+    st.markdown("📋 Copiar link do chat:")
+    st.code(url_chat_publico, language="text")
+
+    st.info(
+        "Perfeito para Linktree, botão do Instagram, WhatsApp e atendimento rápido."
+    )
+
+
+
 
     # --------------------------------------------------------------------
     # 3) WIDGET FLUTUANTE PARA QUALQUER SITE
