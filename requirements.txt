@@ -60,7 +60,7 @@ pillow==10.4.0
 plotly==6.2.0
 propcache==0.3.1
 proto-plus==1.26.1
-protobuf==6.30.2
+protobuf==5.29.3
 psycopg2-binary==2.9.10
 pyarrow==20.0.0
 pyasn1==0.6.1
