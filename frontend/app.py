@@ -31,7 +31,14 @@ from admin.planos import aba_gerenciar_planos
 
 
 
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
+API_URL = os.getenv("API_URL", "").strip().rstrip("/")
+
+# opcional: modo dev local
+if not API_URL:
+    API_URL = "http://127.0.0.1:8000"  # só funciona no seu PC
+
+# (recomendado) mostrar no admin para depuração rápida
+# st.caption(f"API_URL: {API_URL}")
 
 
 def usuario_tem_acesso(modulo: str) -> bool:
