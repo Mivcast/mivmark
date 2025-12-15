@@ -4,7 +4,7 @@ import streamlit as st
 
 def aba_gerenciar_planos():
     st.subheader("🧩 Gerenciar Planos do Sistema")
-    API_URL = "http://127.0.0.1:8000"
+    API_URL = os.getenv("API_URL", "http://127.0.0.1:8000").strip().rstrip("/")
 
     try:
         resposta = httpx.get(f"{API_URL}/planos/")
