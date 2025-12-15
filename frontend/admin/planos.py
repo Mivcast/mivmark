@@ -3,13 +3,11 @@ import os
 import httpx
 import streamlit as st
 
-API_URL = os.getenv("API_URL")
+API_URL = os.getenv("API_URL", "").strip().rstrip("/")
 
+# ✅ Local: se não existir env var, usa localhost
 if not API_URL:
-    st.error("❌ API_URL não configurada no ambiente.")
-    st.stop()
-
-API_URL = API_URL.strip().rstrip("/")
+    API_URL = "http://127.0.0.1:8000"
 
 
 

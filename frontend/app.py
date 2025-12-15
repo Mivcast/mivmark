@@ -31,13 +31,11 @@ from admin.planos import aba_gerenciar_planos
 
 
 
-API_URL = os.getenv("API_URL")
+API_URL = os.getenv("API_URL", "").strip().rstrip("/")
 
 if not API_URL:
-    st.error("❌ API_URL não configurada. Configure no Render.")
-    st.stop()
+    API_URL = "http://127.0.0.1:8000"
 
-API_URL = API_URL.strip().rstrip("/")
 
 
 def usuario_tem_acesso(modulo: str) -> bool:
@@ -2095,7 +2093,20 @@ def tela_planos():
 
 
 def painel_admin():
+    import streamlit as st
+    import httpx
+
     st.title("⚙️ Painel Administrativo")
+
+    # ✅ Senha Admin global (vale para todas as abas)
+    st.session_state.setdefault("admin_pwd", "")
+    st.session_state["admin_pwd"] = st.text_input(
+        "🔐 Senha Admin (ações administrativas)",
+        type="password",
+        value=st.session_state["admin_pwd"],
+        help="Essa senha é usada para Tokens e Usuários no painel admin."
+    )
+
     abas = st.tabs(["🎓 Cursos", "🎟 Tokens", "👥 Usuários", "📱 Aplicativos", "🧩 Planos"])
 
     # -------- CURSOS --------
@@ -2105,73 +2116,107 @@ def painel_admin():
     # -------- TOKENS --------
     with abas[1]:
         st.subheader("Gerar Token de Ativação")
-        senha_admin = st.text_input("Senha Admin", type="password", key="senha_token")
+
+        senha_admin = st.session_state.get("admin_pwd", "").strip()
 
         if st.button("Gerar Token"):
-            try:
-                response = httpx.post(f"{API_URL}/admin/gerar_token", params={"senha_admin": senha_admin})
-                if response.status_code == 200:
-                    token = response.json()["token_ativacao"]
-                    st.success(f"✅ Token gerado: `{token}`")
-                else:
-                    st.error(response.json().get("detail", "Erro ao gerar token"))
-            except Exception as e:
-                st.error(f"Erro: {e}")
+            if not senha_admin:
+                st.warning("Informe a Senha Admin acima para gerar token.")
+            else:
+                try:
+                    response = httpx.post(
+                        f"{API_URL}/admin/gerar_token",
+                        params={"senha_admin": senha_admin},
+                        timeout=20
+                    )
+                    if response.status_code == 200:
+                        token = response.json().get("token_ativacao")
+                        st.success(f"✅ Token gerado: `{token}`")
+                    elif response.status_code == 401:
+                        st.error("Senha admin incorreta.")
+                    else:
+                        st.error(f"Erro ao gerar token ({response.status_code}): {response.text}")
+                except Exception as e:
+                    st.error(f"Erro: {e}")
 
         st.divider()
         st.subheader("🔎 Tokens Gerados")
+
         if st.button("🔄 Atualizar lista de tokens"):
-            try:
-                response = httpx.get(f"{API_URL}/admin/listar_tokens", params={"senha_admin": senha_admin})
-                if response.status_code == 200:
-                    tokens = response.json()
-                    if tokens:
-                        for t in tokens:
-                            status = "🟢 Ativo" if t["ativo"] else "❌ Usado"
-                            data = t["data_criacao"] or "N/A"
-                            st.markdown(f"`{t['token']}` • {status} • Criado em {data}")
+            if not senha_admin:
+                st.warning("Informe a Senha Admin acima para listar tokens.")
+            else:
+                try:
+                    response = httpx.get(
+                        f"{API_URL}/admin/listar_tokens",
+                        params={"senha_admin": senha_admin},
+                        timeout=20
+                    )
+                    if response.status_code == 200:
+                        tokens = response.json()
+                        if tokens:
+                            for t in tokens:
+                                status = "🟢 Ativo" if t.get("ativo") else "❌ Usado"
+                                data = t.get("data_criacao") or "N/A"
+                                st.markdown(f"`{t.get('token')}` • {status} • Criado em {data}")
+                        else:
+                            st.info("Nenhum token encontrado.")
+                    elif response.status_code == 401:
+                        st.error("Senha admin incorreta.")
                     else:
-                        st.info("Nenhum token encontrado.")
-                else:
-                    st.error("Erro ao buscar tokens.")
-            except Exception as e:
-                st.error(f"Erro: {e}")
+                        st.error(f"Erro ao buscar tokens ({response.status_code}): {response.text}")
+                except Exception as e:
+                    st.error(f"Erro: {e}")
 
     # -------- USUÁRIOS --------
     with abas[2]:
         st.subheader("👥 Usuários Cadastrados")
+
+        senha_admin = st.session_state.get("admin_pwd", "").strip()
+
         if st.button("🔄 Ver usuários cadastrados"):
-            try:
-                response = httpx.get(
-                    f"{API_URL}/admin/usuarios",
-                    params={"senha_admin": st.session_state.get("senha_token", "")}
-                )
-                if response.status_code == 200:
-                    usuarios = response.json()
-                    if usuarios:
-                        for u in usuarios:
-                            nome = u["nome"]
-                            email = u["email"]
-                            plano = u.get("plano_atual", "nenhum")
-                            tipo = u.get("tipo_usuario", "cliente")
-                            data = u.get("data_criacao", "N/A")
-                            st.markdown(
-                                f"📛 **{nome}**  \n📧 `{email}`  \n📦 Plano: `{plano}` • Tipo: `{tipo}` • Criado em: {data}"
-                            )
-                            st.markdown("---")
+            if not senha_admin:
+                st.warning("Informe a Senha Admin acima para carregar usuários.")
+            else:
+                try:
+                    response = httpx.get(
+                        f"{API_URL}/admin/usuarios",
+                        params={"senha_admin": senha_admin},
+                        timeout=20
+                    )
+
+                    if response.status_code == 200:
+                        usuarios = response.json()
+                        if usuarios:
+                            for u in usuarios:
+                                nome = u.get("nome", "N/A")
+                                email = u.get("email", "N/A")
+                                plano = u.get("plano_atual", "nenhum")
+                                tipo = u.get("tipo_usuario", "cliente")
+                                data = u.get("data_criacao", "N/A")
+
+                                st.markdown(
+                                    f"📛 **{nome}**  \n"
+                                    f"📧 `{email}`  \n"
+                                    f"📦 Plano: `{plano}` • Tipo: `{tipo}` • Criado em: {data}"
+                                )
+                                st.markdown("---")
+                        else:
+                            st.info("Nenhum usuário encontrado.")
+                    elif response.status_code == 401:
+                        st.error("Senha admin incorreta ou não informada.")
                     else:
-                        st.info("Nenhum usuário encontrado.")
-                else:
-                    st.error("Erro ao buscar usuários.")
-            except Exception as e:
-                st.error(f"Erro: {e}")
+                        st.error(f"Erro ao buscar usuários ({response.status_code}): {response.text}")
+
+                except Exception as e:
+                    st.error(f"Erro: {e}")
 
     # -------- APLICATIVOS --------
     with abas[3]:
         st.subheader("📱 Gerenciar Aplicativos")
         listar_aplicativos_admin()
 
-
+    # -------- PLANOS --------
     with abas[4]:
         aba_gerenciar_planos()
 
