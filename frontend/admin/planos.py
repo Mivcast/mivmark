@@ -1,10 +1,22 @@
 # Adicione esta aba no seu painel_admin()
+import os
 import httpx
 import streamlit as st
 
+API_URL = os.getenv("API_URL")
+
+if not API_URL:
+    st.error("❌ API_URL não configurada no ambiente.")
+    st.stop()
+
+API_URL = API_URL.strip().rstrip("/")
+
+
+
+
 def aba_gerenciar_planos():
     st.subheader("🧩 Gerenciar Planos do Sistema")
-    API_URL = os.getenv("API_URL", "http://127.0.0.1:8000").strip().rstrip("/")
+
 
     try:
         resposta = httpx.get(f"{API_URL}/planos/")

@@ -1,8 +1,15 @@
+import os
 import streamlit as st
 import httpx
 from datetime import datetime
 
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000").strip().rstrip("/")
+API_URL = os.getenv("API_URL")
+
+if not API_URL:
+    st.error("❌ API_URL não configurada no ambiente.")
+    st.stop()
+
+API_URL = API_URL.strip().rstrip("/")
 
 def painel_admin_aplicativos():
     st.subheader("🛠️ Painel de Aplicativos")
