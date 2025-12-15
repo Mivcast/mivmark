@@ -6,6 +6,8 @@ from .demo import CadastroDemo
 from .historico_mark import HistoricoMark
 from .marketing import CardMarketing
 from datetime import datetime
+from .ideias_mensais import IdeiasMensais
+from .consultor_mensal import ConsultorMensal
 
 class Diagnostico(Base):
     __tablename__ = "diagnosticos"

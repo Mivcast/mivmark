@@ -10,6 +10,7 @@ SITES_BASE_URL = os.getenv("SITES_BASE_URL", f"{API_URL}/sites")
 
 
 def tela_site_cliente():
+    st.title("🌐 Página e Chat do Cliente")
 
     # 🧠 Tenta usar o último arquivo gerado para montar o link de exemplo
     arquivo_exemplo = st.session_state.get("ultimo_site_arquivo")
@@ -18,6 +19,7 @@ def tela_site_cliente():
     else:
         link_exemplo = f"{SITES_BASE_URL}/NOME_DA_SUA_EMPRESA.html"
 
+    # Dados do usuário logado (para identificar o "dono" do site/chat)
     usuario = st.session_state.get("dados_usuario", {}) or {}
     usuario_id = usuario.get("id")
 
@@ -25,37 +27,39 @@ def tela_site_cliente():
         st.warning("Não foi possível identificar o usuário logado. Faça login novamente.")
         return
 
-    # 🔹 Texto de introdução (agora usando o link_exemplo real)
+    # 🔹 Texto de introdução (usando o link_exemplo apenas como referência visual)
     st.markdown(
         f"""
-    # 🌐 Página e Chat do Cliente
+    
+    ## Parabéns! Você Ganhou um Site com Chat Inteligente 🎉 
 
-    Parabéns! 🎉  
-    O seu **site exclusivo** foi criado com base nos dados cadastrados na aba **Empresa**.
+    ### 🌐 Site + Chat Inteligente Integrado
+ 
+    🚀 Você acaba de ganhar um **Site exclusivo** que será criado com base nos dados cadastrados na aba **Empresa**.
 
-    Assim que você gerar o site, ele ficará disponível em um link como:
+    No final desta página terá o botão para **Gerar o Site** 👇🏼
+    
+    🎯 Você poderá usar o site para divulgar seu negócio onde quiser:
+    ▪️ Bio do Instagram  
+    ▪️ WhatsApp Business  
+    ▪️ Google Meu Negócio  
+    ▪️ QR Code  
+    ▪️ Cartões digitais, etc.
 
-    👉 **{link_exemplo}**
-
-    Você poderá **copiar esse link** e usar em:
-    - Bio do Instagram  
-    - WhatsApp Business  
-    - Google Meu Negócio  
-    - QR Code  
-    - Cartões digitais  
-    - Onde você quiser divulgar seu negócio!
+    Exemplo de link do seu site (quando estiver publicado):  
+    `{link_exemplo}`
 
     ---
 
     ### 🤖 Chat Inteligente Integrado
 
-    Seu site também vem com um **Atendente Virtual Inteligente**, totalmente integrado ao seu negócio.  
-    Ele recebe automaticamente as informações da sua empresa e responde seus clientes com:
-    - Explicações sobre seus serviços  
-    - Horários  
-    - Endereço  
-    - Informações adicionais que você cadastrar aqui  
-    - Mensagens personalizadas
+    🚀 Seu site vem com um **Atendente Virtual Inteligente**, totalmente integrado ao seu negócio.  
+    🎯 Ele recebe automaticamente as informações da sua empresa e responde seus clientes com:
+    ▪️ Explicações sobre seus serviços  
+    ▪️ Horários  
+    ▪️ Endereço  
+    ▪️ Informações adicionais que você cadastrar aqui  
+    ▪️ Mensagens personalizadas
 
     Isso transforma seu site em um **atendimento 24h**, profissional e moderno!
 
@@ -128,6 +132,7 @@ def tela_site_cliente():
         # 🧠 Guarda na sessão o último arquivo gerado
         if arquivo:
             st.session_state["ultimo_site_arquivo"] = arquivo
+            link_exemplo = f"{SITES_BASE_URL}/{arquivo}"
 
         st.success("Site gerado com sucesso! ✅")
 
@@ -140,7 +145,6 @@ def tela_site_cliente():
             link_front = f"{SITES_BASE_URL}/{arquivo}"
             st.markdown(f"🔗 **Seu site está no ar:** [{link_front}]({link_front})")
 
-
         else:
             st.warning(
                 "O site foi gerado, mas não foi possível montar a URL pública. "
@@ -151,3 +155,165 @@ def tela_site_cliente():
             "Dica: você pode copiar esse link e usar nas redes sociais, WhatsApp, "
             "Google Meu Negócio, etc."
         )
+
+    # ---------------------------------------------
+    # 🔹 Outras formas de usar o chat inteligente
+    # ---------------------------------------------
+    st.markdown("---")
+    st.subheader("💬 Formas de usar o seu Chat Inteligente MARK")
+
+    # ID que será usado pelo chat público
+    # Aqui usamos o próprio ID do usuário logado como identificador
+    chat_id = usuario_id
+
+    # URL base do backend configurada no sistema
+    API_BASE = os.getenv("API_URL", "https://mivmark-backend.onrender.com").rstrip("/")
+
+    # URL do site gerado (se já tivemos um arquivo gerado; caso contrário, usamos o link_exemplo)
+    url_site = link_exemplo
+
+    # URL do chat público em tela cheia
+    url_chat_publico = f"{API_BASE}/mark/chat/{chat_id}"
+
+    # --------------------------------------------------------------------
+    # 1) SITE GERADO COM CHAT EMBUTIDO
+    # --------------------------------------------------------------------
+    st.markdown("### 1️⃣ Site com chat integrado")
+
+    st.markdown(
+        "O seu site com chat integrado ficará disponível neste link:"
+    )
+
+    # Link clicável
+    st.markdown(f"🔗 **[Abrir site com chat]( {url_site} )**")
+
+    # Botão nativo para abrir em nova aba
+    st.link_button(
+        "🌐 Abrir site em nova aba",
+        url_site,
+        use_container_width=True
+    )
+
+    # Campo copiável (com botão de copiar automático)
+    st.markdown("📋 Copiar link:")
+    st.code(url_site, language="text")
+
+    st.markdown(
+    """
+    Use esse link em:
+    - Bio do Instagram  
+    - Botão do WhatsApp Business  
+    - Google Meu Negócio  
+    - QR Code impresso  
+    - Cartões e flyers  
+    """
+    )
+
+
+
+    # --------------------------------------------------------------------
+    # 2) LINK DIRETO SÓ COM O CHAT
+    # --------------------------------------------------------------------
+    st.markdown("### 2️⃣ Link direto somente com o Chat (tela cheia)")
+
+    st.markdown(
+        "Este link abre **apenas o chat**, sem o site ao redor:"
+    )
+
+    # Link clicável
+    st.markdown(f"💬 **[Abrir chat direto]( {url_chat_publico} )**")
+
+    # Botão para abrir em nova aba
+    st.link_button(
+        "💬 Abrir chat em tela cheia",
+        url_chat_publico,
+        use_container_width=True
+    )
+
+    # Campo copiável
+    st.markdown("📋 Copiar link do chat:")
+    st.code(url_chat_publico, language="text")
+
+    st.info(
+        "Perfeito para Linktree, botão do Instagram, WhatsApp e atendimento rápido."
+    )
+
+
+
+
+    # --------------------------------------------------------------------
+    # 3) WIDGET FLUTUANTE PARA QUALQUER SITE
+    # --------------------------------------------------------------------
+    st.markdown("### 3️⃣ Botão flutuante de chat para colocar no seu site atual")
+    st.markdown(
+        "Copie o código abaixo e cole antes de `</body>` em qualquer site "
+        "(WordPress, Wix, Loja Virtual, HTML etc.):"
+    )
+
+    codigo_widget = f"""
+<!-- MARK – Botão Flutuante de Chat -->
+<script>
+  (function() {{
+    var chatUrl = "{url_chat_publico}";
+
+    var btn = document.createElement("div");
+    btn.id = "mivmark-chat-button";
+    btn.innerHTML = "💬 Fale conosco";
+    btn.style.position = "fixed";
+    btn.style.bottom = "20px";
+    btn.style.right = "20px";
+    btn.style.zIndex = "99999";
+    btn.style.background = "#2563eb";
+    btn.style.color = "#ffffff";
+    btn.style.borderRadius = "999px";
+    btn.style.padding = "10px 16px";
+    btn.style.cursor = "pointer";
+    btn.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    btn.style.fontSize = "14px";
+    btn.style.boxShadow = "0 10px 25px rgba(15, 23, 42, 0.35)";
+    document.body.appendChild(btn);
+
+    var overlay = document.createElement("div");
+    overlay.id = "mivmark-chat-overlay";
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.background = "rgba(15, 23, 42, 0.65)";
+    overlay.style.display = "none";
+    overlay.style.zIndex = "99998";
+
+    var iframe = document.createElement("iframe");
+    iframe.src = chatUrl;
+    iframe.style.position = "absolute";
+    iframe.style.bottom = "0";
+    iframe.style.right = "0";
+    iframe.style.width = "100%";
+    iframe.style.maxWidth = "420px";
+    iframe.style.height = "80%";
+    iframe.style.border = "none";
+    iframe.style.borderRadius = "16px 16px 0 0";
+    iframe.style.boxShadow = "0 14px 40px rgba(15, 23, 42, 0.45)";
+    iframe.style.background = "#ffffff";
+
+    overlay.appendChild(iframe);
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener("click", function(e) {{
+      if (e.target === overlay) {{
+        overlay.style.display = "none";
+      }}
+    }});
+
+    btn.addEventListener("click", function() {{
+      overlay.style.display = "block";
+    }});
+  }})();
+</script>
+<!-- Fim MARK -->
+"""
+
+    st.code(codigo_widget, language="html")
+
+    st.success("Pronto! Você pode usar seu chat em qualquer lugar usando os links e códigos acima.")

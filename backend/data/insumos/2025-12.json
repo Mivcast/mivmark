@@ -1,0 +1,63 @@
+{
+  "default": {
+    "tendencias": [
+      "Conteúdo com listas curtas (3–5 itens) para decisões rápidas no fim do ano",
+      "Reels de bastidores (produção/embalagem/atendimento) para aumentar confiança",
+      "Combos e ofertas com contagem regressiva até 31/12"
+    ],
+    "dados_estatisticas": [
+      {
+        "titulo": "Fim de ano: intenção de compra e urgência",
+        "texto": "Dezembro costuma elevar urgência e busca por praticidade; ofertas claras e listas rápidas tendem a converter melhor.",
+        "fonte": "Curadoria interna"
+      }
+    ],
+    "produtos_em_alta": [
+      "Kits temáticos para presente e confraternização",
+      "Produtos prontos/rápidos (praticidade)"
+    ],
+    "promocoes_ofertas": [
+      "Última chance (contagem regressiva)",
+      "Combo progressivo (quanto mais itens, maior desconto)"
+    ],
+    "branding_posicionamento": [
+      "Selo visual do mês (Especial Dezembro) + promessa central repetida"
+    ],
+    "prova_social_autoridade": [
+      "Depoimentos curtos em vídeo (7–12s) com resultado + CTA simples"
+    ],
+    "relacionamento_comunidade": [
+      "Enquetes e caixinhas de dúvidas sobre fim de ano"
+    ],
+    "observacoes": [
+      "Dezembro tende a valorizar praticidade, presente e urgência."
+    ]
+  },
+  "nichos": {
+    "alimentos veganos": {
+      "tendencias": [
+        "Ceia vegana prática (receitas rápidas e poucos ingredientes)",
+        "Sobremesas veganas premium para festas (presente/compartilhar)",
+        "Reels de montagem rápida (antes/depois em 8–12s)",
+        "Conteúdo: substituições inteligentes (ex.: creme/leite/ovos) sem perder sabor"
+      ],
+      "produtos_em_alta": [
+        "Kit Ceia Vegana (entrada + principal + sobremesa)",
+        "Risoto de cogumelos / lentilha / assados vegetais",
+        "Sobremesas veganas (chocolate amargo vegano, tortas, frutas elaboradas)"
+      ],
+      "promocoes_ofertas": [
+        "Reserva antecipada com benefício (até dia 20)",
+        "Entrega agendada para 24/12 e 31/12",
+        "Combo Ceia Completa com desconto progressivo"
+      ],
+      "dados_estatisticas": [
+        {
+          "titulo": "Dezembro no nicho vegano: o que costuma engajar",
+          "texto": "Conteúdos de ceia e praticidade tendem a performar bem no fim do ano — especialmente com listas e passo a passo curto.",
+          "fonte": "Curadoria interna"
+        }
+      ]
+    }
+  }
+}

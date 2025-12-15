@@ -1,19 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
-from backend.database import SessionLocal
-from backend.models import Empresa, Usuario
-from backend.api.auth import get_current_user
 from datetime import datetime
-from backend.models import CardMarketing
+
+from backend.database import get_db  # ✅ use Depends(get_db) em vez de SessionLocal direto
+from backend.models import Empresa, Usuario, CardMarketing
+from backend.api.auth import get_current_user
 
 # ✅ Import para geração do site do cliente
 from backend.api.site_cliente import gerar_site_cliente, DadosSiteCliente
 
-router = APIRouter()
 
-# -------- SCHEMAS --------
+router = APIRouter(prefix="/empresa", tags=["Empresa"])
+
+
+# -------------------------
+# SCHEMAS
+# -------------------------
 class FuncionarioSchema(BaseModel):
     nome: str
     data_nascimento: Optional[str] = None
@@ -21,11 +25,13 @@ class FuncionarioSchema(BaseModel):
     telefone: Optional[str] = None
     observacao: Optional[str] = None
 
+
 class ProdutoSchema(BaseModel):
     nome: str
     preco: float
     descricao: str
     imagem: Optional[str] = None
+
 
 class EmpresaSchema(BaseModel):
     nome_empresa: str
@@ -43,82 +49,6 @@ class EmpresaSchema(BaseModel):
     cidade: Optional[str] = None
     cep: Optional[str] = None
 
-# -------- FUNÇÃO AUXILIAR --------
-def empresa_to_dict(empresa: Empresa) -> dict:
-    return {
-        "nome_empresa": empresa.nome_empresa,
-        "descricao": empresa.descricao,
-        "nicho": empresa.nicho,
-        "logo_url": empresa.logo_url,
-        "funcionarios": empresa.funcionarios,
-        "produtos": empresa.produtos,
-        "redes_sociais": empresa.redes_sociais,
-        "informacoes_adicionais": empresa.informacoes_adicionais,
-        "cnpj": empresa.cnpj,
-        "rua": empresa.rua,
-        "numero": empresa.numero,
-        "bairro": empresa.bairro,
-        "cidade": empresa.cidade,
-        "cep": empresa.cep,
-        "atualizado_em": empresa.atualizado_em,
-    }
-
-# -------- ROTAS PRINCIPAIS (COM AUTENTICAÇÃO) --------
-
-@router.post("/empresa")
-def salvar_empresa(dados: EmpresaSchema, usuario: Usuario = Depends(get_current_user)):
-    db: Session = SessionLocal()
-    try:
-        empresa = db.query(Empresa).filter(Empresa.usuario_id == usuario.id).first()
-        if not empresa:
-            empresa = Empresa(usuario_id=usuario.id)
-
-        empresa.nome_empresa = dados.nome_empresa
-        empresa.descricao = dados.descricao
-        empresa.nicho = dados.nicho
-        empresa.logo_url = dados.logo_url
-        empresa.funcionarios = [f.dict() for f in dados.funcionarios]
-        empresa.produtos = [p.dict() for p in dados.produtos]
-        empresa.redes_sociais = dados.redes_sociais
-        empresa.informacoes_adicionais = dados.informacoes_adicionais
-        empresa.cnpj = dados.cnpj
-        empresa.rua = dados.rua
-        empresa.numero = dados.numero
-        empresa.bairro = dados.bairro
-        empresa.cidade = dados.cidade
-        empresa.cep = dados.cep
-        empresa.atualizado_em = datetime.utcnow()
-
-        db.add(empresa)
-        db.commit()
-        db.refresh(empresa)
-
-        # ✅ Gera o site HTML do cliente automaticamente
-        try:
-            gerar_site_cliente(DadosSiteCliente(
-                usuario_id=usuario.id,
-                bio="",
-                agendamento_ativo=False,
-                horarios_disponiveis=[],
-                informacoes_adicionais=dados.informacoes_adicionais
-            ))
-        except Exception as e:
-            print(f"Erro ao gerar site do cliente: {e}")
-
-        return {"mensagem": "Dados da empresa salvos com sucesso."}
-    finally:
-        db.close()
-
-@router.get("/empresa")
-def obter_empresa(usuario: Usuario = Depends(get_current_user)):
-    db: Session = SessionLocal()
-    try:
-        empresa = db.query(Empresa).filter(Empresa.usuario_id == usuario.id).first()
-        if not empresa:
-            raise HTTPException(status_code=404, detail="Empresa não encontrada.")
-        return empresa_to_dict(empresa)
-    finally:
-        db.close()
 
 class EmpresaAtualizada(BaseModel):
     nome_empresa: Optional[str] = None
@@ -136,102 +66,229 @@ class EmpresaAtualizada(BaseModel):
     cidade: Optional[str] = None
     cep: Optional[str] = None
 
-@router.put("/empresa")
-def atualizar_empresa(dados: EmpresaAtualizada, usuario: Usuario = Depends(get_current_user)):
-    db: Session = SessionLocal()
+
+# -------------------------
+# FUNÇÃO AUXILIAR
+# -------------------------
+def empresa_to_dict(empresa: Empresa) -> dict:
+    """
+    ⚠️ Mantém a estrutura antiga do /empresa para não quebrar módulos existentes.
+    Note que aqui NÃO colocamos o 'id' de propósito.
+    """
+    return {
+        "id": empresa.id,  # ✅ ESSENCIAL
+        "nome_empresa": empresa.nome_empresa,
+        "descricao": empresa.descricao,
+        "nicho": empresa.nicho,
+        "logo_url": empresa.logo_url,
+        "funcionarios": empresa.funcionarios,
+        "produtos": empresa.produtos,
+        "redes_sociais": empresa.redes_sociais,
+        "informacoes_adicionais": empresa.informacoes_adicionais,
+        "cnpj": empresa.cnpj,
+        "rua": empresa.rua,
+        "numero": empresa.numero,
+        "bairro": empresa.bairro,
+        "cidade": empresa.cidade,
+        "cep": empresa.cep,
+        "atualizado_em": empresa.atualizado_em,
+    }
+
+
+def empresa_to_selecao(empresa: Empresa) -> dict:
+    """
+    ✅ Resposta “contrato novo” para módulos modernos:
+    sempre retorna id + campos essenciais para seleção.
+    """
+    return {
+        "id": empresa.id,
+        "nome": empresa.nome_empresa,
+        "nicho": empresa.nicho,
+    }
+
+
+# -------------------------
+# ROTAS PRINCIPAIS (COM LOGIN)
+# -------------------------
+
+@router.post("")
+def salvar_empresa(
+    dados: EmpresaSchema,
+    usuario: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    empresa = db.query(Empresa).filter(Empresa.usuario_id == usuario.id).first()
+    if not empresa:
+        empresa = Empresa(usuario_id=usuario.id)
+
+    empresa.nome_empresa = dados.nome_empresa
+    empresa.descricao = dados.descricao
+    empresa.nicho = dados.nicho
+    empresa.logo_url = dados.logo_url
+    empresa.funcionarios = [f.dict() for f in dados.funcionarios]
+    empresa.produtos = [p.dict() for p in dados.produtos]
+    empresa.redes_sociais = dados.redes_sociais
+    empresa.informacoes_adicionais = dados.informacoes_adicionais
+    empresa.cnpj = dados.cnpj
+    empresa.rua = dados.rua
+    empresa.numero = dados.numero
+    empresa.bairro = dados.bairro
+    empresa.cidade = dados.cidade
+    empresa.cep = dados.cep
+    empresa.atualizado_em = datetime.utcnow()
+
+    db.add(empresa)
+    db.commit()
+    db.refresh(empresa)
+
+    # ✅ Gera o site HTML do cliente automaticamente (sem quebrar o salvamento se falhar)
     try:
-        empresa = db.query(Empresa).filter(Empresa.usuario_id == usuario.id).first()
-        if not empresa:
-            raise HTTPException(status_code=404, detail="Empresa não encontrada")
-        for campo, valor in dados.dict(exclude_unset=True).items():
-            setattr(empresa, campo, valor)
-
-        empresa.atualizado_em = datetime.utcnow()
-        db.commit()
-        db.refresh(empresa)
-
-        return {"mensagem": "Empresa atualizada com sucesso."}
-    finally:
-        db.close()
-
-# ✅ Geração automática de cards de marketing
-@router.post("/empresa/cards_marketing")
-def gerar_cards_marketing(usuario: Usuario = Depends(get_current_user)):
-    db: Session = SessionLocal()
-    try:
-        mes_atual = datetime.utcnow().strftime("%Y-%m")
-        cards_existentes = db.query(CardMarketing).filter_by(
+        gerar_site_cliente(DadosSiteCliente(
             usuario_id=usuario.id,
-            mes_referencia=mes_atual
-        ).first()
+            bio="",
+            agendamento_ativo=False,
+            horarios_disponiveis=[],
+            informacoes_adicionais=dados.informacoes_adicionais
+        ))
+    except Exception as e:
+        print(f"Erro ao gerar site do cliente: {e}")
 
-        if not cards_existentes:
-            exemplo_cards = [
-                {
-                    "titulo": "Campanha de Inauguração Digital",
-                    "descricao": "Comece o mês com uma campanha de impacto nas redes sociais.",
-                    "fonte": "https://exemplo.com/campanha-digital",
-                    "ideias_conteudo": "1. Post teaser com contagem regressiva\n2. Reels com bastidores\n3. Cupom de boas-vindas",
-                    "tipo": "Campanha"
-                },
-                {
-                    "titulo": "Tendência: Personalização no Atendimento",
-                    "descricao": "Clientes esperam um atendimento mais personalizado.",
-                    "fonte": "https://exemplo.com/tendencia-atendimento",
-                    "ideias_conteudo": "1. Story com nome do cliente\n2. Post com feedbacks reais\n3. Destaque mensal do cliente",
-                    "tipo": "Tendência"
-                }
-            ]
+    return {"mensagem": "Dados da empresa salvos com sucesso."}
 
-            for item in exemplo_cards:
-                card = CardMarketing(
-                    usuario_id=usuario.id,
-                    titulo=item["titulo"],
-                    descricao=item["descricao"],
-                    fonte=item["fonte"],
-                    ideias_conteudo=item["ideias_conteudo"],
-                    tipo=item["tipo"],
-                    mes_referencia=mes_atual,
-                    favorito=False,
-                    eh_atualizacao=False,
-                    criado_em=datetime.utcnow(),
-                    atualizado_em=datetime.utcnow()
-                )
-                db.add(card)
 
-            db.commit()
+@router.get("")
+def obter_empresa(
+    usuario: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    empresa = db.query(Empresa).filter(Empresa.usuario_id == usuario.id).first()
+    if not empresa:
+        raise HTTPException(status_code=404, detail="Empresa não encontrada.")
+    # ⚠️ Mantém retorno antigo
+    return empresa_to_dict(empresa)
 
-        return {"mensagem": "Cards de marketing gerados com sucesso."}
-    finally:
-        db.close()
+
+@router.put("")
+def atualizar_empresa(
+    dados: EmpresaAtualizada,
+    usuario: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    empresa = db.query(Empresa).filter(Empresa.usuario_id == usuario.id).first()
+    if not empresa:
+        raise HTTPException(status_code=404, detail="Empresa não encontrada")
+
+    payload = dados.dict(exclude_unset=True)
+
+    # Se vier lista de schemas, converte
+    if "funcionarios" in payload and payload["funcionarios"] is not None:
+        payload["funcionarios"] = [f.dict() for f in payload["funcionarios"]]
+    if "produtos" in payload and payload["produtos"] is not None:
+        payload["produtos"] = [p.dict() for p in payload["produtos"]]
+
+    for campo, valor in payload.items():
+        setattr(empresa, campo, valor)
+
+    empresa.atualizado_em = datetime.utcnow()
+    db.commit()
+    db.refresh(empresa)
+
+    return {"mensagem": "Empresa atualizada com sucesso."}
+
+
+# -------------------------
+# ✅ NOVA ROTA: SELEÇÃO DE EMPRESAS (para módulos novos)
+# -------------------------
+@router.get("/selecao")
+def listar_empresas_selecao(
+    usuario: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    ✅ Retorna lista com {id, nome, nicho}.
+    Mesmo que hoje você tenha 1 empresa por usuário, retorna lista para já suportar múltiplas no futuro.
+    """
+    empresas = db.query(Empresa).filter(Empresa.usuario_id == usuario.id).all()
+    return [empresa_to_selecao(e) for e in empresas]
+
+
+# -------------------------
+# ✅ Geração automática de cards de marketing (seu legado)
+# -------------------------
+@router.post("/cards_marketing")
+def gerar_cards_marketing(
+    usuario: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    mes_atual = datetime.utcnow().strftime("%Y-%m")
+
+    cards_existentes = db.query(CardMarketing).filter_by(
+        usuario_id=usuario.id,
+        mes_referencia=mes_atual
+    ).first()
+
+    if not cards_existentes:
+        exemplo_cards = [
+            {
+                "titulo": "Campanha de Inauguração Digital",
+                "descricao": "Comece o mês com uma campanha de impacto nas redes sociais.",
+                "fonte": "https://exemplo.com/campanha-digital",
+                "ideias_conteudo": "1. Post teaser com contagem regressiva\n2. Reels com bastidores\n3. Cupom de boas-vindas",
+                "tipo": "Campanha"
+            },
+            {
+                "titulo": "Tendência: Personalização no Atendimento",
+                "descricao": "Clientes esperam um atendimento mais personalizado.",
+                "fonte": "https://exemplo.com/tendencia-atendimento",
+                "ideias_conteudo": "1. Story com nome do cliente\n2. Post com feedbacks reais\n3. Destaque mensal do cliente",
+                "tipo": "Tendência"
+            }
+        ]
+
+        for item in exemplo_cards:
+            card = CardMarketing(
+                usuario_id=usuario.id,
+                titulo=item["titulo"],
+                descricao=item["descricao"],
+                fonte=item["fonte"],
+                ideias_conteudo=item["ideias_conteudo"],
+                tipo=item["tipo"],
+                mes_referencia=mes_atual,
+                favorito=False,
+                eh_atualizacao=False,
+                criado_em=datetime.utcnow(),
+                atualizado_em=datetime.utcnow()
+            )
+            db.add(card)
+
+        db.commit()
+
+    return {"mensagem": "Cards de marketing gerados com sucesso."}
+
 
 # -------------------------------------------------------
 # 🚀 ROTA: DADOS DA EMPRESA PARA O MARK (SEM LOGIN)
 # -------------------------------------------------------
 @router.get("/empresa_mark")
-def obter_empresa_para_mark(usuario_id: Optional[int] = None):
+def obter_empresa_para_mark(
+    usuario_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+):
     """
-    Rota usada exclusivamente pelo MARK IA.
+    Rota usada exclusivamente pelo MARK IA (sem login).
 
-    - Se `usuario_id` for informado: retorna a empresa desse usuário.
-    - Se não vier `usuario_id`: retorna a empresa mais recente (fallback).
+    - Se `usuario_id` vier: retorna a empresa desse usuário.
+    - Se não vier: retorna a empresa mais recente (fallback).
     """
-    db: Session = SessionLocal()
-    try:
-        from backend.models import Empresa  # garante import correto
+    query = db.query(Empresa)
 
-        query = db.query(Empresa)
+    if usuario_id is not None:
+        query = query.filter(Empresa.usuario_id == usuario_id)
 
-        # Se o MARK informou o usuário, filtra pela empresa dele
-        if usuario_id is not None:
-            query = query.filter(Empresa.usuario_id == usuario_id)
+    empresa = query.order_by(Empresa.atualizado_em.desc()).first()
 
-        empresa = query.order_by(Empresa.atualizado_em.desc()).first()
+    if not empresa:
+        raise HTTPException(status_code=404, detail="Nenhuma empresa cadastrada.")
 
-        if not empresa:
-            raise HTTPException(status_code=404, detail="Nenhuma empresa cadastrada.")
-
-        return empresa_to_dict(empresa)
-    finally:
-        db.close()
-
+    # Mantém retorno antigo para compatibilidade com o MARK
+    return empresa_to_dict(empresa)

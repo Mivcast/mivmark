@@ -1,9 +1,26 @@
 import streamlit as st
+import os  
+from pathlib import Path
 from agenda import tela_agenda  # ✅ Importa a versão visual com calendário
 from datetime import datetime, timedelta
 
 # ⚙️ A configuração da página deve ser a PRIMEIRA chamada do Streamlit
 st.set_page_config(layout="wide")
+
+hide_streamlit_chrome = """
+<style>
+/* Esconde o menu dos 3 pontinhos do Streamlit */
+#MainMenu {visibility: hidden;}
+
+/* Esconde o rodapé "Made with Streamlit" */
+footer {visibility: hidden;}
+
+/* Esconde o botão "Deploy" padrão do Streamlit */
+.stDeployButton {display: none !important;}
+</style>
+"""
+st.markdown(hide_streamlit_chrome, unsafe_allow_html=True)
+
 
 import httpx
 import datetime
@@ -13,7 +30,8 @@ from aplicativos import listar_aplicativos_admin
 from admin.planos import aba_gerenciar_planos
 
 
-API_URL = "https://mivmark-backend.onrender.com"
+
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 
 def usuario_tem_acesso(modulo: str) -> bool:
@@ -379,31 +397,46 @@ def tela_inicio():
 
 
 
+
 def tela_login_personalizada():
     import streamlit as st
+    import httpx
     import base64
     from pathlib import Path
 
-    st.set_page_config(layout="wide")
+    global API_URL  # usa a mesma API_URL global do app
 
-    # Caminho da imagem de fundo
+    # 🔹 Imagem de fundo da esquerda
     caminho_imagem = Path("frontend/img/telalogin.jpg")  # ou .png se for o caso
     imagem_base64 = ""
     if caminho_imagem.exists():
         with open(caminho_imagem, "rb") as f:
             imagem_base64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # CSS com imagem de fundo usando base64 e layout 60/40
+    # 🔹 Logo em base64 (pra usar em <img> HTML, sem espaço extra do Streamlit)
+    logo_path = Path("frontend/img/mivlogo preta.png")
+    logo_base64 = ""
+    if logo_path.exists():
+        with open(logo_path, "rb") as f:
+            logo_base64 = base64.b64encode(f.read()).decode("utf-8")
+
+    # 🔹 CSS geral
     st.markdown(f"""
         <style>
-        * {{ font-family: 'Segoe UI', sans-serif; }}
+        * {{
+            font-family: 'Segoe UI', sans-serif;
+        }}
+
         html, body {{
             margin: 0 !important;
             padding: 0 !important;
         }}
-        .css-18e3th9, .block-container {{
-            padding: 0rem !important;
+
+        /* Geral: mínimo de padding possível */
+        .block-container {{
+            padding: 0.1rem 0.6rem 0.3rem !important;
         }}
+
         .left {{
             flex: 6;
             background: url("data:image/jpeg;base64,{imagem_base64}") center center no-repeat;
@@ -412,72 +445,131 @@ def tela_login_personalizada():
             margin: 0 !important;
             padding: 0 !important;
         }}
+
         .right {{
             flex: 4;
             max-width: 480px;
-            margin: auto;
-            padding: 60px 40px;
+            margin: 0 auto;
+            padding: 8px 20px !important;  /* pouco padding pra colar tudo no topo */
             background-color: white;
         }}
+
+        /* Logo da MivCast sem margem/padding extra */
+        .logo-login {{
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block;
+        }}
+
+        /* Título Login bem próximo da logo */
         h1 {{
             font-size: 32px;
             font-weight: bold;
-            margin-bottom: 10px;
-        }}
-        .subtitle {{
-            color: #666;
-            margin-bottom: 40px;
+            margin-top: -24px !important;  /* puxa o título pra cima, encostando na logo */
+            margin-bottom: 2px !important;
         }}
 
-        /* 🔵 INPUTS E CAMPOS */
+        .subtitle {{
+            color: #666;
+            margin-top: 0px;
+            margin-bottom: 12px;
+            line-height: 1.2;
+            font-size: 15px;
+        }}
+
+        /* Reduzir espaço dos textos (E-mail, Senha, etc.) */
+        .right > p {{
+            margin-top: 4px !important;
+            margin-bottom: 4px !important;
+        }}
+
         .stTextInput, .stPassword {{
             width: 90% !important;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }}
+
         .stTextInput > div > input,
         .stPassword > div > input {{
-            padding: 12px;
+            padding: 10px;
             border-radius: 8px;
             border: 1px solid #ccc;
             width: 100%;
         }}
 
-        /* 🔵 BOTÃO */
         .stButton button {{
             background-color: #265df2;
             color: white;
             font-weight: bold;
-            padding: 12px;
+            padding: 10px;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
-            width: 90%;
+            width: 100%;
         }}
-
         .stButton button:hover {{
             background-color: #1d47c8;
         }}
 
-        .link, .bottom-text {{
-            font-size: 14px;
-            color: #265df2;
-            margin-top: 10px;
+        .bottom-text {{
+            font-size: 12px;
+            margin-top: 6px;
+            line-height: 1.2;
         }}
+
+        /* MOBILE: espremer ao máximo e colar no topo */
         @media(max-width: 768px) {{
+
             .left {{
                 display: none;
             }}
-            .right {{
-                width: 90% !important;
-                padding: 20px 24px !important;
-                max-width: 100% !important;
-                margin: 0 auto !important;
+
+            .main .block-container {{
+                padding-top: 0rem !important;
+                padding-bottom: 0.2rem !important;
             }}
+
+            .right {{
+                flex: 1;
+                width: 100% !important;
+                max-width: 420px !important;
+                padding: 6px 12px !important;  /* ainda menor no mobile */
+                margin: 0px auto 8px !important;
+                border-radius: 10px;
+                box-shadow: 0 0 8px rgba(0,0,0,0.04);
+            }}
+
+            .logo-login {{
+                margin: 0 !important;
+                padding: 0 !important;
+            }}
+
+           h1 {{
+               font-size: 24px;
+               margin-top: -28px !important;   /* ainda mais colado no mobile */
+               margin-bottom: 2px !important;
+           }}
+
+            .subtitle {{
+                font-size: 13px;
+                line-height: 1.15;
+                margin-bottom: 10px !important;
+            }}
+
+            .right > p {{
+                margin-top: 3px !important;
+                margin-bottom: 3px !important;
+            }}
+
+            .stTextInput, .stPassword {{
+                width: 100% !important;
+                margin-bottom: 6px;
+            }}
+
             .stTextInput > div > input,
-            .stPassword > div > input,
-            .stButton button {{
-                width: 90% !important;
+            .stPassword > div > input {{
+                width: 100% !important;
+                padding: 8px;
             }}
         }}
         </style>
@@ -491,40 +583,90 @@ def tela_login_personalizada():
     with col2:
         st.markdown('<div class="right">', unsafe_allow_html=True)
 
-        st.image("frontend/img/mivlogo preta.png", width=120)
+        # Logo em HTML com base64 (sem espaço extra do Streamlit)
+        if logo_base64:
+            st.markdown(
+                f"""
+                <img src="data:image/png;base64,{logo_base64}"
+                     width="80"
+                     class="logo-login">
+                """,
+                unsafe_allow_html=True,
+            )
+
         st.markdown("<h1>Login</h1>", unsafe_allow_html=True)
         st.markdown("<p class='subtitle'>Acesse sua conta para gerenciar seu sistema.</p>", unsafe_allow_html=True)
 
         st.markdown("**E-mail**")
-        email = st.text_input("", placeholder="Digite seu e-mail ou usuário")
+        email = st.text_input(
+            "E-mail",
+            placeholder="Digite seu e-mail ou usuário",
+            label_visibility="collapsed",
+        )
 
         st.markdown("**Senha**")
-        senha = st.text_input("", placeholder="Digite sua senha", type="password")
+        senha = st.text_input(
+            "Senha",
+            placeholder="Digite sua senha",
+            type="password",
+            label_visibility="collapsed",
+        )
 
-        st.markdown("<div class='link'>Esqueci minha senha</div>", unsafe_allow_html=True)
+        # 🔐 ESQUECI MINHA SENHA
+        with st.expander("Esqueci minha senha"):
+            st.write("Digite o e-mail cadastrado. Enviaremos uma nova senha temporária.")
 
+            email_rec = st.text_input(
+                "Seu e-mail cadastrado",
+                value=email,
+                key="email_rec",
+            )
+
+            if st.button("Enviar nova senha"):
+                if not email_rec.strip():
+                    st.error("Informe o e-mail cadastrado.")
+                else:
+                    try:
+                        resp = httpx.post(
+                            f"{API_URL}/usuario/esqueci-senha",
+                            json={"email": email_rec.strip()},
+                            timeout=20.0,
+                        )
+                        if resp.status_code == 200:
+                            msg = resp.json().get("detail", "Nova senha enviada para o seu e-mail.")
+                            st.success(msg)
+                        else:
+                            detalhe = ""
+                            try:
+                                detalhe = resp.json().get("detail", "")
+                            except Exception:
+                                pass
+                            if detalhe:
+                                st.error(detalhe)
+                            else:
+                                st.error(f"Erro ao enviar nova senha ({resp.status_code}).")
+                    except Exception as e:
+                        st.error(f"Erro de conexão: {e}")
+
+        # 🔹 Botão de login
         if st.button("Acessar meu Sistema", use_container_width=True):
-            token = login_usuario(email, senha)
-            if token:
-                st.session_state.token = token
-                obter_dados_usuario()
-                st.success("✅ Login realizado com sucesso!")
-                st.rerun()
-
-        # Botão cinza como DIV estilizado com clique
-        st.markdown("""
-        <p style="margin-top: 10px; font-size: 13px;">
-        🆓 <b>Teste gratuito:</b> crie seu cadastro e ganhe <b>7 dias de acesso ao plano Profissional</b> para conhecer todas as funções.
-        </p>
-        """, unsafe_allow_html=True)
-
-        # Link para cadastro
+            login_usuario(email, senha)
 
         st.markdown("Ainda não tem cadastro na MivCast?")
 
-        if st.button("📩 Cadastre-se agora"):
+        if st.button("📩 Cadastre-se agora", use_container_width=True):
             st.query_params = {"cadastro": "true"}
             st.rerun()
+
+        st.markdown("""
+        <p class="bottom-text">
+        🆓 <b>Teste 07 dias GRÁTIS </b>o Plano Profissional
+        </p>
+        """, unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+
 
 
 
@@ -603,7 +745,8 @@ def tela_cadastro():
     import streamlit as st
     import httpx
 
-    API_URL = "https://mivmark-backend.onrender.com"
+    global API_URL  # usa o mesmo API_URL definido no topo do app
+
     st.title("📝 Criar sua conta")
 
     cupons_validos = {
@@ -626,29 +769,46 @@ def tela_cadastro():
     plano_selecionado = st.session_state.plano_escolhido
 
     st.subheader("📦 Escolha um plano")
-    col1, col2 = st.columns(2)
 
-    def card_plano(nome, emoji, cor, preco, tooltip):
-        selecionado = plano_selecionado == nome
-        borda = "3px solid #00c851" if selecionado else "1px solid #ccc"
-        st.markdown(f"""
-            <div style='background-color:{cor}; padding: 15px; border-radius: 12px; border:{borda}; margin-bottom:10px;'>
-                <h4 style='margin-bottom:5px'>{emoji} Plano {nome}</h4>
-                <ul>{tooltip}</ul>
-                <strong>💰 R$ {preco:.2f}</strong>
-            </div>
-        """, unsafe_allow_html=True)
-        if st.button(f"Selecionar {nome}", key=f"btn_{nome}"):
-            st.session_state.plano_escolhido = nome
-            st.rerun()
+    # 🔹 4 colunas na mesma linha
+    cols = st.columns(4)
 
-    with col1:
-        card_plano("Gratuito", "🆓", "#eafaf1", planos_info["Gratuito"], "<li>Empresa</li><li>Saúde</li>")
-        card_plano("Profissional", "🚀", "#fff9e6", planos_info["Profissional"], "<li>Avançado</li><li>Todos do Essencial</li>")
+    def card_plano(nome, emoji, preco, tooltip, col):
+        selecionado = (plano_selecionado == nome)
+        bg = "#265df2" if selecionado else "#ffffff"
+        text_color = "#ffffff" if selecionado else "#000000"
+        border = "3px solid #265df2" if selecionado else "1px solid #ccc"
 
-    with col2:
-        card_plano("Essencial", "💼", "#f0f4ff", planos_info["Essencial"], "<li>Orçamento</li><li>Aplicativos</li>")
-        card_plano("Premium", "👑", "#fbeef7", planos_info["Premium"], "<li>Suporte Premium</li><li>Tudo incluso</li>")
+        with col:
+            st.markdown(
+                f"""
+                <div style='
+                    background-color:{bg};
+                    padding: 15px;
+                    border-radius: 12px;
+                    border:{border};
+                    margin-bottom:10px;
+                    min-height: 170px;
+                    color:{text_color};
+                '>
+                    <h4 style='margin-bottom:5px'>{emoji} Plano {nome}</h4>
+                    <ul style="padding-left:18px; margin-top:4px; margin-bottom:10px; color:{text_color};">
+                        {tooltip}
+                    </ul>
+                    <strong>💰 R$ {preco:.2f}</strong>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            if st.button(f"Selecionar {nome}", key=f"btn_{nome}"):
+                st.session_state.plano_escolhido = nome
+                st.rerun()
+
+    # 📦 Um plano em cada coluna
+    card_plano("Gratuito", "🆓", planos_info["Gratuito"], "<li>Empresa</li><li>Saúde</li>", cols[0])
+    card_plano("Essencial", "💼", planos_info["Essencial"], "<li>Orçamento</li><li>Aplicativos</li>", cols[1])
+    card_plano("Profissional", "🚀", planos_info["Profissional"], "<li>Avançado</li><li>Todos do Essencial</li>", cols[2])
+    card_plano("Premium", "👑", planos_info["Premium"], "<li>Suporte Premium</li><li>Tudo incluso</li>", cols[3])
 
     st.markdown("---")
     st.subheader("📋 Dados de Cadastro")
@@ -683,56 +843,106 @@ def tela_cadastro():
         enviar = st.form_submit_button("Cadastrar")
 
         if enviar:
+            # validação básica
+            if not nome or not email or not senha:
+                st.error("Preencha todos os campos antes de cadastrar.")
+                st.stop()
+
+            # 🔹 Plano Gratuito → cadastro imediato + e-mail de boas-vindas
             if plano_selecionado == "Gratuito":
                 try:
-                    r = httpx.post(f"{API_URL}/cadastro/gratuito", json={
-                        "nome": nome,
-                        "email": email,
-                        "senha": senha
-                    })
-                    if r.status_code == 200:
-                        st.success("✅ Cadastro realizado com sucesso!")
-                        st.markdown("[🔑 Ir para o login](?login=true)")
-                    else:
-                        st.error(f"❌ {r.json().get('detail', 'Erro ao cadastrar.')}")
+                    resp = httpx.post(
+                        f"{API_URL}/usuario/cadastro-gratuito",
+                        json={
+                            "nome": nome,
+                            "email": email,
+                            "senha": senha
+                        },
+                        timeout=20.0,
+                    )
                 except Exception as e:
                     st.error(f"Erro ao conectar: {e}")
+                else:
+                    if resp.status_code == 200:
+                        try:
+                            _ = resp.json()
+                        except Exception:
+                            _ = None
+                        st.success("✅ Cadastro realizado com sucesso!")
+                        st.info("✉️ Verifique seu e-mail, enviamos seus dados de acesso e o período de teste.")
+                        st.markdown("[🔑 Ir para o login](?login=true)")
+                    else:
+                        detalhe = ""
+                        try:
+                            detalhe = resp.json().get("detail", "")
+                        except Exception:
+                            detalhe = resp.text or "Resposta vazia do servidor."
+                        st.error(f"❌ Erro ao cadastrar ({resp.status_code}): {detalhe}")
+
+            # 🔹 Planos pagos com token já em mãos (após pagamento)
             elif token:
                 try:
-                    r = httpx.post(f"{API_URL}/cadastro", json={
-                        "nome": nome,
-                        "email": email,
-                        "senha": senha,
-                        "token_ativacao": token
-                    })
-                    if r.status_code == 200:
+                    resp = httpx.post(
+                        f"{API_URL}/cadastro",
+                        json={
+                            "nome": nome,
+                            "email": email,
+                            "senha": senha,
+                            "token_ativacao": token
+                        },
+                        timeout=20.0,
+                    )
+                except Exception as e:
+                    st.error(f"Erro ao conectar: {e}")
+                else:
+                    if resp.status_code == 200:
                         st.success("✅ Cadastro ativado com sucesso!")
                         st.markdown("[🔑 Ir para o login](?login=true)")
                     else:
-                        st.error(f"❌ {r.json().get('detail', 'Erro ao cadastrar.')}")
-                except Exception as e:
-                    st.error(f"Erro ao conectar: {e}")
+                        detalhe = ""
+                        try:
+                            detalhe = resp.json().get("detail", "")
+                        except Exception:
+                            detalhe = resp.text or "Resposta vazia do servidor."
+                        st.error(f"❌ Erro ao cadastrar ({resp.status_code}): {detalhe}")
+
+            # 🔹 Planos pagos sem token → gera link do Mercado Pago
             else:
                 try:
-                    r = httpx.post(f"{API_URL}/api/mercado_pago/criar_preferencia", json={
-                        "plano_nome": plano_selecionado,
-                        "preco": preco_final
-                    })
-                    if r.status_code == 200:
-                        pagamento = r.json()
-                        st.success("✅ Cadastro iniciado. Finalize o pagamento para receber o token de ativação no e-mail.")
-                        st.markdown(f"[🔗 Clique aqui para pagar agora]({pagamento['init_point']})")
-                    else:
-                        st.error("Erro ao gerar link de pagamento.")
+                    resp = httpx.post(
+                        f"{API_URL}/api/mercado_pago/criar_preferencia",
+                        json={
+                            "plano_nome": plano_selecionado,
+                            "preco": preco_final
+                        },
+                        timeout=20.0,
+                    )
                 except Exception as e:
                     st.error(f"Erro ao conectar com Mercado Pago: {e}")
+                else:
+                    if resp.status_code == 200:
+                        try:
+                            pagamento = resp.json()
+                        except Exception:
+                            pagamento = {}
+                        init_point = pagamento.get("init_point")
+                        if init_point:
+                            st.success("✅ Cadastro iniciado. Finalize o pagamento para receber o token de ativação no e-mail.")
+                            st.markdown(f"[🔗 Clique aqui para pagar agora]({init_point})")
+                        else:
+                            st.error("Erro ao gerar link de pagamento (resposta incompleta).")
+                    else:
+                        detalhe = ""
+                        try:
+                            detalhe = resp.json().get("detail", "")
+                        except Exception:
+                            detalhe = resp.text or "Erro ao gerar link de pagamento."
+                        st.error(f"Erro ao gerar link de pagamento ({resp.status_code}): {detalhe}")
 
     st.markdown("---")
     if st.button("👨🏻‍💻 Voltar para login"):
         st.query_params = {"login": "true"}
         st.rerun()
-
-
 
 
 
@@ -777,15 +987,17 @@ def tela_empresa():
     </div>
     """, unsafe_allow_html=True)
 
+    # -------- Carregar dados da API --------
     dados = {}
     try:
         r = httpx.get(f"{API_URL}/empresa", headers=get_headers())
         if r.status_code == 200:
             dados = r.json()
-    except:
+    except Exception:
         st.warning("Erro ao buscar dados da empresa.")
 
-    nome = st.text_input("Nome da Empresa", value=dados.get("nome_empresa", ""))
+    # 🔹 Nome da empresa (variável exclusiva)
+    nome_empresa = st.text_input("Nome da Empresa", value=dados.get("nome_empresa", ""))
     descricao_empresa = st.text_area("Descrição", value=dados.get("descricao", ""))
     nicho = st.text_input("Nicho", value=dados.get("nicho", ""))
 
@@ -819,18 +1031,18 @@ def tela_empresa():
         st.session_state.funcionario_em_edicao = None
 
     for i, f in enumerate(st.session_state.lista_funcionarios):
-        titulo = f"👤 {f['nome']} - {f['funcao']}" if f['nome'] else f"👤 Funcionário {i+1}"
+        titulo = f"👤 {f.get('nome', '')} - {f.get('funcao', '')}" if f.get("nome") else f"👤 Funcionário {i+1}"
         with st.expander(titulo, expanded=st.session_state.funcionario_em_edicao == i):
-            nome = st.text_input("Nome", value=f["nome"], key=f"func_nome_{i}")
+            func_nome = st.text_input("Nome", value=f.get("nome", ""), key=f"func_nome_{i}")
             nasc = st.text_input("Data de Nascimento", value=f.get("data_nascimento", ""), key=f"func_nasc_{i}")
-            funcao = st.text_input("Função", value=f["funcao"], key=f"func_funcao_{i}")
+            funcao = st.text_input("Função", value=f.get("funcao", ""), key=f"func_funcao_{i}")
             tel = st.text_input("Telefone", value=f.get("telefone", ""), key=f"func_tel_{i}")
             obs = st.text_area("Observação", value=f.get("observacao", ""), key=f"func_obs_{i}")
             colsalva, colexc = st.columns(2)
             with colsalva:
                 if st.button("💾 Salvar", key=f"salvar_func_{i}"):
                     f.update({
-                        "nome": nome,
+                        "nome": func_nome,
                         "data_nascimento": nasc,
                         "funcao": funcao,
                         "telefone": tel,
@@ -863,10 +1075,11 @@ def tela_empresa():
         st.session_state.produto_em_edicao = None
 
     for i, p in enumerate(st.session_state.lista_produtos):
-        titulo = f"📦 {p['nome']}" if p['nome'] else f"📦 Produto {i+1}"
+        titulo = f"📦 {p.get('nome', '')}" if p.get("nome") else f"📦 Produto {i+1}"
         with st.expander(titulo, expanded=st.session_state.produto_em_edicao == i):
-            nome = st.text_input("Nome do Produto", value=p["nome"], key=f"prod_nome_{i}")
-            preco = st.number_input("Preço", value=p["preco"], key=f"prod_preco_{i}", min_value=0.0)
+            prod_nome = st.text_input("Nome do Produto", value=p.get("nome", ""), key=f"prod_nome_{i}")
+            preco_val = p.get("preco", 0.0) or 0.0
+            preco = st.number_input("Preço", value=float(preco_val), key=f"prod_preco_{i}", min_value=0.0)
             descricao = st.text_area("Descrição", value=p.get("descricao", ""), key=f"prod_desc_{i}")
             imagem = st.text_input("Imagem (URL ou base64)", value=p.get("imagem", ""), key=f"prod_img_url_{i}")
             upload = st.file_uploader("Ou envie a imagem do produto", type=["png", "jpg", "jpeg"], key=f"prod_upload_{i}")
@@ -879,7 +1092,7 @@ def tela_empresa():
             with colsalva:
                 if st.button("💾 Salvar", key=f"salvar_prod_{i}"):
                     p.update({
-                        "nome": nome,
+                        "nome": prod_nome,
                         "preco": preco,
                         "descricao": descricao,
                         "imagem": imagem
@@ -913,9 +1126,10 @@ def tela_empresa():
 
     adicionais = st.text_area("Informações Adicionais", value=dados.get("informacoes_adicionais", ""))
 
+    # 🔘 Salvar Empresa
     if st.button("Salvar Empresa"):
         payload = {
-            "nome_empresa": nome,
+            "nome_empresa": nome_empresa,  # <- AGORA CERTO
             "descricao": descricao_empresa,
             "nicho": nicho,
             "logo_url": logo_url,
@@ -937,8 +1151,12 @@ def tela_empresa():
             "informacoes_adicionais": adicionais
         }
 
+        # 🔎 DEBUG (pode remover depois)
+        # st.write("DEBUG payload_enviado:", payload)
+
         try:
             r = httpx.post(f"{API_URL}/empresa", json=payload, headers=get_headers())
+            # st.write("DEBUG status_code:", r.status_code, "body:", r.text)
             if r.status_code == 200:
                 st.success("✅ Empresa salva com sucesso!")
             else:
@@ -946,6 +1164,7 @@ def tela_empresa():
                 st.error(r.text)
         except Exception as e:
             st.error(f"Erro inesperado: {e}")
+
 
 
 
@@ -1332,6 +1551,295 @@ def tela_marketing():
 
 
 
+def tela_central_ideias():
+    import datetime
+    import httpx
+    import streamlit as st
+
+    # =========================
+    # Acesso
+    # =========================
+    email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
+    if email_usuario != "matheus@email.com":
+        # use o mesmo controle dos seus módulos pagos
+        if not usuario_tem_acesso("marketing"):
+            mostrar_bloqueio_modulo("Central de Ideias")
+            st.stop()
+
+    st.title("🧠 Central de Marketing & Branding (Mensal)")
+
+    if not st.session_state.get("token"):
+        st.warning("Você precisa estar logado para acessar.")
+        return
+
+    headers = get_headers()
+
+    # =========================
+    # Helpers locais
+    # =========================
+    def fetch_empresas():
+        """
+        Tenta obter lista de empresas (para usuário com múltiplas empresas).
+        Se não existir endpoint de lista, cai no /empresa (empresa única).
+        """
+        tentativas = [
+            f"{API_URL}/empresa/selecao",
+            f"{API_URL}/empresa/minhas",
+            f"{API_URL}/empresa/listar",
+            f"{API_URL}/empresas/minhas",
+            f"{API_URL}/empresas",
+            f"{API_URL}/empresa",
+        ]
+        ultimo_erro = None
+
+        for url in tentativas:
+            try:
+                r = httpx.get(url, headers=headers, timeout=30)
+                if r.status_code != 200:
+                    continue
+
+                data = r.json()
+
+                # Caso 1: lista direta
+                if isinstance(data, list):
+                    return data
+
+                # Caso 2: dict com "items" / "empresas"
+                if isinstance(data, dict):
+                    if isinstance(data.get("items"), list):
+                        return data["items"]
+                    if isinstance(data.get("empresas"), list):
+                        return data["empresas"]
+
+                    # Caso 3: /empresa retornou UMA empresa (dict)
+                    return [data]
+
+            except Exception as e:
+                ultimo_erro = str(e)
+
+        return None, ultimo_erro
+
+    def nome_empresa(e: dict) -> str:
+        return e.get("nome_empresa") or e.get("nome") or f"Empresa #{e.get('id', '?')}"
+
+    def nicho_empresa(e: dict) -> str:
+        return e.get("nicho") or e.get("segmento") or e.get("ramo") or ""
+
+    def get_id_empresa(e: dict):
+        return e.get("id") or e.get("empresa_id")
+
+    def get_mes_atual():
+        # mês atual: YYYY-MM
+        return datetime.datetime.now().strftime("%Y-%m")
+
+    def api_get_ideias(empresa_id: int, mes_ano: str):
+        return httpx.get(f"{API_URL}/ideias/{empresa_id}/{mes_ano}", headers=headers, timeout=60)
+
+    def api_post_gerar(empresa_id: int, mes_ano: str, setor: str = None):
+        payload = {"empresa_id": empresa_id, "mes_ano": mes_ano, "setor": setor}
+        return httpx.post(f"{API_URL}/ideias/gerar", json=payload, headers=headers, timeout=120)
+
+    def api_post_gerar_mais(empresa_id: int, mes_ano: str, card_id: str, tipo: str):
+        payload = {"empresa_id": empresa_id, "mes_ano": mes_ano, "card_id": card_id, "tipo": tipo}
+        return httpx.post(f"{API_URL}/ideias/gerar-mais", json=payload, headers=headers, timeout=120)
+
+    def api_post_favoritar(empresa_id: int, mes_ano: str, card_id: str, favorito: bool):
+        payload = {"empresa_id": empresa_id, "mes_ano": mes_ano, "card_id": card_id, "favorito": favorito}
+        return httpx.post(f"{API_URL}/ideias/favoritar", json=payload, headers=headers, timeout=60)
+
+    # =========================
+    # 1) Selecionar empresa
+    # =========================
+    empresas = fetch_empresas()
+    erro_empresas = None
+    if isinstance(empresas, tuple):
+        empresas, erro_empresas = empresas
+
+    if not empresas:
+        st.error("Não consegui carregar suas empresas no backend.")
+        if erro_empresas:
+            st.caption(f"Detalhe técnico: {erro_empresas}")
+        st.info("Se você ainda não tem endpoint de lista de empresas, tudo bem — mas o /empresa precisa retornar pelo menos o campo 'id'.")
+        return
+
+    # Normaliza opções com ID válido
+    empresas_ok = [e for e in empresas if get_id_empresa(e)]
+    if not empresas_ok:
+        st.error("O backend retornou empresa(s) sem campo 'id'.")
+        st.info("Ajuste o endpoint /empresa (ou /empresa/minhas) para retornar o id da empresa.")
+        return
+
+    options = [f"{nome_empresa(e)}" + (f" — {nicho_empresa(e)}" if nicho_empresa(e) else "") for e in empresas_ok]
+    map_idx_to_emp = {i: empresas_ok[i] for i in range(len(empresas_ok))}
+
+    idx_padrao = st.session_state.get("idx_empresa_sel", 0)
+    if idx_padrao >= len(options):
+        idx_padrao = 0
+
+    colA, colB = st.columns([2, 1])
+    with colA:
+        idx_sel = st.selectbox("Selecione a empresa", list(range(len(options))), format_func=lambda i: options[i], index=idx_padrao)
+        st.session_state["idx_empresa_sel"] = idx_sel
+
+    emp = map_idx_to_emp[idx_sel]
+    empresa_id = int(get_id_empresa(emp))
+
+    # =========================
+    # 2) Selecionar mês e setor
+    # =========================
+    mes_padrao = st.session_state.get("mes_ano_sel", get_mes_atual())
+    with colB:
+        mes_ano = st.text_input("Mês (YYYY-MM)", value=mes_padrao)
+        st.session_state["mes_ano_sel"] = mes_ano
+
+    setor = st.text_input("Setor (opcional) — ex.: Comercial, Financeiro, Operacional", value=st.session_state.get("setor_sel", ""))
+    st.session_state["setor_sel"] = setor
+
+    st.divider()
+
+    # =========================
+    # 3) Carregar ideias do mês (ou sugerir gerar)
+    # =========================
+    conteudo = None
+    try:
+        r = api_get_ideias(empresa_id, mes_ano)
+        if r.status_code == 200:
+            conteudo = r.json().get("conteudo")
+        elif r.status_code == 404:
+            conteudo = None
+        else:
+            st.error(f"Erro ao buscar ideias (status {r.status_code}).")
+            st.stop()
+    except Exception as e:
+        st.error(f"Erro ao conectar no backend: {e}")
+        st.stop()
+
+    if not conteudo:
+        st.info("Ainda não existem ideias salvas para este mês. Clique para gerar a primeira vez.")
+        if st.button("✨ Gerar ideias do mês", type="primary"):
+            try:
+                r = api_post_gerar(empresa_id, mes_ano, setor=setor or None)
+                if r.status_code == 200:
+                    conteudo = r.json().get("conteudo")
+                    st.success("Ideias geradas e salvas com sucesso.")
+                else:
+                    st.error(f"Erro ao gerar ideias (status {r.status_code}).")
+                    st.stop()
+            except Exception as e:
+                st.error(f"Erro ao gerar: {e}")
+                st.stop()
+
+    if not conteudo:
+        return
+
+    # =========================
+    # 4) UI: Favoritos / Categorias / Cards
+    # =========================
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        somente_favoritos = st.checkbox("⭐ Mostrar apenas favoritos", value=False)
+    with col2:
+        if st.button("🔁 Recarregar", help="Recarrega do banco (GET)"):
+            st.rerun()
+
+    st.caption(f"Empresa: {conteudo.get('empresa_nome', nome_empresa(emp))} | Nicho: {conteudo.get('nicho', nicho_empresa(emp))} | Mês: {conteudo.get('mes_ano', mes_ano)}")
+
+    categorias = conteudo.get("categorias", [])
+    if not categorias:
+        st.warning("Nenhuma categoria encontrada no pacote deste mês.")
+        return
+
+    for cat in categorias:
+        cat_titulo = cat.get("titulo", "Categoria")
+        cards = cat.get("cards", [])
+
+        # Filtra favoritos se necessário
+        if somente_favoritos:
+            cards = [c for c in cards if c.get("favorito") is True]
+
+        if not cards:
+            continue
+
+        with st.expander(cat_titulo, expanded=False):
+            # Cards em 2 colunas
+            cols = st.columns(2)
+            for i, card in enumerate(cards):
+                ccol = cols[i % 2]
+                with ccol:
+                    favorito = bool(card.get("favorito"))
+                    border = "2px solid #ffcc00" if favorito else "1px solid #e6e6e6"
+                    bg = "#fff8dc" if favorito else "#ffffff"
+
+                    st.markdown(
+                        f"""
+                        <div style="border:{border}; background:{bg}; padding:14px; border-radius:12px; margin-bottom:12px;">
+                          <div style="font-size:16px; font-weight:700;">{card.get('titulo','(sem título)')}</div>
+                          <div style="color:#666; margin-top:4px;">🕒 <strong>{card.get('data_sugerida','')}</strong></div>
+                          <div style="margin-top:8px; color:#333;">{card.get('descricao','')}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                    # Ações do card
+                    b1, b2, b3 = st.columns([1, 1, 1])
+                    with b1:
+                        if st.button("⭐" if not favorito else "✅", key=f"fav_{mes_ano}_{empresa_id}_{card['id']}"):
+                            try:
+                                rr = api_post_favoritar(empresa_id, mes_ano, card["id"], favorito=not favorito)
+                                if rr.status_code == 200:
+                                    st.rerun()
+                                else:
+                                    st.error(f"Erro ao favoritar (status {rr.status_code}).")
+                            except Exception as e:
+                                st.error(f"Erro ao favoritar: {e}")
+
+                    with b2:
+                        if st.button("+3 Conteúdo", key=f"mais_cont_{mes_ano}_{empresa_id}_{card['id']}"):
+                            try:
+                                rr = api_post_gerar_mais(empresa_id, mes_ano, card["id"], tipo="conteudo")
+                                if rr.status_code == 200:
+                                    st.success("Mais ideias de conteúdo adicionadas.")
+                                    st.rerun()
+                                else:
+                                    st.error(rr.text)
+                            except Exception as e:
+                                st.error(f"Erro: {e}")
+
+                    with b3:
+                        if st.button("+3 Branding", key=f"mais_brand_{mes_ano}_{empresa_id}_{card['id']}"):
+                            try:
+                                rr = api_post_gerar_mais(empresa_id, mes_ano, card["id"], tipo="branding")
+                                if rr.status_code == 200:
+                                    st.success("Mais dicas de branding adicionadas.")
+                                    st.rerun()
+                                else:
+                                    st.error(rr.text)
+                            except Exception as e:
+                                st.error(f"Erro: {e}")
+
+                    # Conteúdos
+                    lotes_conteudo = card.get("conteudos", [])
+                    if lotes_conteudo:
+                        st.markdown("**💡 Ideias de Conteúdo:**")
+                        for lote in lotes_conteudo:
+                            for item in lote.get("itens", []):
+                                st.markdown(f"- **{item.get('tema','')}**")
+                                st.markdown(f"  - Criativo estático: {item.get('criativo_estatico','')}")
+                                st.markdown(f"  - Criativo vídeo: {item.get('criativo_video','')}")
+                                st.markdown(f"  - Legenda: {item.get('legenda','')}")
+                                hashtags = item.get("hashtags", [])
+                                if hashtags:
+                                    st.markdown("  - Hashtags: " + " ".join(hashtags))
+
+                    # Branding
+                    lotes_brand = card.get("branding", [])
+                    if lotes_brand:
+                        st.markdown("**🧠 Dicas de Branding:**")
+                        for lote in lotes_brand:
+                            for dica in lote.get("itens", []):
+                                st.markdown(f"- {dica}")
+
 
 
 
@@ -1485,67 +1993,6 @@ def tela_branding():
 
 
 
-def tela_historico():
-    st.header("🧠 Histórico")
-
-    historico = []
-
-    # Campo de busca
-    termo_busca = st.text_input(
-        "🔎 Buscar no histórico (palavra, frase ou parte da data):",
-        placeholder="Ex.: Google Ads, orçamento, Instagram..."
-    ).strip()
-
-    params = {}
-    if termo_busca:
-        params["busca"] = termo_busca
-
-    try:
-        response = httpx.get(
-            f"{API_URL}/mark/historico",
-            params=params,
-            headers=get_headers(),   # ✅ agora envia o token
-            timeout=30,
-        )
-        if response.status_code == 200:
-            historico = response.json()
-            if not historico:
-                if termo_busca:
-                    st.info("Nenhum registro encontrado para essa busca.")
-                else:
-                    st.info("Nenhuma interação registrada ainda.")
-            else:
-                # Mostra do mais recente para o mais antigo
-                for h in historico:
-                    data_str = h.get("data_envio", "")
-                    remetente = h.get("remetente", "").capitalize()
-                    mensagem = h.get("mensagem", "")
-
-                    st.markdown(f"🕒 *{data_str}*")
-                    st.markdown(f"**{remetente}:** {mensagem}")
-                    st.markdown("---")
-        else:
-            st.error(f"Erro ao carregar histórico: {response.status_code}")
-    except Exception as e:
-        st.error(f"Erro ao carregar histórico: {e}")
-
-    # ✅ Botão de exportar histórico em TXT
-    if historico:
-        conteudo = "\n\n".join(
-            [
-                f"{h.get('data_envio', '')} - {h.get('remetente', '')}: {h.get('mensagem', '')}"
-                for h in historico
-            ]
-        )
-        st.download_button(
-            "📤 Exportar histórico (.txt)",
-            data=conteudo,
-            file_name="historico_mark.txt",
-            mime="text/plain",
-        )
-
-
-
 
 
 
@@ -1647,237 +2094,231 @@ def tela_arquivos():
 
 
 
+def tela_mark_ia():
+    import os
+    import streamlit as st
+    import streamlit.components.v1 as components
+    import httpx  # garantir que httpx está disponível
 
-def tela_mark():
-    # ⚠️ Verificação de acesso: Admin sempre tem acesso total
-    email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
-    if email_usuario != "matheus@email.com":
-        if not usuario_tem_acesso("mark"):
-            mostrar_bloqueio_modulo("MARK IA (Chat Inteligente)")
-            st.stop()
+    # 🔹 Pega o ID do usuário logado (se tiver)
+    dados_usuario = st.session_state.get("dados_usuario", {}) or {}
+    usuario_id = dados_usuario.get("id", None)
 
-    # 🔹 Garante que o histórico do chat exista
-    if "chat" not in st.session_state:
-        st.session_state.chat = []
+    # 🔹 Lê o HTML do chat
+    caminho_html = os.path.join("frontend", "mark_chat.html")
+    try:
+        with open(caminho_html, "r", encoding="utf-8") as f:
+            html = f.read()
+    except FileNotFoundError:
+        st.error(f"Arquivo não encontrado: {caminho_html}")
+        return
 
-    # 🎨 Estilo do botão ENVIAR (preto com texto branco)
+    # 🔹 Injeta o ID do usuário dentro do HTML
+    html = html.replace("{{USUARIO_ID}}", str(usuario_id or ""))
+
+    # 🔹 CSS global para o iframe do MARK usar quase toda a tela
     st.markdown(
         """
         <style>
-        button[data-testid="baseButton-secondary"],
-        button[data-testid="baseButton-secondaryFormSubmit"] {
-            background-color: #000000 !important;
-            color: #FFFFFF !important;
-            border-radius: 999px !important;
-        }
+          /* Desktop / notebooks grandes */
+          iframe[srcdoc*="MARK.IA Chat"] {
+              width: 100% !important;
+              height: calc(100vh - 280px) !important;
+              border: none;
+              border-radius: 24px;
+              box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+          }
+
+          /* Tablets e notebooks menores */
+          @media (max-width: 1100px) and (min-width: 769px) {
+              iframe[srcdoc*="MARK.IA Chat"] {
+                  height: calc(100vh - 260px) !important;
+              }
+          }
+
+          /* Celulares em geral */
+          @media (max-width: 768px) {
+              iframe[srcdoc*="MARK.IA Chat"] {
+                  height: calc(100vh - 240px) !important;
+                  border-radius: 18px;
+              }
+          }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    # 🎨 Estilos da linha de input do MARK
+    # 🔹 Renderiza o chat
+    components.html(
+        html,
+        height=650,
+        scrolling=False,
+    )
+
+    # 🔹 Texto de apoio abaixo do chat
     st.markdown(
         """
-        <style>
-        /* input principal do chat */
-        div[data-testid="stForm"] input[type="text"] {
-            height: 44px !important;
-            border-radius: 999px !important;
-            padding: 0 16px !important;
-            font-size: 14px !important;
-        }
+        ### Como usar o MARK IA
 
-        /* centralizar verticalmente as colunas dentro do form */
-        div[data-testid="stForm"] div[data-testid="column"] {
-            display: flex;
-            align-items: center;
-        }
+        - Digite sua dúvida na caixa de mensagem do chat acima.  
+        - Clique no botão de **microfone** para falar em vez de digitar (quando disponível).  
+        - Use o botão de **limpar conversa** para começar um novo assunto.  
 
-        /* remover label padrão do uploader */
-        div[data-testid="stFileUploader"] > label {
-            display: none !important;
-        }
-
-        /* remover qualquer texto interno do uploader */
-        div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] * {
-            display: none !important;
-        }
-
-        /* estilizar o uploader como botão redondo com + */
-        div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
-            padding: 0 !important;
-            width: 40px !important;
-            height: 40px !important;
-            border-radius: 999px !important;
-            border: 1px solid #cccccc !important;
-            background-color: #f5f5f5 !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]::before {
-            content: "+";
-            font-size: 24px;
-            color: #333333;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
+        Caso alguma parte do layout fique um pouquinho cortada em algum dispositivo,
+        é porque logo abaixo do chat ficam estas instruções e textos de apoio.
+        """
     )
 
-    # ✅ Bloco com guia visual do MARK com avatar personalizado
-    from pathlib import Path
-    import base64
 
-    def carregar_imagem_base64(caminho):
-        with open(caminho, "rb") as f:
-            return base64.b64encode(f.read()).decode()
+    # ===============================
+    # 🔎 BUSCA NO HISTÓRICO DO MARK
+    # ===============================
 
-    CAMINHO_AVATAR = Path(__file__).parent / "img" / "avatar.jpeg"
-    avatar_base64 = carregar_imagem_base64(CAMINHO_AVATAR)
+    st.subheader("🔍 Buscar no histórico")
 
-    st.markdown(
-        f"""
-    <div style="background-color:#d0e7fe; border-left: 6px solid #0f00ff; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
-        <div style="display: flex; align-items: center;">
-            <img src="data:image/jpeg;base64,{avatar_base64}" alt="MARK IA" width="100" style="margin-right: 15px; border-radius: 50%;">
-            <div>
-                <h3 style="margin-bottom: 5px;">🤖 Chat Inteligente da MivCast</h3>
-                <p style="margin: 0; color: #333;">
-                    Converse comigo para tirar dúvidas, criar conteúdos, montar campanhas ou resolver qualquer desafio da sua empresa. Estou conectado aos seus dados reais.
-                </p>
-                <p style="margin: 0; margin-top: 10px; color: #555;">
-                    💬 <strong>Dica do MARK:</strong> Use frases diretas como “crie uma legenda para meu produto X” ou “me mostre ideias de reels para meu nicho”.
-                </p>
-            </div>
-        </div>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
+    termo_busca = st.text_input(
+        "Digite uma palavra, frase ou parte da data:",
+        placeholder="Ex.: Google Ads, orçamento, Instagram..."
+    ).strip()
 
-    nome = st.session_state.dados_usuario.get("nome")
-    plano = st.session_state.dados_usuario.get("plano_atual", "desconhecido")
-    tipo = st.session_state.dados_usuario.get("tipo_usuario", "cliente")
-    usuario_id = st.session_state.dados_usuario.get("id")
+    params = {}
+    if termo_busca:
+        params["busca"] = termo_busca
 
-    st.info(f"Olá, {nome}! Você está no plano **{plano}** como **{tipo}**.")
-    st.write(
-        "Digite abaixo sua pergunta e o MARK vai te ajudar com base nos dados da sua empresa."
-    )
+    # 🔐 Cabeçalho com token (se existir)
+    token = st.session_state.get("access_token", "")
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
 
-    st.markdown("<hr>", unsafe_allow_html=True)
+    # Sempre inicializa a lista
+    registros = []
 
-    # 🔹 Histórico do chat (do mais antigo para o mais recente)
-    for autor, mensagem in st.session_state.chat:
-        st.markdown(f"**{autor}**: {mensagem}")
+    try:
+        r_hist = httpx.get(
+            f"{API_URL}/mark/historico_v2",
+            params=params,
+            headers=headers or None,   # se estiver vazio, manda None
+            timeout=30,
+        )
+
+        if r_hist.status_code == 200:
+            registros = r_hist.json()
+
+            if not registros:
+                if termo_busca:
+                    st.info("Nenhum registro encontrado para essa busca.")
+                else:
+                    st.info("Nenhuma interação registrada ainda.")
+            else:
+                st.markdown("---")
+
+                for h in registros:
+                    data = h.get("data_envio") or ""
+                    remetente = h.get("remetente", "").capitalize()
+                    mensagem = h.get("mensagem", "")
+
+                    st.markdown(f"### 🕒 {data}")
+                    st.markdown(f"**{remetente}:** {mensagem}")
+                    st.markdown("---")
+
+        else:
+            st.error(f"Erro ao carregar histórico: {r_hist.status_code}")
+
+    except Exception as e:
+        st.error(f"Erro ao carregar histórico: {e}")
+
+
+    # =====================================
+    # 📤 EXPORTAR HISTÓRICO COMO .TXT
+    # =====================================
+
+    if registros:
+        conteudo_txt = "\n\n".join(
+            [
+                f"{h.get('data_envio', '')} - {h.get('remetente', '').capitalize()}: {h.get('mensagem', '')}"
+                for h in registros
+            ]
+        )
+
+        st.download_button(
+            "📤 Exportar histórico (.txt)",
+            data=conteudo_txt,
+            file_name="historico_mark.txt",
+            mime="text/plain",
+        )
+
+
+
+
+
+    # ===============================
+    # BLOCO: Histórico abaixo do chat
+    # ===============================
+    st.markdown("---")
+    st.markdown("### 🧠 Histórico de Conversas com o MARK")
+
+    # ❌ Sem header Authorization aqui
+    try:
+        r = httpx.get(f"{API_URL}/mark/historico_v2", timeout=10.0)
+        if r.status_code == 200:
+            historico_total = r.json()
+        else:
+            st.warning(f"Não foi possível carregar o histórico (status {r.status_code}).")
+            historico_total = []
+    except Exception as e:
+        st.error(f"Erro ao buscar histórico: {e}")
+        historico_total = []
+
+    # 🔹 Filtra só do usuário logado (se tiver ID)
+    if usuario_id:
+        historico = [
+            h for h in historico_total
+            if h.get("usuario_id") == usuario_id
+        ]
+    else:
+        historico = historico_total
+
+    # Exibição formatada
+    if not historico:
+        st.info("Nenhuma conversa registrada ainda.")
+    else:
+        historico = sorted(
+            historico,
+            key=lambda x: (x.get("data_envio") or ""),
+            reverse=True,
+        )
+
+        for item in historico:
+            remetente_raw = (item.get("remetente") or "").lower()
+            remetente = "Você" if remetente_raw == "usuário" else "MARK IA"
+            mensagem = item.get("mensagem", "")
+            data = item.get("data_envio", "") or ""
+            if data:
+                data = data.replace("T", " ").split(".")[0]
+
+            st.markdown(
+                f"""
+                <div style="
+                    margin-bottom: 12px;
+                    padding: 12px;
+                    border-radius: 10px;
+                    background: {'#e0edff' if remetente=='Você' else '#f7f7f7'};
+                    ">
+                    <b>{remetente}</b> — <small>{data}</small>
+                    <br>
+                    <div style="margin-top: 6px; font-size: 15px;">
+                        {mensagem}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
     st.markdown("---")
 
-    # 🔹 Formulário: input + anexo + (futuro) áudio + botão enviar – tudo em 1 linha
-    with st.form("form_mark"):
-        col_input, col_file, col_audio, col_btn = st.columns([5, 0.7, 1.6, 1])
 
-        # INPUT
-        with col_input:
-            pergunta = st.text_input(
-                "",
-                key="input_mark",
-                placeholder="Digite sua pergunta...",
-            )
 
-        # ANEXO – botão redondo com +
-        with col_file:
-            arquivo = st.file_uploader(
-                "",
-                type=["pdf", "png", "jpg", "jpeg"],
-                label_visibility="collapsed",
-                key="upload_mark",
-            )
-
-        # ÁUDIO – texto discreto na mesma linha
-        with col_audio:
-            st.markdown(
-                "<span style='font-size:13px; color:#999;'>🎙️ Voz (em breve)</span>",
-                unsafe_allow_html=True,
-            )
-
-        # ENVIAR
-        with col_btn:
-            enviar = st.form_submit_button("Enviar", use_container_width=True)
-
-    # 👉 Agora, tanto clicar no botão quanto apertar Enter envia a mensagem
-    if enviar and pergunta:
-        # adiciona pergunta no histórico
-        st.session_state.chat.append(("🧑", pergunta))
-
-        # placeholder para status ("MARK está pensando...")
-        status_placeholder = st.empty()
-        status_placeholder.markdown(
-            "⏳ **MARK está analisando seus dados, consultando o método MARK-APP "
-            "e preparando uma resposta personalizada...**"
-        )
-
-        # placeholder para resposta em streaming
-        resposta_placeholder = st.empty()
-        resposta_texto = ""
-
-        try:
-            # 🔹 Consome o endpoint /mark/stream no backend com streaming real
-            with httpx.stream(
-                "POST",
-                f"{API_URL}/mark/stream",
-                json={"mensagem": pergunta, "usuario_id": usuario_id},
-                timeout=60,
-            ) as r:
-                if r.status_code != 200:
-                    raise Exception(f"Erro {r.status_code} ao chamar o MARK.")
-
-                for chunk in r.iter_text():
-                    if not chunk:
-                        continue
-                    resposta_texto += chunk
-                    # Atualiza em tempo real, como se o MARK estivesse digitando
-                    resposta_placeholder.markdown(
-                        f"**🤖 MARK:** {resposta_texto}"
-                    )
-
-            # terminou o streaming: grava no histórico local
-            st.session_state.chat.append(("🤖 MARK", resposta_texto))
-
-            # 👉 Envia a conversa para o backend salvar no histórico
-            try:
-                headers = get_headers()
-
-                # Mensagem do usuário
-                httpx.post(
-                    f"{API_URL}/mark/historico",
-                    json={"remetente": "usuario", "mensagem": pergunta},
-                    headers=headers,
-                    timeout=30,
-                )
-
-                # Resposta do MARK
-                httpx.post(
-                    f"{API_URL}/mark/historico",
-                    json={"remetente": "mark", "mensagem": resposta_texto},
-                    headers=headers,
-                    timeout=30,
-                )
-            except Exception:
-                # Se der erro para salvar, não quebra o chat
-                pass
-
-            status_placeholder.empty()
-
-        except Exception as e:
-            status_placeholder.empty()
-            st.session_state.chat.append(("❌", f"Erro ao falar com o MARK: {e}"))
-
-        # força recarregar a tela para redesenhar o chat com a nova resposta
-        st.rerun()
 
 
 
@@ -2774,8 +3215,7 @@ def tela_detalhe_curso(curso_id: int):
 
 
 
-def get_headers():
-    return {"Authorization": f"Bearer {st.session_state.token}"}
+
 
 def tela_aplicativos():
     if not usuario_tem_acesso("aplicativos"):
@@ -2857,7 +3297,6 @@ def tela_checkout_app(app_id):
 # ------------------- INTERFACE PRINCIPAL -------------------
 
 def main():
-    st.set_page_config(page_title="MARK Sistema IA", layout="wide")
 
     query_params = st.query_params
     modo_cadastro = "cadastro" in query_params
@@ -2875,6 +3314,120 @@ def main():
 
     # Agora segue normalmente com usuário logado
     if st.session_state.token:
+
+        # 🔤 "Menu de módulos" em uma caixinha preta ao lado do >>
+        st.markdown("""
+        <style>
+        @media (max-width: 768px) {
+
+            /* Header fixo no topo */
+            [data-testid="stHeader"] {
+                position: sticky;
+                top: 0;
+                z-index: 999;
+            }
+
+            /* Caixinha preta ao lado do >> */
+            [data-testid="stHeader"]::after {
+                content: "👈🏻 Menu de módulos";
+                position: absolute;
+                left: 55px;
+                top: 16px;              /* altura ajustada pra ficar na linha do >> */
+                padding: 6px 12px;
+                background-color: #000000;
+                color: #ffffff;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 600;
+                white-space: nowrap;
+            }
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        # 🔁 Script para FECHAR automaticamente o menu lateral no mobile (versão 2)
+        st.markdown(
+            """
+            <script>
+            // Coloca tudo em uma função auto-executável pra evitar conflitos
+            (function() {
+              function isMobile() {
+                return window.innerWidth <= 768;
+              }
+
+              // Tenta achar o botão de toggle do menu do Streamlit
+              function encontrarBotaoToggle() {
+                // alguns possíveis seletores que o Streamlit usa no header
+                const candidatos = Array.from(document.querySelectorAll("button"));
+
+                return candidatos.find(btn => {
+                  const aria = (btn.getAttribute("aria-label") || "").toLowerCase();
+                  const title = (btn.getAttribute("title") || "").toLowerCase();
+                  const texto = (btn.innerText || "").toLowerCase();
+
+                  return (
+                    aria.includes("sidebar") ||
+                    aria.includes("barra lateral") ||
+                    title.includes("sidebar") ||
+                    title.includes("barra lateral") ||
+                    texto.includes("≪") || texto.includes("≫")
+                  );
+                }) || null;
+              }
+
+              function fecharSidebar() {
+                const toggle = encontrarBotaoToggle();
+                if (toggle) {
+                  toggle.click();
+                }
+              }
+
+              // 1) Fechar quando clicar em qualquer opção de rádio do menu lateral
+              document.addEventListener("click", function(event) {
+                if (!isMobile()) return;
+
+                // procura um label de radio (onde fica o texto dos módulos)
+                const labelRadio = event.target.closest('label[data-baseweb="radio"]') || event.target.closest("label");
+                if (!labelRadio) return;
+
+                // Dá um tempinho pro Streamlit mudar o conteúdo da página
+                setTimeout(function() {
+                  fecharSidebar();
+                }, 400);
+              }, true);
+
+              // 2) Gesto de "puxar" (swipe) para fechar a sidebar
+              let touchStartX = null;
+
+              document.addEventListener("touchstart", function(e) {
+                if (!isMobile()) return;
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+              }, { passive: true });
+
+              document.addEventListener("touchend", function(e) {
+                if (!isMobile()) return;
+                if (touchStartX === null) return;
+
+                const touch = e.changedTouches[0];
+                const deltaX = touch.clientX - touchStartX;
+
+                // Se arrastar para a esquerda mais de 60px, tenta fechar
+                if (deltaX < -60) {
+                  fecharSidebar();
+                }
+
+                touchStartX = null;
+              });
+            })();
+            </script>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+
+
         obter_dados_usuario()
         usuario = st.session_state.dados_usuario
         plano = usuario.get("plano_atual") or "Gratuito"
@@ -2904,8 +3457,6 @@ def main():
             if st.sidebar.button("⚙️ Painel Admin"):
                 st.session_state.admin = True
 
-
-
     # --- Painel admin mantém a lógica atual ---
     if st.session_state.admin:
         painel_admin()
@@ -2914,13 +3465,16 @@ def main():
             st.rerun()
         return
 
+
+
+
     # --- MENU LATERAL: sempre aparece ---
     st.sidebar.title("📚 Menu")
     escolha = st.sidebar.radio(
         "Navegar para:",
         [
             "🏠 **Início**",
-            "💳 Plano Atual",
+            "💳 Planos",
             "🏢 **Empresa**",
             "❤️ **Saúde da Empresa**",
             "📋 **Consultoria**",
@@ -2930,11 +3484,11 @@ def main():
             "💰 **Orçamento**",
             "📅 **Agenda**",
             "📣 **Central de Marketing**",
-            "🏷️ **Central da Marca (Branding)**",
-            "🧠 **Histórico**",
+                             "🧠 **Central de Ideias**",
+            "🏷️ **Central da Marca**",
             "📁 **Arquivos**",
             "🤖 **MARK IA**",
-            "🌐 **Página e Chat do Cliente**",
+            "🌐 **Site e Chat**",
             "🚪 **Sair**"
         ],
         key="menu_principal",
@@ -2960,7 +3514,7 @@ def main():
 
     if escolha == "🏠 **Início**":
         tela_inicio()
-    elif escolha == "💳 Plano Atual":
+    elif escolha == "💳 Planos":
         tela_planos()
     elif escolha == "🏢 **Empresa**":
         tela_empresa()
@@ -2994,15 +3548,15 @@ def main():
         tela_agenda()
     elif escolha == "📣 **Central de Marketing**":
         tela_marketing()
-    elif escolha == "🏷️ **Central da Marca (Branding)**":
+    elif escolha == "🧠 **Central de Ideias**":
+                   tela_central_ideias()
+    elif escolha == "🏷️ **Central da Marca**":
         tela_branding()
-    elif escolha == "🧠 **Histórico**":
-        tela_historico()
     elif escolha == "📁 **Arquivos**":
         tela_arquivos()
     elif escolha == "🤖 **MARK IA**":
-        tela_mark()
-    elif escolha == "🌐 **Página e Chat do Cliente**":
+        tela_mark_ia()
+    elif escolha == "🌐 **Site e Chat**":
         tela_site_cliente()
     elif escolha == "🚪 **Sair**":
         st.session_state.token = None
@@ -3015,8 +3569,10 @@ def main():
 
 
 
-
 # Executa o app
 if __name__ == "__main__":
     main()
+
+
+
 

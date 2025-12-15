@@ -1437,266 +1437,129 @@ def exibir_carrossel(titulo, lista, tipo_chave):
 
 
 
+def tela_consultor_mensal():
+    import datetime
+    import httpx
+    import streamlit as st
 
+    st.title("🧠 Consultor Mensal de Marketing & Branding")
+    st.caption("Estratégia clara, ideias prontas e orientação prática.")
 
-
-def tela_marketing():
-    # ⚠️ Verificação de acesso: Admin sempre tem acesso total
-    email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
-    if email_usuario != "matheus@email.com":
-        if not usuario_tem_acesso("marketing"):
-            mostrar_bloqueio_modulo("Central de Marketing")
-            st.stop()
-
-    # 🌐 Estilo global para ocupar toda a tela sem margens
-    st.markdown("""
-        <style>
-            .main .block-container {
-                padding-left: 0rem !important;
-                padding-right: 0rem !important;
-                max-width: 100% !important;
-            }
-            iframe {
-                width: 100% !important;
-            }
-            header, footer {
-                visibility: hidden;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
-
-    st.title("📣 Central de Marketing")
-    # ✅ Bloco com guia visual do MARK com avatar personalizado
-    from pathlib import Path
-    import base64
-
-    def carregar_imagem_base64(caminho):
-        with open(caminho, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-
-    CAMINHO_AVATAR = Path(__file__).parent / "img" / "avatar.jpeg"
-    avatar_base64 = carregar_imagem_base64(CAMINHO_AVATAR)
-
-    st.markdown(f"""
-    <div style="background-color:#d0e7fe; border-left: 6px solid #0f00ff; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
-        <div style="display: flex; align-items: center;">
-            <img src="data:image/jpeg;base64,{avatar_base64}" alt="MARK IA" width="100" style="margin-right: 15px; border-radius: 50%;">
-            <div>
-                <h3 style="margin-bottom: 5px;">📣 Bem-vindo à Central de Marketing</h3>
-                <p style="margin: 0; color: #333;">
-                    Aqui você encontra campanhas, tendências, datas sazonais e ideias de conteúdo atualizadas com inteligência artificial. É o seu arsenal criativo!
-                </p>
-                <p style="margin: 0; margin-top: 10px; color: #555;">
-                    💡 <strong>Dica do MARK:</strong> Visite esse módulo toda semana para atualizar suas campanhas e manter sua presença digital sempre em alta.
-                </p>
-            </div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
-    if not st.session_state.token:
+    if not st.session_state.get("token"):
         st.warning("Você precisa estar logado para acessar.")
         return
 
     headers = get_headers()
-    hoje = datetime.date.today()
-    ano_atual = hoje.year
-    mes_atual = hoje.month
 
-    meses_opcoes = [f"{ano_atual}-{str(m).zfill(2)}" for m in range(1, mes_atual + 1)]
-    if hoje.day >= 24:
-        proximo_mes = (hoje.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
-        meses_opcoes.append(f"{proximo_mes.year}-{str(proximo_mes.month).zfill(2)}")
-
-    mes_escolhido = st.selectbox("🗓 Escolha o mês:", meses_opcoes[::-1])
-
+    # Puxa empresa atual
     try:
-        r = httpx.get(f"{API_URL}/marketing/cards/{mes_escolhido}", headers=headers)
-        if r.status_code == 200:
-            cards_mes = r.json()
-        else:
-            st.error("Erro ao buscar os cards.")
-            return
+        r = httpx.get(f"{API_URL}/empresa", headers=headers, timeout=30)
+        if r.status_code != 200:
+            st.error("Não consegui carregar a empresa (endpoint /empresa).")
+            st.stop()
+        empresa = r.json()
     except Exception as e:
-        st.error(f"Erro ao carregar cards: {e}")
+        st.error(f"Erro ao buscar empresa: {e}")
+        st.stop()
+
+    # IMPORTANTE: não assumir id sempre
+    empresa_id = empresa.get("id") or empresa.get("empresa_id")
+    if not empresa_id:
+        st.error("Sua empresa não retornou o campo 'id'. Ajuste o /empresa para incluir 'id'.")
+        st.stop()
+
+    mes_padrao = datetime.datetime.now().strftime("%Y-%m")
+    mes_ano = st.text_input("📅 Mês (YYYY-MM)", value=mes_padrao)
+
+    colA, colB = st.columns([1, 1])
+    with colA:
+        if st.button("✨ Gerar consultoria do mês", type="primary"):
+            try:
+                rr = httpx.post(f"{API_URL}/consultor-mensal/gerar/{empresa_id}/{mes_ano}", headers=headers, timeout=120)
+                if rr.status_code == 200:
+                    st.success("Consultoria gerada com sucesso.")
+                    st.rerun()
+                else:
+                    st.error(rr.text)
+            except Exception as e:
+                st.error(f"Erro ao gerar: {e}")
+
+    with colB:
+        if st.button("🔁 Gerar nova versão do mês"):
+            try:
+                rr = httpx.post(f"{API_URL}/consultor-mensal/regerar/{empresa_id}/{mes_ano}", headers=headers, timeout=120)
+                if rr.status_code == 200:
+                    st.success("Nova versão gerada e salva.")
+                    st.rerun()
+                else:
+                    st.error(rr.text)
+            except Exception as e:
+                st.error(f"Erro ao regerar: {e}")
+
+    st.divider()
+
+    # GET do mês
+    try:
+        r = httpx.get(f"{API_URL}/consultor-mensal/{empresa_id}/{mes_ano}", headers=headers, timeout=60)
+        if r.status_code == 404:
+            st.info("Nenhuma consultoria gerada para este mês.")
+            return
+        if r.status_code != 200:
+            st.error(r.text)
+            return
+        conteudo = r.json().get("conteudo") or {}
+    except Exception as e:
+        st.error(f"Erro ao buscar consultoria: {e}")
         return
 
-    # Agrupar por tipo
-    agrupados = {}
-    for card in cards_mes:
-        agrupados.setdefault(card["tipo"], []).append(card)
+    # Nunca usar conteudo["chave"] direto
+    st.subheader("📌 Resumo Estratégico")
+    st.write(conteudo.get("resumo_executivo", "Resumo não disponível (backend não enviou)."))
 
-    # Exibir os blocos
-    exibir_carrossel("🎯 Campanhas, Datas e Eventos", agrupados.get("Campanha", []), "camp")
-    exibir_carrossel("🚀 Tendências e Novidades", agrupados.get("Tendência", []), "tend")
-    exibir_carrossel("📦 Produtos em Alta", agrupados.get("Produto", []), "prod")
-    exibir_carrossel("📊 Dados e Estatísticas", agrupados.get("Dado", []), "dados")
-    exibir_carrossel("🧠 30 Ideias de Conteúdo", agrupados.get("Conteúdo", []), "conteudo")
-    exibir_carrossel("💸 Promoções e Ofertas", agrupados.get("Promoção", []), "promo")
-    exibir_carrossel("🫶 Campanhas de Conscientização", agrupados.get("Conscientização", []), "conc")
+    st.caption(
+        f"Empresa: {conteudo.get('empresa_nome', empresa.get('nome_empresa',''))} | "
+        f"Nicho: {conteudo.get('nicho', empresa.get('nicho',''))} | "
+        f"Mês: {conteudo.get('mes_ano', mes_ano)} | "
+        f"Versão: {conteudo.get('versao', 1)}"
+    )
 
-    st.markdown("---")
-    if st.button("⭐ Ver Favoritos"):
-        try:
-            favoritos = httpx.get(f"{API_URL}/marketing/favoritos", headers=headers).json()
-            if favoritos:
-                st.markdown("## ⭐ Meus Favoritos")
-                exibir_carrossel("Favoritos", favoritos, "fav")
+    st.divider()
+
+    blocos = conteudo.get("blocos", [])
+    if not blocos:
+        st.warning("Nenhum bloco encontrado na consultoria.")
+        return
+
+    for bloco in blocos:
+        titulo = bloco.get("titulo", "Tema")
+        intro = bloco.get("intro", "")
+        conteudos = bloco.get("conteudos", [])
+        branding = bloco.get("branding", [])
+
+        with st.expander(titulo, expanded=False):
+            if intro:
+                st.info(intro)
+
+            st.markdown("### 💡 Ideias de Conteúdo")
+            if not conteudos:
+                st.write("Nenhuma ideia de conteúdo.")
             else:
-                st.info("Nenhum card foi favoritado ainda.")
-        except Exception as e:
-            st.warning(f"Erro ao carregar favoritos: {e}")
+                for item in conteudos:
+                    st.markdown(f"**{item.get('numero','')}º Ideia:** {item.get('assunto','')}")
+                    st.markdown(f"🖼️ **Imagem:** {item.get('criativo_imagem','')}")
+                    st.markdown(f"🎥 **Vídeo:** {item.get('criativo_video','')}")
+                    st.markdown("✍️ **Legenda pronta para copiar:**")
+                    st.code(item.get("legenda",""))
 
+                    st.markdown("---")
 
+            st.markdown("### 🧠 Dicas de Branding")
+            if not branding:
+                st.write("Nenhuma dica de branding.")
+            else:
+                for dica in branding:
+                    st.markdown(f"**{dica.get('numero','')}º Dica:** {dica.get('texto','')}")
 
-
-
-
-
-
-
-def tela_branding():
-    # ⚠️ Verificação de acesso: Admin sempre tem acesso total
-    email_usuario = st.session_state.get("dados_usuario", {}).get("email", "")
-    if email_usuario != "matheus@email.com":
-        if not usuario_tem_acesso("branding"):
-            mostrar_bloqueio_modulo("Central da Marca (Branding)")
-            st.stop()
-
-    import base64
-    from pathlib import Path
-
-    st.title("🏷️ Central da Marca (Branding)")
-
-    def carregar_imagem_base64(caminho):
-        with open(caminho, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-
-    CAMINHO_AVATAR = Path(__file__).parent / "img" / "avatar.jpeg"
-    avatar_base64 = carregar_imagem_base64(CAMINHO_AVATAR)
-
-    st.markdown(f"""
-    <div style="background-color:#ffe9f0; border-left: 6px solid #ff007f; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
-        <div style="display: flex; align-items: center;">
-            <img src="data:image/jpeg;base64,{avatar_base64}" alt="MARK IA" width="100" style="margin-right: 15px; border-radius: 50%;">
-            <div>
-                <h3 style="margin-bottom: 5px;">🏷️ Central da Marca</h3>
-                <p style="margin: 0; color: #333;">
-                    Use as tendências e campanhas da Central de Marketing como base para melhorar o **branding** da sua empresa.
-                </p>
-                <p style="margin: 0; margin-top: 10px; color: #555;">
-                    💡 <strong>Dica do MARK:</strong> Branding é repetição + coerência. Aproveite os momentos em alta para fixar sua marca na mente do cliente.
-                </p>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    if not st.session_state.token:
-        st.warning("Você precisa estar logado para acessar.")
-        return
-
-    headers = get_headers()
-    hoje = datetime.date.today()
-    ano_atual = hoje.year
-    mes_atual = hoje.month
-
-    meses_opcoes = [f"{ano_atual}-{str(m).zfill(2)}" for m in range(1, mes_atual + 1)]
-    if hoje.day >= 24:
-        proximo_mes = (hoje.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
-        meses_opcoes.append(f"{proximo_mes.year}-{str(proximo_mes.month).zfill(2)}")
-
-    mes_escolhido = st.selectbox("🗓 Escolha o mês de referência:", meses_opcoes[::-1])
-
-    try:
-        r = httpx.get(f"{API_URL}/marketing/cards/{mes_escolhido}", headers=headers)
-        cards_mes = r.json() if r.status_code == 200 else []
-    except Exception as e:
-        st.error(f"Erro ao buscar cards: {e}")
-        return
-
-    def gerar_dicas_branding(titulo_card, descricao_card):
-        return f"""
-        <ol>
-            <li>Reforce a identidade visual da marca nesse tema: use logo, cores e fontes padrão.</li>
-            <li>Associe sua marca ao tema “{titulo_card}” com campanhas visuais e parcerias locais.</li>
-            <li>Publique depoimentos, bastidores ou ações que fortaleçam os valores da marca.</li>
-            <li>Use a campanha para criar lembrança de marca — mencione seu nome em todos os canais.</li>
-            <li>Se possível, grave vídeos ou reels com o tema “{titulo_card}” reforçando sua autoridade no assunto.</li>
-        </ol>
-        """
-
-    def exibir_branding_cards(lista, tipo):
-        st.markdown(f"## 🧠 Dicas de Branding para: {tipo}")
-        if not lista:
-            st.info("Nenhuma sugestão disponível.")
-            return
-
-        html = """
-        <style>
-            .grid-container {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-                gap: 16px;
-                padding: 10px 20px;
-            }
-            .card {
-                background-color: #fff;
-                border-radius: 12px;
-                padding: 16px;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                height: 100%;
-            }
-            .card h4 {
-                font-size: 16px;
-                margin: 0 0 6px;
-            }
-            .card small {
-                color: #999;
-                font-size: 12px;
-                margin-bottom: 8px;
-            }
-            .card p {
-                font-size: 13px;
-                color: #333;
-            }
-            .card ol {
-                font-size: 13px;
-                padding-left: 18px;
-                margin: 10px 0 0;
-            }
-        </style>
-        <div class="grid-container">
-        """
-        for card in lista:
-            html += f"""
-            <div class="card">
-                <h4>🏷️ {card['titulo']}</h4>
-                <small>📆 Atualizado em: {card['atualizado_em'][:10]}</small>
-                <p>{card['descricao']}</p>
-                <p><strong>💡 Dicas para Fortalecer sua Marca:</strong></p>
-                {gerar_dicas_branding(card['titulo'], card['descricao'])}
-            </div>
-            """
-        html += "</div>"
-        components.html(html, height=800 + (len(lista) // 4 * 160), scrolling=True)
-
-    # Agrupar por tipo
-    agrupados = {}
-    for card in cards_mes:
-        agrupados.setdefault(card["tipo"], []).append(card)
-
-    exibir_branding_cards(agrupados.get("Campanha", []), "Campanhas")
-    exibir_branding_cards(agrupados.get("Tendência", []), "Tendências")
-    exibir_branding_cards(agrupados.get("Promoção", []), "Promoções")
-    exibir_branding_cards(agrupados.get("Conscientização", []), "Campanhas do Bem")
-    exibir_branding_cards(agrupados.get("Conteúdo", []), "Conteúdos Estratégicos")
-    exibir_branding_cards(agrupados.get("Produto", []), "Produtos em Alta")
-    exibir_branding_cards(agrupados.get("Dado", []), "Dados e Pesquisas")
 
 
 
@@ -3185,7 +3048,7 @@ def main():
         "Navegar para:",
         [
             "🏠 **Início**",
-            "💳 Plano Atual",
+            "💳 Planos",
             "🏢 **Empresa**",
             "❤️ **Saúde da Empresa**",
             "📋 **Consultoria**",
@@ -3194,11 +3057,10 @@ def main():
             "📱 **Aplicativos**",
             "💰 **Orçamento**",
             "📅 **Agenda**",
-            "📣 **Central de Marketing**",
-            "🏷️ **Central da Marca (Branding)**",
+            "📣 **Consultor Mensal**",
             "📁 **Arquivos**",
             "🤖 **MARK IA**",
-            "🌐 **Página e Chat do Cliente**",
+            "🌐 **Site e Chat**",
             "🚪 **Sair**"
         ],
         key="menu_principal",
@@ -3224,7 +3086,7 @@ def main():
 
     if escolha == "🏠 **Início**":
         tela_inicio()
-    elif escolha == "💳 Plano Atual":
+    elif escolha == "💳 Planos":
         tela_planos()
     elif escolha == "🏢 **Empresa**":
         tela_empresa()
@@ -3256,15 +3118,13 @@ def main():
         tela_orcamento(dados_empresa)
     elif escolha == "📅 **Agenda**":
         tela_agenda()
-    elif escolha == "📣 **Central de Marketing**":
-        tela_marketing()
-    elif escolha == "🏷️ **Central da Marca (Branding)**":
-        tela_branding()
+    elif escolha == "📣 **Consultor Mensal**":
+       tela_consultor_mensal()
     elif escolha == "📁 **Arquivos**":
         tela_arquivos()
     elif escolha == "🤖 **MARK IA**":
         tela_mark_ia()
-    elif escolha == "🌐 **Página e Chat do Cliente**":
+    elif escolha == "🌐 **Site e Chat**":
         tela_site_cliente()
     elif escolha == "🚪 **Sair**":
         st.session_state.token = None
