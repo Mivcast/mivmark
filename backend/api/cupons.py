@@ -1,139 +1,257 @@
 # backend/api/cupons.py
-from datetime import datetime
-from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from typing import Optional, List
 from sqlalchemy.orm import Session
+from datetime import date, datetime
 
 from backend.database import get_db
-from backend.models.cupons import CupomDesconto, CupomSchema, CupomCreate
+from backend.api.auth import get_usuario_logado
+from backend.models import Usuario
+from backend.models.cupom import CupomDesconto
+from backend.models.planos import Plano
+
 
 router = APIRouter(prefix="/cupons", tags=["Cupons"])
 
 
-@router.get("/", response_model=list[CupomSchema])
-def listar_cupons(db: Session = Depends(get_db)):
-    return db.query(CupomDesconto).all()
+# -------------------------
+# Schemas
+# -------------------------
+class CupomCreate(BaseModel):
+    codigo: str
+    descricao: Optional[str] = None
+    desconto_percent: float
+
+    # "curso" | "plano" | "aplicativo"
+    escopo: str
+
+    # alvo do cupom (opcionais, dependendo do escopo)
+    curso_id: Optional[int] = None
+    aplicativo_id: Optional[int] = None
+
+    # FRONT pode mandar plano_id (0 = todos) => vamos converter para plano_nome
+    plano_id: Optional[int] = None
+
+    valido_ate: Optional[date] = None  # None = sem validade
+    ativo: bool = True
 
 
-@router.post("/", response_model=CupomSchema)
-def criar_cupom(cupom: CupomCreate, db: Session = Depends(get_db)):
-    # Verifica se já existe código igual
-    existente = db.query(CupomDesconto).filter(
-        CupomDesconto.codigo == cupom.codigo
-    ).first()
-    if existente:
-        raise HTTPException(status_code=400, detail="Código de cupom já existe.")
+class CupomUpdate(BaseModel):
+    descricao: Optional[str] = None
+    desconto_percent: Optional[float] = None
+    escopo: Optional[str] = None
 
-    novo = CupomDesconto(**cupom.dict())
-    db.add(novo)
+    curso_id: Optional[int] = None
+    aplicativo_id: Optional[int] = None
+    plano_id: Optional[int] = None
+
+    valido_ate: Optional[date] = None
+    ativo: Optional[bool] = None
+
+
+class CupomOut(BaseModel):
+    id: int
+    codigo: str
+    descricao: Optional[str]
+    desconto_percent: Optional[float]
+    escopo: Optional[str]
+
+    curso_id: Optional[int]
+    aplicativo_id: Optional[int]
+    plano_nome: Optional[str]
+
+    valido_ate: Optional[datetime]
+    ativo: bool
+
+    class Config:
+        from_attributes = True
+
+
+# -------------------------
+# Helpers
+# -------------------------
+def _codigo_normalizado(c: str) -> str:
+    return (c or "").strip().lower()
+
+
+def _validar_escopo(escopo: str):
+    escopo = (escopo or "").strip().lower()
+    if escopo not in ("curso", "plano", "aplicativo"):
+        raise HTTPException(status_code=400, detail="escopo deve ser 'curso', 'plano' ou 'aplicativo'")
+    return escopo
+
+
+def _so_admin(usuario: Usuario):
+    if getattr(usuario, "is_admin", False) is True:
+        return
+    if getattr(usuario, "tipo_usuario", "") == "admin":
+        return
+    raise HTTPException(status_code=403, detail="Apenas admin pode gerenciar cupons")
+
+
+def _resolver_plano_nome(db: Session, plano_id: Optional[int]) -> str:
+    # 0 ou None = todos
+    if not plano_id or int(plano_id) == 0:
+        return "todos"
+
+    plano = db.query(Plano).filter(Plano.id == int(plano_id)).first()
+    if not plano:
+        raise HTTPException(status_code=400, detail="Plano não encontrado para vincular ao cupom.")
+
+    # ✅ aqui é o ponto crítico: precisa ser o NOME do plano
+    return (plano.nome or "").strip()
+
+
+def _validar_valido_ate(valido_ate: Optional[date]):
+    if valido_ate and valido_ate < date.today():
+        raise HTTPException(status_code=400, detail="valido_ate não pode estar no passado.")
+
+
+# -------------------------
+# CRUD
+# -------------------------
+@router.post("", response_model=CupomOut)
+def criar_cupom(
+    payload: CupomCreate,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_logado),
+):
+    _so_admin(usuario)
+
+    codigo = _codigo_normalizado(payload.codigo)
+    if not codigo:
+        raise HTTPException(status_code=400, detail="Código do cupom é obrigatório.")
+
+    # Evita duplicidade
+    ja_existe = db.query(CupomDesconto).filter(CupomDesconto.codigo == codigo).first()
+    if ja_existe:
+        raise HTTPException(status_code=400, detail="Já existe um cupom com esse código.")
+
+    escopo = _validar_escopo(payload.escopo)
+    _validar_valido_ate(payload.valido_ate)
+
+    # Normaliza alvo conforme escopo
+    curso_id = None
+    aplicativo_id = None
+    plano_nome = None
+
+    if escopo == "plano":
+        plano_nome = _resolver_plano_nome(payload.plano_id, db)
+    elif escopo == "curso":
+        curso_id = payload.curso_id  # None => vale para todos os cursos
+    elif escopo == "aplicativo":
+        aplicativo_id = payload.aplicativo_id  # None => vale para todos os apps
+
+
+    # Como seu front trabalha com "desconto_percent", vamos gravar como cupom percentual:
+    # - tipo_valor = "percent"
+    # - valor = desconto_percent
+    tipo_valor = "percent"
+    valor = float(payload.desconto_percent or 0)
+
+    cupom = CupomDesconto(
+        codigo=codigo,
+        descricao=payload.descricao,
+
+        # compatibilidade com o que você já usa no sistema
+        desconto_percent=payload.desconto_percent,
+
+        escopo=escopo,
+        curso_id=curso_id,
+        aplicativo_id=aplicativo_id,
+        plano_nome=plano_nome,
+        valido_ate=payload.valido_ate,
+        ativo=payload.ativo,
+
+        # campos que no seu banco estão NOT NULL
+        tipo_valor=tipo_valor,
+        valor=valor,
+        tipo_aplicacao="desconto",
+        usos_realizados=0,
+    )
+
+    db.add(cupom)
     db.commit()
-    db.refresh(novo)
-    return novo
+    db.refresh(cupom)
+    return cupom
 
 
-@router.put("/{cupom_id}", response_model=CupomSchema)
-def atualizar_cupom(cupom_id: int, cupom: CupomCreate, db: Session = Depends(get_db)):
-    db_cupom = db.query(CupomDesconto).filter(CupomDesconto.id == cupom_id).first()
-    if not db_cupom:
-        raise HTTPException(status_code=404, detail="Cupom não encontrado.")
+@router.get("", response_model=List[CupomOut])
+def listar_cupons(escopo: Optional[str] = None, db: Session = Depends(get_db)):
+    q = db.query(CupomDesconto)
+    if escopo:
+        q = q.filter(CupomDesconto.escopo == escopo.strip().lower())
+    return q.order_by(CupomDesconto.id.desc()).all()
 
-    for campo, valor in cupom.dict().items():
-        setattr(db_cupom, campo, valor)
+
+@router.put("/{cupom_id}", response_model=CupomOut)
+def editar_cupom(
+    cupom_id: int,
+    payload: CupomUpdate,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_logado),
+):
+    _so_admin(usuario)
+
+    cupom = db.query(CupomDesconto).filter(CupomDesconto.id == cupom_id).first()
+    if not cupom:
+        raise HTTPException(status_code=404, detail="Cupom não encontrado")
+
+    if payload.escopo is not None:
+        escopo = _validar_escopo(payload.escopo)
+        cupom.escopo = escopo
+        # ao trocar escopo, limpa vínculos conflitantes
+        if escopo == "plano":
+            cupom.curso_id = None
+            cupom.aplicativo_id = None
+            cupom.plano_nome = _resolver_plano_nome(payload.plano_id, db) if payload.plano_id is not None else "todos"
+        elif escopo == "curso":
+            cupom.plano_nome = None
+            cupom.aplicativo_id = None
+            cupom.curso_id = payload.curso_id
+        elif escopo == "aplicativo":
+            cupom.plano_nome = None
+            cupom.curso_id = None
+            cupom.aplicativo_id = payload.aplicativo_id
+
+    if payload.descricao is not None:
+        cupom.descricao = payload.descricao
+    if payload.desconto_percent is not None:
+        cupom.desconto_percent = payload.desconto_percent
+    if payload.valido_ate is not None:
+        _validar_valido_ate(payload.valido_ate)
+        cupom.valido_ate = payload.valido_ate
+    if payload.ativo is not None:
+        cupom.ativo = payload.ativo
+
+    # Atualiza alvo (sem trocar escopo)
+    if payload.escopo is None:
+        if cupom.escopo == "plano" and payload.plano_id is not None:
+            cupom.plano_nome = _resolver_plano_nome(payload.plano_id, db)
+        if cupom.escopo == "curso" and payload.curso_id is not None:
+            cupom.curso_id = payload.curso_id
+        if cupom.escopo == "aplicativo" and payload.aplicativo_id is not None:
+            cupom.aplicativo_id = payload.aplicativo_id
 
     db.commit()
-    db.refresh(db_cupom)
-    return db_cupom
+    db.refresh(cupom)
+    return cupom
 
 
 @router.delete("/{cupom_id}")
-def excluir_cupom(cupom_id: int, db: Session = Depends(get_db)):
-    db_cupom = db.query(CupomDesconto).filter(CupomDesconto.id == cupom_id).first()
-    if not db_cupom:
-        raise HTTPException(status_code=404, detail="Cupom não encontrado.")
+def excluir_cupom(
+    cupom_id: int,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_logado),
+):
+    _so_admin(usuario)
 
-    db.delete(db_cupom)
+    cupom = db.query(CupomDesconto).filter(CupomDesconto.id == cupom_id).first()
+    if not cupom:
+        raise HTTPException(status_code=404, detail="Cupom não encontrado")
+
+    db.delete(cupom)
     db.commit()
     return {"ok": True}
-
-
-# ------------ Validação / simulação de aplicação de cupom -----------
-
-class CupomAplicadoResponse(CupomSchema):
-    valor_original: float
-    valor_com_desconto: float
-    desconto_aplicado: float
-
-
-@router.get("/validar", response_model=CupomAplicadoResponse)
-def validar_cupom(
-    codigo: str = Query(..., description="Código do cupom"),
-    valor: float = Query(..., description="Valor original"),
-    tipo_aplicacao: str = Query("plano", description="plano/curso/aplicativo"),
-    plano_nome: Optional[str] = Query(None),
-    curso_id: Optional[int] = Query(None),
-    aplicativo_id: Optional[int] = Query(None),
-    db: Session = Depends(get_db),
-):
-    cupom = (
-        db.query(CupomDesconto)
-        .filter(CupomDesconto.codigo == codigo)
-        .first()
-    )
-
-    if not cupom or not cupom.ativo:
-        raise HTTPException(status_code=404, detail="Cupom inválido ou inativo.")
-
-    # Verifica validade por data
-    if cupom.valido_ate and cupom.valido_ate < datetime.utcnow():
-        raise HTTPException(status_code=400, detail="Cupom vencido.")
-
-    # Verifica limite de uso
-    if cupom.limite_uso_total is not None and cupom.usos_realizados >= cupom.limite_uso_total:
-        raise HTTPException(status_code=400, detail="Limite de uso do cupom atingido.")
-
-    # Verifica se o tipo de aplicação bate
-    if cupom.tipo_aplicacao != "todos" and cupom.tipo_aplicacao != tipo_aplicacao:
-        raise HTTPException(status_code=400, detail="Cupom não se aplica a este tipo de compra.")
-
-    # Se estiver amarrado a um plano específico
-    if cupom.plano_nome and plano_nome and cupom.plano_nome != plano_nome:
-        raise HTTPException(status_code=400, detail="Cupom não é válido para este plano.")
-
-    # Se estiver amarrado a um curso específico
-    if cupom.curso_id and curso_id and cupom.curso_id != curso_id:
-        raise HTTPException(status_code=400, detail="Cupom não é válido para este curso.")
-
-    # Se estiver amarrado a um aplicativo específico
-    if cupom.aplicativo_id and aplicativo_id and cupom.aplicativo_id != aplicativo_id:
-        raise HTTPException(status_code=400, detail="Cupom não é válido para este aplicativo.")
-
-    # Cálculo do desconto
-    if cupom.tipo_valor == "percentual":
-        desconto = valor * (cupom.valor / 100.0)
-    else:  # valor_fixo
-        desconto = cupom.valor
-
-    valor_com_desconto = max(0.0, valor - desconto)
-
-    resposta = CupomAplicadoResponse(
-        id=cupom.id,
-        codigo=cupom.codigo,
-        tipo_valor=cupom.tipo_valor,
-        valor=cupom.valor,
-        tipo_aplicacao=cupom.tipo_aplicacao,
-        plano_nome=cupom.plano_nome,
-        curso_id=cupom.curso_id,
-        aplicativo_id=cupom.aplicativo_id,
-        limite_uso_total=cupom.limite_uso_total,
-        usos_realizados=cupom.usos_realizados,
-        criado_em=cupom.criado_em,
-        valido_ate=cupom.valido_ate,
-        ativo=cupom.ativo,
-        observacoes=cupom.observacoes,
-        valor_original=valor,
-        valor_com_desconto=valor_com_desconto,
-        desconto_aplicado=desconto,
-    )
-
-    return resposta

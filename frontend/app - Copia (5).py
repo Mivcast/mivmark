@@ -1911,8 +1911,8 @@ def tela_planos():
     st.title("📦 Meus Planos")
 
     # Use o API_URL global se já existir no app.py
-
-    API_URL = (st.session_state.get("API_URL") or "http://127.0.0.1:8000").strip().rstrip("/")
+    API_URL = st.session_state.get("API_URL") or "https://mivmark-backend.onrender.com"
+    API_URL = (API_URL or "").strip().rstrip("/")
 
     # ======================================================
     # 1) DADOS DO USUÁRIO
@@ -2035,18 +2035,32 @@ def tela_planos():
                 return c
         return None
 
-    
     def cupom_valido_para_plano(cupom: dict, plano_id: int) -> bool:
+        """
+        Regra correta do seu sistema:
+        - cupom precisa estar ativo
+        - se tiver valido_ate, não pode estar expirado
+        - se cupom tiver plano_id preenchido, precisa bater com o plano atual
+        - se cupom NÃO tiver plano_id (None), considera cupom "global" de planos
+        """
         if not cupom:
             return False
+
         if not bool(cupom.get("ativo", False)):
             return False
 
-        alvo = (cupom.get("plano_nome") or "").strip().lower()
-        if not alvo or alvo == "todos":
-            return True
+        v_date = _parse_date_iso(cupom.get("valido_ate"))
+        if v_date and v_date < date.today():
+            return False
 
-        return alvo == (plano_nome or "").strip().lower()
+        cupom_plano_id = cupom.get("plano_id", None)
+        if cupom_plano_id is None:
+            return True  # cupom global de planos
+
+        try:
+            return int(cupom_plano_id) == int(plano_id)
+        except Exception:
+            return False
 
     # ======================================================
     # 5) FUNÇÃO: CRIAR PREFERÊNCIA MP COM FALLBACK DE ROTA
@@ -2142,91 +2156,50 @@ def tela_planos():
                 st.info("✅ Esse já é seu plano atual.")
                 continue
 
-
-
-
-            def _safe_json(text: str):
-                try:
-                    return json.loads(text)
-                except Exception:
-                    return None
-
-            def _try_post(url: str, headers: dict, params: dict):
-                try:
-                    return httpx.post(url, headers=headers, params=params, timeout=30)
-                except Exception as e:
-                    return e
-
-            # ... dentro do for dos planos:
-
-
-            btn_key = f"contratar_plano_{plano_id}_{i}"  # i vem do enumerate(planos)
-
             if st.button(f"Quero esse plano: {nome_plano}", key=f"contratar_plano_{plano_id}"):
 
-                token = st.session_state.get("token")
-                if not token:
-                    st.error("❌ Token não encontrado. Faça logout e login novamente.")
-                    st.stop()
+                preco_final = preco_mensal
+                cupom_ok = None
+                desconto_pct = 0.0
 
-                headers = {
-                    "Authorization": f"Bearer {token}",
-                    "Content-Type": "application/json",
-                }
+                if cupom_input:
+                    cupom = achar_cupom(cupom_input)
+                    if not cupom:
+                        st.warning("⚠️ Cupom inválido.")
+                    elif not cupom_valido_para_plano(cupom, plano_id):
+                        st.warning("⚠️ Cupom inválido ou não aplicável a este plano.")
+                    else:
+                        desconto_pct = float(cupom.get("desconto_percent") or 0.0)
+                        if desconto_pct < 0 or desconto_pct > 100:
+                            st.warning("⚠️ Cupom com desconto inválido.")
+                        else:
+                            preco_final = preco_mensal * (1 - desconto_pct / 100.0)
+                            preco_final = round(max(preco_final, 0.0), 2)
+                            cupom_ok = cupom
 
-                cupom_digitado = (cupom_input or "").strip()
-
-                params = {
-                    "cupom": (cupom_digitado.lower() if cupom_digitado else None),
-                    "periodo": "mensal",
-                    "metodo": "pix",
-                    "gateway": "mercado_pago",
-                    # 🔕 não envia debug
-                }
-
-                def _try_post(url: str):
-                    try:
-                        return httpx.post(url, headers=headers, params=params, timeout=30)
-                    except Exception as e:
-                        return e
-
-                url1 = f"{API_URL.rstrip('/')}/planos/{int(plano_id)}/comprar"
-                url2 = f"{API_URL.rstrip('/')}/api/planos/{int(plano_id)}/comprar"  # fallback
-
-                resp = _try_post(url1)
-
-                if isinstance(resp, Exception):
-                    st.error(f"Erro de rede ao chamar backend: {resp}")
-                    st.stop()
-
-                # se 404, tenta /api
-                if resp.status_code == 404:
-                    resp = _try_post(url2)
-
-                    if isinstance(resp, Exception):
-                        st.error(f"Erro de rede ao chamar backend (/api): {resp}")
-                        st.stop()
-
-                if resp.status_code >= 400:
-                    try:
-                        st.error(resp.json().get("detail", resp.text))
-                    except Exception:
-                        st.error(resp.text)
-                    st.stop()
-
-                data = resp.json() or {}
-
-                init_point = data.get("init_point")
-                if init_point:
-                    st.success("✅ Link de pagamento gerado:")
-                    st.link_button("Pagar agora no Mercado Pago", init_point)
+                if cupom_ok:
+                    st.success(
+                        f"✅ Cupom aplicado: {cupom_ok.get('descricao') or cupom_ok.get('codigo')} "
+                        f"(-{desconto_pct:.0f}%) | Novo valor: R$ {preco_final:.2f}"
+                    )
                 else:
-                    st.success("✅ Resposta do backend:")
-                    st.json(data)
+                    st.info(f"Valor do plano: R$ {preco_final:.2f}")
 
+                try:
+                    pagamento = criar_preferencia_mp(
+                        plano_nome=nome_plano,
+                        preco=preco_final,
+                        cupom_codigo=(cupom_input if cupom_ok else None),
+                    )
 
+                    init_point = pagamento.get("init_point")
+                    if init_point:
+                        st.link_button("Pagar agora no Mercado Pago", init_point)
+                    else:
+                        st.error(f"Preferência criada, mas sem init_point. Retorno: {pagamento}")
 
-
+                except Exception as e:
+                    st.error(f"Erro ao criar preferência de pagamento: {e}")
 
 
 

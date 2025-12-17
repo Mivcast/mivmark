@@ -1901,33 +1901,27 @@ def tela_mark_ia():
 
 
 
-# ------------------- TELA DE PLANOS -------------------
+# tela_planos()
 # ------------------- TELA DE PLANOS -------------------
 def tela_planos():
     import httpx
     import streamlit as st
-    from datetime import date
 
     st.title("📦 Meus Planos")
 
-    # Use o API_URL global se já existir no app.py
+    API_URL = "https://mivmark-backend.onrender.com"
 
-    API_URL = (st.session_state.get("API_URL") or "http://127.0.0.1:8000").strip().rstrip("/")
-
-    # ======================================================
-    # 1) DADOS DO USUÁRIO
-    # ======================================================
+    # ----- DADOS DO USUÁRIO -----
     usuario = st.session_state.get("dados_usuario", {}) or {}
-
     plano_atual = usuario.get("plano_atual") or "Gratuito"
     if usuario.get("is_admin"):
         plano_atual = "Administrador (acesso total)"
 
+    # Banner com plano atual
     st.markdown(
         f"""
         <div style='background-color:#f0f8ff; padding: 15px; border-left: 6px solid #007bff; border-radius: 8px; margin-bottom: 20px;'>
-            <strong>🔒 Seu plano atual:</strong>
-            <span style='font-size:18px; color:#007bff'> {plano_atual} </span><br>
+            <strong>🔒 Seu plano atual:</strong> <span style='font-size:18px; color:#007bff'>{plano_atual}</span><br>
             Para liberar mais recursos do sistema, você pode fazer upgrade agora mesmo.
         </div>
         """,
@@ -1935,15 +1929,19 @@ def tela_planos():
     )
 
     # ======================================================
-    # 2) ATIVAÇÃO DE PLANO POR TOKEN (CONSULTORIA)
+    # 🔑 BLOCO: ATIVAÇÃO DE PLANO POR TOKEN (CONSULTORIA)
     # ======================================================
     st.subheader("🔑 Ativar plano com token")
+
     st.markdown(
         "Se você comprou uma **consultoria MivCast** ou recebeu um código de ativação de um parceiro, "
         "cole seu token abaixo para liberar o acesso por **1 ano** no MivMark."
     )
 
-    token_input = st.text_input("Digite seu token de ativação:", key="token_ativacao_plano")
+    token_input = st.text_input(
+        "Digite seu token de ativação:",
+        key="token_ativacao_plano",
+    )
 
     if st.button("Ativar token agora"):
         token_texto = (token_input or "").strip()
@@ -1953,12 +1951,16 @@ def tela_planos():
         else:
             token_jwt = st.session_state.get("token")
             if not token_jwt:
-                st.error("Não foi possível identificar seu login. Saia e entre novamente no sistema antes de ativar o token.")
+                st.error(
+                    "Não foi possível identificar seu login. "
+                    "Saia e entre novamente no sistema antes de ativar o token."
+                )
             else:
                 headers = {
                     "Authorization": f"Bearer {token_jwt}",
                     "Content-Type": "application/json",
                 }
+
                 try:
                     resp = httpx.post(
                         f"{API_URL}/usuario/ativar_token",
@@ -1968,269 +1970,124 @@ def tela_planos():
                     )
 
                     if resp.status_code == 200:
-                        dados = resp.json() or {}
+                        dados = resp.json()
                         novo_plano = dados.get("plano") or "consultoria_full"
                         expira = dados.get("expira_em") or ""
 
-                        st.session_state["dados_usuario"] = st.session_state.get("dados_usuario", {}) or {}
-                        st.session_state["dados_usuario"]["plano_atual"] = novo_plano
+                        # Atualiza sessão para refletir o novo plano na interface
+                        st.session_state.dados_usuario["plano_atual"] = novo_plano
 
                         st.success(
                             f"✅ Plano ativado com sucesso!\n\n"
                             f"Plano: **{novo_plano}**\n\n"
                             f"Válido até: **{expira}**"
                         )
-                        st.info("Se a tela não atualizar sozinha, clique em outra aba e volte em **Planos**.")
-                        st.rerun()
+                        st.info(
+                            "Se a tela não atualizar sozinha, clique em outra aba e volte em **Plano Atual**."
+                        )
                     else:
                         try:
-                            detalhe = (resp.json() or {}).get("detail", "Erro ao ativar token.")
+                            detalhe = resp.json().get("detail", "Erro ao ativar token.")
                         except Exception:
                             detalhe = "Erro ao ativar token."
                         st.error(f"⚠️ {detalhe}")
-
                 except Exception as e:
                     st.error(f"Erro ao conectar com o servidor para ativar o token: {e}")
 
     st.markdown("---")
 
     # ======================================================
-    # 3) LISTAGEM DE PLANOS
+    # 🚀 BLOCO: LISTAGEM DE PLANOS E CUPONS (JÁ EXISTENTE)
     # ======================================================
     try:
-        resposta_planos = httpx.get(f"{API_URL}/planos/", timeout=30)
+        resposta_planos = httpx.get(f"{API_URL}/planos/")
         resposta_planos.raise_for_status()
-        planos = resposta_planos.json() or []
+        planos = resposta_planos.json()
     except Exception as e:
         st.error(f"Erro ao buscar planos: {e}")
         return
 
-    # ======================================================
-    # 4) CARREGA CUPONS REAIS (escopo=plano) UMA ÚNICA VEZ
-    # ======================================================
-    cupons_plano = []
-    try:
-        rcu = httpx.get(f"{API_URL}/cupons", params={"escopo": "plano"}, timeout=30)
-        if rcu.status_code == 200:
-            cupons_plano = rcu.json() or []
-    except Exception:
-        cupons_plano = []
-
-    def _parse_date_iso(v):
-        """Aceita 'YYYY-MM-DD' ou 'YYYY-MM-DDTHH:MM:SS' e retorna date() ou None."""
-        if not v:
-            return None
-        v_str = str(v).split("T")[0].strip()
-        try:
-            return date.fromisoformat(v_str)
-        except Exception:
-            return None
-
-    def achar_cupom(codigo: str):
-        cod = (codigo or "").strip().lower()
-        if not cod:
-            return None
-        for c in cupons_plano:
-            if (c.get("codigo") or "").strip().lower() == cod:
-                return c
-        return None
-
-    
-    def cupom_valido_para_plano(cupom: dict, plano_id: int) -> bool:
-        if not cupom:
-            return False
-        if not bool(cupom.get("ativo", False)):
-            return False
-
-        alvo = (cupom.get("plano_nome") or "").strip().lower()
-        if not alvo or alvo == "todos":
-            return True
-
-        return alvo == (plano_nome or "").strip().lower()
-
-    # ======================================================
-    # 5) FUNÇÃO: CRIAR PREFERÊNCIA MP COM FALLBACK DE ROTA
-    # ======================================================
-    def criar_preferencia_mp(plano_nome: str, preco: float, cupom_codigo: str | None):
-        token_jwt = st.session_state.get("token")
-        headers = {}
-        if token_jwt:
-            headers["Authorization"] = f"Bearer {token_jwt}"
-        headers["Content-Type"] = "application/json"
-
-        payload = {
-            "plano_nome": plano_nome,
-            "preco": float(preco),
-            "cupom": (cupom_codigo.strip().lower() if cupom_codigo else None),
-        }
-
-        # Fallback (no seu projeto isso já variou)
-        urls = [
-            f"{API_URL}/mercado_pago/criar_preferencia",
-            f"{API_URL}/api/mercado_pago/criar_preferencia",
-        ]
-
-        last_resp_text = None
-        last_status = None
-
-        for url in urls:
-            try:
-                r = httpx.post(url, json=payload, headers=headers, timeout=30)
-                last_status = r.status_code
-                last_resp_text = r.text
-
-                if r.status_code == 200:
-                    return r.json() or {}
-            except Exception as e:
-                last_resp_text = str(e)
-                last_status = None
-
-        # Se chegou aqui, não funcionou
-        raise RuntimeError(f"Falha ao criar preferência MP. status={last_status} resp={last_resp_text}")
-
-    # ======================================================
-    # 6) UI: PLANOS + CUPOM + LINK MP COM VALOR FINAL
-    # ======================================================
     st.subheader("🚀 Planos Disponíveis")
     colunas = st.columns(4)
 
+    # 🔎 Aqui ainda estão cupons de exemplo — depois vamos ajustar
+    cupons_validos = {
+        "BEMVINDO10": ("porcentagem", 10),
+        "MIV99": ("porcentagem", 90),
+        "PROMO25": ("porcentagem", 25),
+        "VIP50": ("fixo", 50),
+        "R10OFF": ("fixo", 10),
+    }
+
     for i, plano in enumerate(planos):
         with colunas[i % 4]:
-
-            plano_id = plano.get("id", i)
-            nome_plano = plano.get("nome") or "Plano"
-            descricao = plano.get("descricao") or ""
-            preco_mensal = float(plano.get("preco_mensal") or 0.0)
-            modulos = plano.get("modulos_liberados") or []
-
-            destaques = "".join([f"<li>{m}</li>" for m in modulos])
+            destaques = "".join(
+                [f"<li>{m}</li>" for m in plano["modulos_liberados"]]
+            )
 
             st.markdown(
                 f"""
-                <div style='border: 1px solid #ccc; border-radius: 10px; padding: 20px; margin-bottom: 10px;'>
-                    <h4 style='margin-bottom:6px;'>{nome_plano}</h4>
-                    <p style='margin-top:0; color:#555;'>{descricao}</p>
-                    <ul style='margin-top:6px;'>{destaques}</ul>
-                    <p style='margin-top:10px;'><strong>💰 R$ {preco_mensal:.2f}/mês</strong></p>
-                </div>
+                <div style='border: 1px solid #ccc; border-radius: 10px; padding: 20px; margin-bottom: 20px;'>
+                    <h4>{plano['nome']}</h4>
+                    <p>{plano['descricao']}</p>
+                    <ul>{destaques}</ul>
+                    <p><strong>💰 R$ {plano['preco_mensal']:.2f}/mês</strong></p>
                 """,
                 unsafe_allow_html=True,
             )
 
-            # Plano gratuito: não precisa pagar
-            if preco_mensal <= 0:
-                st.caption("Plano gratuito não requer pagamento.")
-                if nome_plano == plano_atual:
-                    st.info("✅ Esse já é seu plano atual.")
-                else:
-                    st.button(
-                        f"Quero esse plano: {nome_plano}",
-                        key=f"contratar_free_{plano_id}",
-                        disabled=True
-                    )
-                    st.caption("Se quiser permitir troca para Gratuito, implemente a troca via backend.")
-                continue
-
             cupom_input = st.text_input(
-                f"Cupom para {nome_plano}",
-                key=f"cupom_plano_{plano_id}",
-                placeholder="Ex: MIV10",
-            ).strip()
+                f"Digite um cupom para {plano['nome']}",
+                key=f"cupom_{plano['id']}",
+            ).upper()
 
-            # Se já é o plano atual
-            if nome_plano == plano_atual:
-                st.info("✅ Esse já é seu plano atual.")
-                continue
+            # Se não é o plano atual, mostra botão de contratar
+            if plano["nome"] != plano_atual:
+                if st.button(
+                    f"Quero esse plano: {plano['nome']}",
+                    key=f"contratar_{plano['id']}",
+                ):
+                    preco = plano["preco_mensal"]
+                    desconto = 0
 
+                    if cupom_input and cupom_input in cupons_validos:
+                        tipo, valor = cupons_validos[cupom_input]
+                        if tipo == "porcentagem":
+                            desconto = preco * (valor / 100)
+                        elif tipo == "fixo":
+                            desconto = valor
 
+                        preco -= desconto
+                        preco = max(0, round(preco, 2))
+                        st.success(
+                            f"🎉 Cupom aplicado! Novo valor: R$ {preco:.2f}"
+                        )
+                    elif cupom_input:
+                        st.warning(
+                            "⚠️ Cupom inválido. Será cobrado o valor original."
+                        )
 
-
-            def _safe_json(text: str):
-                try:
-                    return json.loads(text)
-                except Exception:
-                    return None
-
-            def _try_post(url: str, headers: dict, params: dict):
-                try:
-                    return httpx.post(url, headers=headers, params=params, timeout=30)
-                except Exception as e:
-                    return e
-
-            # ... dentro do for dos planos:
-
-
-            btn_key = f"contratar_plano_{plano_id}_{i}"  # i vem do enumerate(planos)
-
-            if st.button(f"Quero esse plano: {nome_plano}", key=f"contratar_plano_{plano_id}"):
-
-                token = st.session_state.get("token")
-                if not token:
-                    st.error("❌ Token não encontrado. Faça logout e login novamente.")
-                    st.stop()
-
-                headers = {
-                    "Authorization": f"Bearer {token}",
-                    "Content-Type": "application/json",
-                }
-
-                cupom_digitado = (cupom_input or "").strip()
-
-                params = {
-                    "cupom": (cupom_digitado.lower() if cupom_digitado else None),
-                    "periodo": "mensal",
-                    "metodo": "pix",
-                    "gateway": "mercado_pago",
-                    # 🔕 não envia debug
-                }
-
-                def _try_post(url: str):
                     try:
-                        return httpx.post(url, headers=headers, params=params, timeout=30)
+                        resposta = httpx.post(
+                            f"{API_URL}/api/mercado_pago/criar_preferencia",
+                            json={
+                                "plano_nome": plano["nome"],
+                                "preco": preco,
+                            },
+                        )
+                        if resposta.status_code == 200:
+                            pagamento = resposta.json()
+                            st.markdown(
+                                f"[🔗 Clique aqui para pagar agora]({pagamento['init_point']})"
+                            )
+                        else:
+                            st.error("Erro ao gerar link de pagamento.")
                     except Exception as e:
-                        return e
+                        st.error(f"Erro ao conectar com Mercado Pago: {e}")
+            else:
+                st.info("✅ Esse já é seu plano atual.")
 
-                url1 = f"{API_URL.rstrip('/')}/planos/{int(plano_id)}/comprar"
-                url2 = f"{API_URL.rstrip('/')}/api/planos/{int(plano_id)}/comprar"  # fallback
-
-                resp = _try_post(url1)
-
-                if isinstance(resp, Exception):
-                    st.error(f"Erro de rede ao chamar backend: {resp}")
-                    st.stop()
-
-                # se 404, tenta /api
-                if resp.status_code == 404:
-                    resp = _try_post(url2)
-
-                    if isinstance(resp, Exception):
-                        st.error(f"Erro de rede ao chamar backend (/api): {resp}")
-                        st.stop()
-
-                if resp.status_code >= 400:
-                    try:
-                        st.error(resp.json().get("detail", resp.text))
-                    except Exception:
-                        st.error(resp.text)
-                    st.stop()
-
-                data = resp.json() or {}
-
-                init_point = data.get("init_point")
-                if init_point:
-                    st.success("✅ Link de pagamento gerado:")
-                    st.link_button("Pagar agora no Mercado Pago", init_point)
-                else:
-                    st.success("✅ Resposta do backend:")
-                    st.json(data)
-
-
-
-
-
-
-
-
+            st.markdown("</div>", unsafe_allow_html=True)
 
 
 
@@ -3215,47 +3072,84 @@ def tela_checkout(curso_id):
     # ---------------------------------------------------------
     # 4) Finalizar Compra (chama backend de compra)
     # ---------------------------------------------------------
-    # ... depois que você calculou preco_final e guardou cupom_aplicado/codigo
-
-    if st.button("Finalizar Compra"):
+    if st.button("Finalizar Compra", use_container_width=True):
         try:
             payload = {
-                "cupom": (codigo.strip().lower() if codigo else None),
+                "cupom": st.session_state.get("checkout_cupom_codigo"),
                 "metodo": "pix",
-                "gateway": "mercado_pago",
+                "gateway": "infinitepay",
             }
+
             rr = httpx.post(
                 f"{API_URL}/cursos/{curso_id}/comprar",
-                params={"cupom": payload["cupom"], "metodo": payload["metodo"], "gateway": payload["gateway"]},
+                params=payload,
                 headers=get_headers(),
-                timeout=30,
+                timeout=30
             )
 
             if rr.status_code >= 400:
                 try:
-                    st.error(rr.json().get("detail", "Erro ao iniciar pagamento"))
-                except Exception:
-                    st.error(f"Erro ao iniciar pagamento: {rr.text}")
-            else:
-                data = rr.json()
+                    st.error(rr.json().get("detail", "Erro ao finalizar compra."))
+                except:
+                    st.error(f"Erro ao finalizar compra: {rr.text}")
+                return
 
-                # Se cupom 100% liberou na hora
-                if "init_point" not in data and "liberado" in (data.get("mensagem","").lower()):
-                    st.success(data["mensagem"])
-                    st.session_state["curso_checkout"] = None
-                    st.rerun()
+            resp = rr.json()
 
-                # Pagamento real
-                init_point = data.get("init_point")
-                if init_point:
-                    st.success("Link de pagamento gerado. Abra para pagar:")
-                    st.link_button("Pagar agora no Mercado Pago", init_point)
-                else:
-                    st.info(data)
+            # ✅ caso o backend já libere (cupom 100% ou gratuito)
+            if "liberado" in (resp.get("mensagem", "").lower()):
+                st.success("✅ Curso liberado!")
+                st.session_state["curso_liberado"] = curso_id
+                st.session_state["curso_checkout"] = None
+                # limpa cupom
+                st.session_state.pop("checkout_cupom_codigo", None)
+                st.session_state.pop("checkout_cupom_percent", None)
+                st.session_state.pop("checkout_cupom_desc", None)
+                st.session_state.pop("checkout_cupom_curso_id", None)
+                st.rerun()
+
+            # ✅ pagamento pendente: UI profissional
+            if resp.get("status") == "aguardando" or "pendente" in (resp.get("mensagem", "").lower()):
+                st.success("✅ Pedido registrado. Pagamento pendente.")
+
+                st.session_state["checkout_pagamento_id"] = resp.get("pagamento_id")
+                st.session_state["checkout_valor_final"] = resp.get("valor")
+
+                st.info(
+                    f"Valor a pagar: **R$ {float(resp.get('valor') or 0):.2f}**\n\n"
+                    "Quando o pagamento for confirmado, o acesso será liberado automaticamente."
+                )
+
+                # 🔧 enquanto não há gateway integrado, botão de teste
+                if st.button("🧪 Simular pagamento (DEV)", use_container_width=True):
+                    pid = st.session_state.get("checkout_pagamento_id")
+                    if not pid:
+                        st.error("Pagamento_id não encontrado.")
+                    else:
+                        sim = httpx.post(
+                            f"{API_URL}/cursos/pagamentos/{pid}/confirmar",
+                            headers=get_headers(),
+                            timeout=30
+                        )
+                        if sim.status_code >= 400:
+                            try:
+                                st.error(sim.json().get("detail", "Erro ao confirmar pagamento."))
+                            except:
+                                st.error(sim.text)
+                        else:
+                            st.success("✅ Pagamento confirmado e curso liberado!")
+                            st.session_state["curso_liberado"] = curso_id
+                            st.session_state["curso_checkout"] = None
+                            st.rerun()
+
+                return
+
+            # fallback
+            st.warning("Resposta inesperada do servidor:")
+            st.json(resp)
 
         except Exception as e:
             st.error(f"Erro: {e}")
-
 
 
     # ---------------------------------------------------------

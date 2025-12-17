@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, JSON
 from backend.database import Base
 from pydantic import BaseModel
 from typing import Optional, List
+from sqlalchemy.orm import relationship
 
 class Plano(Base):
     __tablename__ = "planos"
@@ -15,6 +16,7 @@ class Plano(Base):
     modulos_liberados = Column(JSON)  # lista de strings: ["empresa", "orcamento", ...]
     bonus = Column(String, nullable=True)
     ativo = Column(Boolean, default=True)
+
 
 # ----------- Pydantic Schemas -----------
 class PlanoSchema(BaseModel):

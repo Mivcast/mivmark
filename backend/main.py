@@ -1,4 +1,5 @@
 # backend/main.py
+
 import os
 from pathlib import Path
 
@@ -9,32 +10,26 @@ from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
 from backend.database import Base, engine
-from backend import models  # garante que os models sejam registrados
-from backend.api import email_teste
-from backend.api.ideias import router as ideias_router
-from backend.api import consultor_mensal
-from backend.api.consultor_mensal import router as consultor_mensal_router
+from backend import models  # garante que os models sejam registrados (não remover)
+
 
 
 
 # ============================================
 # 🔹 Caminho raiz do projeto e .env
 # ============================================
-# RAIZ_PROJETO = pasta "mivmark"
 RAIZ_PROJETO = Path(__file__).resolve().parents[1]
 
-# Carrega .env localmente (no Render usamos Environment Vars)
 env_path = RAIZ_PROJETO / ".env"
 if env_path.exists():
     load_dotenv(dotenv_path=env_path)
 
-# Pasta dos sites gerados: mivmark/data/sites_gerados
 DIR_SITES = RAIZ_PROJETO / "data" / "sites_gerados"
 DIR_SITES.mkdir(parents=True, exist_ok=True)
 
 
 # ============================================
-# 🔹 Cria o app FastAPI
+# 🔹 Cria o app FastAPI (PRIMEIRO!)
 # ============================================
 app = FastAPI(title="MivMark API")
 
@@ -52,12 +47,8 @@ app.add_middleware(
 
 
 # ============================================
-# 🔹 Servir arquivos estáticos dos sites gerados
+# 🔹 Servir arquivos estáticos
 # ============================================
-# Exemplo:
-#   https://mivmark-backend.onrender.com/sites/Restaurante_do_joao.html
-# e assets:
-#   https://mivmark-backend.onrender.com/sites/assets/css/style.css
 app.mount("/sites", StaticFiles(directory=str(DIR_SITES), html=True), name="sites")
 
 
@@ -78,7 +69,7 @@ Base.metadata.create_all(bind=engine)
 
 
 # ============================================
-# 🔹 Imports e Rotas
+# 🔹 Imports e Rotas (DEPOIS do app existir)
 # ============================================
 from backend.api import (  # noqa: E402
     auth,
@@ -96,12 +87,23 @@ from backend.api import (  # noqa: E402
     site_cliente,
     usuario,
     chat_publico,
-    mercado_pago_pagamento,
+    email_teste,
 )
+
+from backend.api.ideias import router as ideias_router  # noqa: E402
+from backend.api.consultor_mensal import router as consultor_mensal_router  # noqa: E402
 from backend.api.aplicativo import router as aplicativo_router  # noqa: E402
 from backend.api.planos import router as planos_router  # noqa: E402
 from backend.api.cupons import router as cupons_router  # noqa: E402
 
+# ✅ Mercado Pago (arquivo: backend/api/mercado_pago_pagamento.py)
+#    OBS: router lá deve estar com prefix="/mercado_pago"
+from backend.api.mercado_pago_pagamento import router as mercado_pago_router  # noqa: E402
+
+
+# ============================================
+# 🔹 Include routers
+# ============================================
 app.include_router(auth.router)
 app.include_router(empresa.router)
 app.include_router(consultoria.router)
@@ -112,22 +114,28 @@ app.include_router(arquivos.router)
 app.include_router(historico_mark.router)
 app.include_router(mark_ia.router, prefix="/mark")
 app.include_router(cursos.router)
-app.include_router(mercado_pago_pagamento.router, prefix="/api")
+
+# ✅ Mercado Pago fica em /api/mercado_pago/...
+app.include_router(mercado_pago_router, prefix="/api")
+
 app.include_router(marketing.router)
 app.include_router(agenda.router)
 app.include_router(site_cliente.router)
 app.include_router(usuario.router)
 app.include_router(chat_publico.router)
+
 app.include_router(aplicativo_router)
 app.include_router(planos_router)
 app.include_router(cupons_router)
+
 app.include_router(email_teste.router)
 app.include_router(ideias_router)
 app.include_router(consultor_mensal_router)
 
 
-
-
+# ============================================
+# 🔹 Healthcheck
+# ============================================
 @app.get("/")
 def home():
     return {"mensagem": "MARK backend rodando!"}
