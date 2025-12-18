@@ -36,6 +36,11 @@ API_URL = os.getenv("API_URL", "").strip().rstrip("/")
 if not API_URL:
     API_URL = "http://127.0.0.1:8000"
 
+# ✅ garante que o app inteiro (todas as telas) use o mesmo API_URL
+if "API_URL" not in st.session_state:
+    st.session_state["API_URL"] = API_URL
+
+
 
 
 def usuario_tem_acesso(modulo: str) -> bool:
@@ -1912,7 +1917,7 @@ def tela_planos():
 
     # Use o API_URL global se já existir no app.py
 
-    API_URL = (st.session_state.get("API_URL") or "http://127.0.0.1:8000").strip().rstrip("/")
+    API_URL = st.session_state["API_URL"]
 
     # ======================================================
     # 1) DADOS DO USUÁRIO
