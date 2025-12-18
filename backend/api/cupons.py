@@ -4,14 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy.orm import Session
-from datetime import date, datetime
+from datetime import date
 
 from backend.database import get_db
 from backend.api.auth import get_usuario_logado
 from backend.models import Usuario
 from backend.models.cupom import CupomDesconto
 from backend.models.planos import Plano
-
 
 router = APIRouter(prefix="/cupons", tags=["Cupons"])
 
@@ -62,7 +61,7 @@ class CupomOut(BaseModel):
     aplicativo_id: Optional[int]
     plano_nome: Optional[str]
 
-    valido_ate: Optional[datetime]
+    valido_ate: Optional[date]  # ✅ alinhado com payload/model
     ativo: bool
 
     class Config:
@@ -76,7 +75,7 @@ def _codigo_normalizado(c: str) -> str:
     return (c or "").strip().lower()
 
 
-def _validar_escopo(escopo: str):
+def _validar_escopo(escopo: str) -> str:
     escopo = (escopo or "").strip().lower()
     if escopo not in ("curso", "plano", "aplicativo"):
         raise HTTPException(status_code=400, detail="escopo deve ser 'curso', 'plano' ou 'aplicativo'")
@@ -100,7 +99,7 @@ def _resolver_plano_nome(db: Session, plano_id: Optional[int]) -> str:
     if not plano:
         raise HTTPException(status_code=400, detail="Plano não encontrado para vincular ao cupom.")
 
-    # ✅ aqui é o ponto crítico: precisa ser o NOME do plano
+    # precisa ser o NOME do plano
     return (plano.nome or "").strip()
 
 
@@ -124,7 +123,7 @@ def criar_cupom(
     if not codigo:
         raise HTTPException(status_code=400, detail="Código do cupom é obrigatório.")
 
-    # Evita duplicidade
+    # Evita duplicidade global (mesmo código não pode existir em nenhum escopo)
     ja_existe = db.query(CupomDesconto).filter(CupomDesconto.codigo == codigo).first()
     if ja_existe:
         raise HTTPException(status_code=400, detail="Já existe um cupom com esse código.")
@@ -138,24 +137,20 @@ def criar_cupom(
     plano_nome = None
 
     if escopo == "plano":
-        plano_nome = _resolver_plano_nome(payload.plano_id, db)
+        # ✅ CORRETO: (db, plano_id)
+        plano_nome = _resolver_plano_nome(db, payload.plano_id)
     elif escopo == "curso":
         curso_id = payload.curso_id  # None => vale para todos os cursos
     elif escopo == "aplicativo":
         aplicativo_id = payload.aplicativo_id  # None => vale para todos os apps
 
-
     # Como seu front trabalha com "desconto_percent", vamos gravar como cupom percentual:
-    # - tipo_valor = "percent"
-    # - valor = desconto_percent
     tipo_valor = "percent"
     valor = float(payload.desconto_percent or 0)
 
     cupom = CupomDesconto(
         codigo=codigo,
         descricao=payload.descricao,
-
-        # compatibilidade com o que você já usa no sistema
         desconto_percent=payload.desconto_percent,
 
         escopo=escopo,
@@ -165,7 +160,7 @@ def criar_cupom(
         valido_ate=payload.valido_ate,
         ativo=payload.ativo,
 
-        # campos que no seu banco estão NOT NULL
+        # campos NOT NULL no seu banco
         tipo_valor=tipo_valor,
         valor=valor,
         tipo_aplicacao="desconto",
@@ -202,11 +197,13 @@ def editar_cupom(
     if payload.escopo is not None:
         escopo = _validar_escopo(payload.escopo)
         cupom.escopo = escopo
+
         # ao trocar escopo, limpa vínculos conflitantes
         if escopo == "plano":
             cupom.curso_id = None
             cupom.aplicativo_id = None
-            cupom.plano_nome = _resolver_plano_nome(payload.plano_id, db) if payload.plano_id is not None else "todos"
+            # ✅ CORRETO: (db, plano_id)
+            cupom.plano_nome = _resolver_plano_nome(db, payload.plano_id) if payload.plano_id is not None else "todos"
         elif escopo == "curso":
             cupom.plano_nome = None
             cupom.aplicativo_id = None
@@ -220,6 +217,9 @@ def editar_cupom(
         cupom.descricao = payload.descricao
     if payload.desconto_percent is not None:
         cupom.desconto_percent = payload.desconto_percent
+        # mantém coerente com valor/tipo_valor
+        cupom.tipo_valor = "percent"
+        cupom.valor = float(payload.desconto_percent or 0)
     if payload.valido_ate is not None:
         _validar_valido_ate(payload.valido_ate)
         cupom.valido_ate = payload.valido_ate
@@ -229,7 +229,8 @@ def editar_cupom(
     # Atualiza alvo (sem trocar escopo)
     if payload.escopo is None:
         if cupom.escopo == "plano" and payload.plano_id is not None:
-            cupom.plano_nome = _resolver_plano_nome(payload.plano_id, db)
+            # ✅ CORRETO: (db, plano_id)
+            cupom.plano_nome = _resolver_plano_nome(db, payload.plano_id)
         if cupom.escopo == "curso" and payload.curso_id is not None:
             cupom.curso_id = payload.curso_id
         if cupom.escopo == "aplicativo" and payload.aplicativo_id is not None:
