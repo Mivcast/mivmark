@@ -66,7 +66,7 @@ def gerar_senha_temporaria(tamanho: int = 8) -> str:
 @router.post("/cadastro-gratuito")
 def cadastro_gratuito(dados: CadastroGratuito, db: Session = Depends(get_db)):
     """
-    Cria usuário e libera 7 dias de acesso ao plano Profissional.
+    Cria usuário e libera 3 dias de acesso ao plano Profissional.
     """
 
     usuario_existente = db.query(Usuario).filter(Usuario.email == dados.email).first()
@@ -81,21 +81,21 @@ def cadastro_gratuito(dados: CadastroGratuito, db: Session = Depends(get_db)):
         # 🔐 agora salvando a senha já com HASH bcrypt
         senha_hash=hash_senha(dados.senha),
         plano_atual="Profissional",
-        plano_expira_em=agora + timedelta(days=7),
+        plano_expira_em=agora + timedelta(days=3),
     )
 
     db.add(usuario)
     db.commit()
     db.refresh(usuario)
 
-    # E-mail de boas-vindas + teste de 7 dias
-    assunto = "Bem-vindo ao MivMark 🎯 – 7 dias de acesso Profissional liberados"
+    # E-mail de boas-vindas + teste de 3 dias
+    assunto = "Bem-vindo ao MivMark 🎯 – 3 dias de acesso Profissional liberados"
     corpo_html = f"""
     <p>Olá, <strong>{usuario.nome}</strong>!</p>
 
     <p>Seu cadastro no <strong>MivMark</strong> foi realizado com sucesso. 🙌</p>
 
-    <p>Você ganhou <strong>7 dias de acesso ao plano Profissional</strong>
+    <p>Você ganhou <strong>3 dias de acesso ao plano Profissional</strong>
     para conhecer praticamente todas as funções do sistema.</p>
 
     <p>Dados de acesso:</p>
@@ -104,7 +104,7 @@ def cadastro_gratuito(dados: CadastroGratuito, db: Session = Depends(get_db)):
         <li><strong>Senha:</strong> {dados.senha}</li>
     </ul>
 
-    <p>Após esses 7 dias, você pode escolher o plano que fizer mais sentido para o seu momento.</p>
+    <p>Após esses 3 dias, você pode escolher o plano que fizer mais sentido para o seu momento.</p>
 
     <p>
         Acesse o sistema pelo link:<br>

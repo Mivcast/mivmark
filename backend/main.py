@@ -95,6 +95,11 @@ from backend.api.consultor_mensal import router as consultor_mensal_router  # no
 from backend.api.aplicativo import router as aplicativo_router  # noqa: E402
 from backend.api.planos import router as planos_router  # noqa: E402
 from backend.api.cupons import router as cupons_router  # noqa: E402
+from backend.api.checkout import router as checkout_router
+from backend.api.checkout_publico import router as checkout_publico_router
+
+
+
 
 # ✅ Mercado Pago (arquivo: backend/api/mercado_pago_pagamento.py)
 #    OBS: router lá deve estar com prefix="/mercado_pago"
@@ -114,6 +119,8 @@ app.include_router(arquivos.router)
 app.include_router(historico_mark.router)
 app.include_router(mark_ia.router, prefix="/mark")
 app.include_router(cursos.router)
+app.include_router(checkout_router)
+app.include_router(checkout_publico_router)
 
 # ✅ Mercado Pago fica em /api/mercado_pago/...
 app.include_router(mercado_pago_router, prefix="/api")

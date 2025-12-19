@@ -245,14 +245,14 @@ def minha_conta(usuario: Usuario = Depends(get_current_user)):
 
 
 # -------------------------------------------------
-# Cadastro GRATUITO – teste de 7 dias (Plano Profissional)
+# Cadastro GRATUITO – teste de 3 dias (Plano Profissional)
 # -------------------------------------------------
 
 @router.post("/cadastro/gratuito")
 def cadastrar_usuario_gratuito(dados: CadastroGratuitoSchema):
     """
     Cadastro sem token.
-    Ganha 7 dias de acesso ao plano Profissional.
+    Ganha 3 dias de acesso ao plano Profissional.
     Depois disso, será rebaixado automaticamente para 'Gratuito'.
     """
     db: Session = SessionLocal()
@@ -270,7 +270,7 @@ def cadastrar_usuario_gratuito(dados: CadastroGratuitoSchema):
         data_criacao=agora,
         tipo_usuario="cliente",
         plano_atual="Profissional",                 # 🔥 teste com plano profissional
-        plano_expira_em=agora + timedelta(days=7),  # 🔥 expira em 7 dias
+        plano_expira_em=agora + timedelta(days=3),  # 🔥 expira em 3 dias
     )
 
     db.add(novo_usuario)
@@ -278,7 +278,7 @@ def cadastrar_usuario_gratuito(dados: CadastroGratuitoSchema):
     db.refresh(novo_usuario)
 
     return {
-        "mensagem": "Usuário gratuito criado com sucesso. Você ganhou 7 dias do plano Profissional.",
+        "mensagem": "Usuário gratuito criado com sucesso. Você ganhou 3 dias do plano Profissional.",
         "id": novo_usuario.id,
         "plano_atual": novo_usuario.plano_atual,
         "plano_expira_em": novo_usuario.plano_expira_em,

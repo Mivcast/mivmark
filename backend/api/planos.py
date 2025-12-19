@@ -30,8 +30,8 @@ BACKEND_URL = os.getenv("BACKEND_URL", "").strip().rstrip("/")
 def _mp_notification_url() -> Optional[str]:
     if not BACKEND_URL:
         return None
-    # se seu webhook real estiver em /api/mercado-pago/webhook, ajuste aqui.
-    return f"{BACKEND_URL}/api/mercado-pago/webhook"
+    # Seu webhook real (router prefix="/mercado_pago")
+    return f"{BACKEND_URL}/mercado_pago/webhook"
 
 
 def criar_preferencia_mp(titulo: str, valor: float, referencia_externa: str) -> dict:

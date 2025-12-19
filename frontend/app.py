@@ -84,7 +84,7 @@ def usuario_tem_acesso(modulo: str) -> bool:
 def mostrar_bloqueio_modulo(nome_modulo: str):
     """
     Mostra mensagem específica quando o usuário não tem acesso ao módulo:
-    - Se o teste gratuito de 7 dias já terminou → aviso de teste expirado
+    - Se o teste gratuito de 3 dias já terminou → aviso de teste expirado
     - Caso contrário → aviso genérico de módulo pago
     """
     usuario = st.session_state.get("dados_usuario", {}) or {}
@@ -105,7 +105,7 @@ def mostrar_bloqueio_modulo(nome_modulo: str):
 
             if expira_dt < datetime.utcnow():
                 data_fmt = expira_dt.strftime("%d/%m/%Y")
-                st.error(f"⏰ Seu teste gratuito de 7 dias terminou em **{data_fmt}**.")
+                st.error(f"⏰ Seu teste gratuito de 3 dias terminou em **{data_fmt}**.")
                 st.info(
                     f"Para continuar usando o módulo **{nome_modulo}**, "
                     f"faça upgrade do seu plano na opção **'💳 Plano Atual'** do menu lateral."
@@ -150,7 +150,7 @@ def tela_inicio():
     usuario = st.session_state.get("dados_usuario", {})
 
     # ---------------------------------------------------------
-    # 🔔 AVISO SOBRE O TESTE GRATUITO DE 7 DIAS
+    # 🔔 AVISO SOBRE O TESTE GRATUITO DE 3 DIAS
     # ---------------------------------------------------------
     plano = usuario.get("plano_atual", "Gratuito")
     expira_str = usuario.get("plano_expira_em")
@@ -669,7 +669,7 @@ def tela_login_personalizada():
 
         st.markdown("""
         <p class="bottom-text">
-        🆓 <b>Teste 07 dias GRÁTIS </b>o Plano Profissional
+        🆓 <b>Teste 03 dias GRÁTIS </b>o Plano Profissional
         </p>
         """, unsafe_allow_html=True)
 
@@ -748,208 +748,122 @@ def obter_dados_usuario():
 
 
 
-# ------------------- CADASTRO E LOGIN -------------------
-
+# ------------------- CADASTRO (VERSÃO CORRETA) -------------------
 def tela_cadastro():
     import streamlit as st
     import httpx
 
-    global API_URL  # usa o mesmo API_URL definido no topo do app
+    # ======================================================
+    # CONFIG
+    # ======================================================
+    API_URL = (st.session_state.get("API_URL") or "").strip().rstrip("/")
+    if not API_URL:
+        st.error("API_URL não definido em st.session_state['API_URL'].")
+        st.stop()
 
     st.title("📝 Criar sua conta")
+    st.caption(
+        "Crie sua conta em menos de 1 minuto. Você terá **3 dias de acesso de teste** para conhecer o sistema. "
+        "Depois, é só escolher seu plano na aba **Planos**."
+    )
 
-    cupons_validos = {
-        "BEMVINDO10": ("porcentagem", 10),
-        "MIV99": ("porcentagem", 90),
-        "PROMO25": ("porcentagem", 25),
-        "VIP50": ("fixo", 50),
-        "R10OFF": ("fixo", 10)
-    }
+    # ======================================================
+    # STATE
+    # ======================================================
+    if "cad_ok" not in st.session_state:
+        st.session_state["cad_ok"] = False
 
-    planos_info = {
-        "Gratuito": 0.0,
-        "Essencial": 47.90,
-        "Profissional": 97.90,
-        "Premium": 195.90
-    }
+    def _safe_detail(resp: httpx.Response) -> str:
+        try:
+            j = resp.json() or {}
+            return j.get("detail") or resp.text
+        except Exception:
+            return resp.text or "Resposta vazia do servidor."
 
-    if "plano_escolhido" not in st.session_state:
-        st.session_state.plano_escolhido = "Gratuito"
-    plano_selecionado = st.session_state.plano_escolhido
+    # ======================================================
+    # UI
+    # ======================================================
+    st.markdown("### 📋 Dados da sua conta")
 
-    st.subheader("📦 Escolha um plano")
+    with st.form("form_cadastro_simples"):
+        nome = st.text_input("Nome completo", placeholder="Ex: Matheus Nascimento")
+        email = st.text_input("E-mail", placeholder="Ex: seuemail@gmail.com")
+        senha = st.text_input("Senha", type="password", placeholder="Crie uma senha")
+        confirmar = st.text_input("Confirmar senha", type="password", placeholder="Digite a senha novamente")
 
-    # 🔹 4 colunas na mesma linha
-    cols = st.columns(4)
+        st.markdown(
+            """
+            <div style="background:#fff3cd; border:1px solid #ffeeba; padding:12px; border-radius:10px; margin-top:10px;">
+                <strong>🔔 Importante:</strong> Após criar sua conta, você poderá acessar o sistema por <strong>3 dias</strong>.
+                Dentro do app, vá em <strong>Menu → Planos</strong> para escolher o plano ideal e liberar o acesso completo.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-    def card_plano(nome, emoji, preco, tooltip, col):
-        selecionado = (plano_selecionado == nome)
-        bg = "#265df2" if selecionado else "#ffffff"
-        text_color = "#ffffff" if selecionado else "#000000"
-        border = "3px solid #265df2" if selecionado else "1px solid #ccc"
+        criar = st.form_submit_button("✅ Criar conta")
 
-        with col:
-            st.markdown(
-                f"""
-                <div style='
-                    background-color:{bg};
-                    padding: 15px;
-                    border-radius: 12px;
-                    border:{border};
-                    margin-bottom:10px;
-                    min-height: 170px;
-                    color:{text_color};
-                '>
-                    <h4 style='margin-bottom:5px'>{emoji} Plano {nome}</h4>
-                    <ul style="padding-left:18px; margin-top:4px; margin-bottom:10px; color:{text_color};">
-                        {tooltip}
-                    </ul>
-                    <strong>💰 R$ {preco:.2f}</strong>
-                </div>
-                """,
-                unsafe_allow_html=True
+    # ======================================================
+    # SUBMIT
+    # ======================================================
+    if criar:
+        nome = (nome or "").strip()
+        email = (email or "").strip().lower()
+        senha = senha or ""
+        confirmar = confirmar or ""
+
+        if not nome or not email or not senha or not confirmar:
+            st.error("Preencha todos os campos.")
+            st.stop()
+
+        if senha != confirmar:
+            st.error("As senhas não coincidem.")
+            st.stop()
+
+        # cria a conta (sempre cadastro-gratuito)
+        try:
+            resp = httpx.post(
+                f"{API_URL}/usuario/cadastro-gratuito",
+                json={"nome": nome, "email": email, "senha": senha},
+                timeout=30,
             )
-            if st.button(f"Selecionar {nome}", key=f"btn_{nome}"):
-                st.session_state.plano_escolhido = nome
+        except Exception as e:
+            st.error(f"Erro ao conectar no cadastro: {e}")
+            st.stop()
+
+        if resp.status_code != 200:
+            st.error(f"❌ Erro ao cadastrar ({resp.status_code}): {_safe_detail(resp)}")
+            st.stop()
+
+        st.session_state["cad_ok"] = True
+        st.session_state["cad_email"] = email
+        st.rerun()
+
+    # ======================================================
+    # PÓS-CADASTRO
+    # ======================================================
+    if st.session_state.get("cad_ok"):
+        st.success("✅ Conta criada com sucesso!")
+
+        st.info(
+            "Agora faça login com seu e-mail e senha.\n\n"
+            "Assim que entrar, vá em **Menu → Planos** e escolha o plano ideal para liberar o acesso completo."
+        )
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("🔑 Ir para login"):
+                st.query_params = {"login": "true"}
                 st.rerun()
 
-    # 📦 Um plano em cada coluna
-    card_plano("Gratuito", "🆓", planos_info["Gratuito"], "<li>Empresa</li><li>Saúde</li>", cols[0])
-    card_plano("Essencial", "💼", planos_info["Essencial"], "<li>Orçamento</li><li>Aplicativos</li>", cols[1])
-    card_plano("Profissional", "🚀", planos_info["Profissional"], "<li>Avançado</li><li>Todos do Essencial</li>", cols[2])
-    card_plano("Premium", "👑", planos_info["Premium"], "<li>Suporte Premium</li><li>Tudo incluso</li>", cols[3])
+        with c2:
+            if st.button("➕ Criar outra conta"):
+                st.session_state["cad_ok"] = False
+                st.session_state.pop("cad_email", None)
+                st.rerun()
 
     st.markdown("---")
-    st.subheader("📋 Dados de Cadastro")
-
-    with st.form("form_cadastro"):
-        nome = st.text_input("👤 Nome completo")
-        email = st.text_input("📧 E-mail")
-        senha = st.text_input("🔒 Senha", type="password")
-
-        preco = planos_info[plano_selecionado]
-        preco_final = preco
-        desconto = 0
-
-        cupom_input = ""
-        if plano_selecionado != "Gratuito":
-            cupom_input = st.text_input("💳 Cupom de desconto").upper()
-            if cupom_input in cupons_validos:
-                tipo, valor = cupons_validos[cupom_input]
-                if tipo == "porcentagem":
-                    desconto = preco * (valor / 100)
-                elif tipo == "fixo":
-                    desconto = valor
-                preco_final = max(0, round(preco - desconto, 2))
-                st.success(f"🎉 Cupom aplicado! Novo valor: R$ {preco_final:.2f}")
-            elif cupom_input:
-                st.warning("⚠️ Cupom inválido. Valor normal será aplicado.")
-
-        token = ""
-        if plano_selecionado != "Gratuito":
-            token = st.text_input("🔑 Token de Ativação (após pagamento)")
-
-        enviar = st.form_submit_button("Cadastrar")
-
-        if enviar:
-            # validação básica
-            if not nome or not email or not senha:
-                st.error("Preencha todos os campos antes de cadastrar.")
-                st.stop()
-
-            # 🔹 Plano Gratuito → cadastro imediato + e-mail de boas-vindas
-            if plano_selecionado == "Gratuito":
-                try:
-                    resp = httpx.post(
-                        f"{API_URL}/usuario/cadastro-gratuito",
-                        json={
-                            "nome": nome,
-                            "email": email,
-                            "senha": senha
-                        },
-                        timeout=20.0,
-                    )
-                except Exception as e:
-                    st.error(f"Erro ao conectar: {e}")
-                else:
-                    if resp.status_code == 200:
-                        try:
-                            _ = resp.json()
-                        except Exception:
-                            _ = None
-                        st.success("✅ Cadastro realizado com sucesso!")
-                        st.info("✉️ Verifique seu e-mail, enviamos seus dados de acesso e o período de teste.")
-                        st.markdown("[🔑 Ir para o login](?login=true)")
-                    else:
-                        detalhe = ""
-                        try:
-                            detalhe = resp.json().get("detail", "")
-                        except Exception:
-                            detalhe = resp.text or "Resposta vazia do servidor."
-                        st.error(f"❌ Erro ao cadastrar ({resp.status_code}): {detalhe}")
-
-            # 🔹 Planos pagos com token já em mãos (após pagamento)
-            elif token:
-                try:
-                    resp = httpx.post(
-                        f"{API_URL}/cadastro",
-                        json={
-                            "nome": nome,
-                            "email": email,
-                            "senha": senha,
-                            "token_ativacao": token
-                        },
-                        timeout=20.0,
-                    )
-                except Exception as e:
-                    st.error(f"Erro ao conectar: {e}")
-                else:
-                    if resp.status_code == 200:
-                        st.success("✅ Cadastro ativado com sucesso!")
-                        st.markdown("[🔑 Ir para o login](?login=true)")
-                    else:
-                        detalhe = ""
-                        try:
-                            detalhe = resp.json().get("detail", "")
-                        except Exception:
-                            detalhe = resp.text or "Resposta vazia do servidor."
-                        st.error(f"❌ Erro ao cadastrar ({resp.status_code}): {detalhe}")
-
-            # 🔹 Planos pagos sem token → gera link do Mercado Pago
-            else:
-                try:
-                    resp = httpx.post(
-                        f"{API_URL}/api/mercado_pago/criar_preferencia",
-                        json={
-                            "plano_nome": plano_selecionado,
-                            "preco": preco_final
-                        },
-                        timeout=20.0,
-                    )
-                except Exception as e:
-                    st.error(f"Erro ao conectar com Mercado Pago: {e}")
-                else:
-                    if resp.status_code == 200:
-                        try:
-                            pagamento = resp.json()
-                        except Exception:
-                            pagamento = {}
-                        init_point = pagamento.get("init_point")
-                        if init_point:
-                            st.success("✅ Cadastro iniciado. Finalize o pagamento para receber o token de ativação no e-mail.")
-                            st.markdown(f"[🔗 Clique aqui para pagar agora]({init_point})")
-                        else:
-                            st.error("Erro ao gerar link de pagamento (resposta incompleta).")
-                    else:
-                        detalhe = ""
-                        try:
-                            detalhe = resp.json().get("detail", "")
-                        except Exception:
-                            detalhe = resp.text or "Erro ao gerar link de pagamento."
-                        st.error(f"Erro ao gerar link de pagamento ({resp.status_code}): {detalhe}")
-
-    st.markdown("---")
-    if st.button("👨🏻‍💻 Voltar para login"):
+    if st.button("🔑 Já tenho conta? Ir para login"):
         st.query_params = {"login": "true"}
         st.rerun()
 
@@ -2104,6 +2018,10 @@ def tela_planos():
 
             plano_id = plano.get("id", i)
             nome_plano = plano.get("nome") or "Plano"
+            plano_intencao_id = st.session_state.get("plano_intencao_id")
+            if plano_intencao_id and int(plano_id) == int(plano_intencao_id):
+                st.info("✅ Você escolheu este plano no cadastro. Finalize o pagamento abaixo para liberar o acesso.")
+
             descricao = plano.get("descricao") or ""
             preco_mensal = float(plano.get("preco_mensal") or 0.0)
             modulos = plano.get("modulos_liberados") or []
@@ -3457,7 +3375,7 @@ def tela_aplicativos():
                     st.rerun()
 
 def tela_meus_aplicativos():
-    st.title("📲 Meus Aplicativos")
+    st.title("📲   Meus Apps")
 
     try:
         r = httpx.get(f"{API_URL}/aplicativos", headers=get_headers())
@@ -3492,6 +3410,7 @@ def tela_detalhe_app(app_id):
 def tela_checkout_app(app_id):
     st.title("💳 Finalizar Compra do App")
     st.info(f"Função futura. Checkout do app ID: {app_id}")
+
 
 
 
@@ -3552,17 +3471,13 @@ def main():
         st.markdown(
             """
             <script>
-            // Coloca tudo em uma função auto-executável pra evitar conflitos
             (function() {
               function isMobile() {
                 return window.innerWidth <= 768;
               }
 
-              // Tenta achar o botão de toggle do menu do Streamlit
               function encontrarBotaoToggle() {
-                // alguns possíveis seletores que o Streamlit usa no header
                 const candidatos = Array.from(document.querySelectorAll("button"));
-
                 return candidatos.find(btn => {
                   const aria = (btn.getAttribute("aria-label") || "").toLowerCase();
                   const title = (btn.getAttribute("title") || "").toLowerCase();
@@ -3580,26 +3495,20 @@ def main():
 
               function fecharSidebar() {
                 const toggle = encontrarBotaoToggle();
-                if (toggle) {
-                  toggle.click();
-                }
+                if (toggle) toggle.click();
               }
 
-              // 1) Fechar quando clicar em qualquer opção de rádio do menu lateral
               document.addEventListener("click", function(event) {
                 if (!isMobile()) return;
 
-                // procura um label de radio (onde fica o texto dos módulos)
                 const labelRadio = event.target.closest('label[data-baseweb="radio"]') || event.target.closest("label");
                 if (!labelRadio) return;
 
-                // Dá um tempinho pro Streamlit mudar o conteúdo da página
                 setTimeout(function() {
                   fecharSidebar();
                 }, 400);
               }, true);
 
-              // 2) Gesto de "puxar" (swipe) para fechar a sidebar
               let touchStartX = null;
 
               document.addEventListener("touchstart", function(e) {
@@ -3615,7 +3524,6 @@ def main():
                 const touch = e.changedTouches[0];
                 const deltaX = touch.clientX - touchStartX;
 
-                // Se arrastar para a esquerda mais de 60px, tenta fechar
                 if (deltaX < -60) {
                   fecharSidebar();
                 }
@@ -3628,9 +3536,6 @@ def main():
             unsafe_allow_html=True,
         )
 
-
-
-
         obter_dados_usuario()
         usuario = st.session_state.dados_usuario
         plano = usuario.get("plano_atual") or "Gratuito"
@@ -3641,7 +3546,8 @@ def main():
         else:
             st.sidebar.markdown("📌 Sua logo aparecerá aqui")
 
-        if usuario.get("is_admin"):
+        # Admin: acesso total
+        if usuario.get("is_admin") or usuario.get("tipo_usuario") == "admin":
             plano = "Administrador (acesso total)"
 
         st.sidebar.markdown(f"🔐 **Plano:** `{plano}`")
@@ -3669,6 +3575,61 @@ def main():
         return
 
 
+    # =========================================================
+    # ✅ CONTROLE GLOBAL DE ACESSO POR MÓDULO (PLANOS)
+    # =========================================================
+
+    # Slug do módulo -> Nome bonito (para mostrar no aviso)
+    MODULOS_CATALOGO = {
+        "empresa": "🏢 Empresa",
+        "saude": "❤️ Saúde da Empresa",
+        "consultoria": "📋 Consultoria",
+        "cursos": "🎓 Cursos",
+        "aplicativos": "📱 Aplicativos",
+        "orcamento": "💰 Orçamento",
+        "agenda": "📅 Agenda",
+        "consultor_mensal": "📣 Consultor Mensal",
+        "arquivo": "📁 Arquivos",
+        "mark": "🤖 MARK IA",
+        "site_chat": "🌐 Site e Chat",
+    }
+
+    # Item do menu -> slug do módulo (ou None se não bloqueia)
+    MENU_PARA_MODULO = {
+        "🏠 **Início**": None,
+        "💳 Planos": None,
+        "🏢 **Empresa**": "empresa",
+        "❤️ **Saúde da Empresa**": "saude",
+        "📋 **Consultoria**": "consultoria",
+        "🎓 **Cursos**": "cursos",
+        "📘 **Meus Cursos**": "cursos",
+        "📱 **Aplicativos**": "aplicativos",
+        "📲   **Meus Apps**": "aplicativos",
+        "💰 **Orçamento**": "orcamento",
+        "📅 **Agenda**": "agenda",
+        "📣 **Consultor Mensal**": "consultor_mensal",
+        "📁 **Arquivos**": "arquivo",
+        "🤖 **MARK IA**": "mark",
+        "🌐 **Site e Chat**": "site_chat",
+        "🚪 **Sair**": None,
+    }
+
+    def exigir_acesso(modulo_slug: str):
+        """Bloqueia a tela se o usuário não tiver acesso ao módulo."""
+        if not modulo_slug:
+            return
+
+        from verificar_acesso import usuario_tem_acesso, planos_que_liberam
+
+        if not usuario_tem_acesso(modulo_slug):
+            nome_bonito = MODULOS_CATALOGO.get(modulo_slug, modulo_slug)
+            planos = planos_que_liberam(modulo_slug)
+            planos_txt = ", ".join(planos) if planos else "planos superiores"
+
+            st.warning(
+                f"🔒 Este módulo ({nome_bonito}) está disponível apenas nos planos: **{planos_txt}**."
+            )
+            st.stop()
 
 
     # --- MENU LATERAL: sempre aparece ---
@@ -3684,6 +3645,7 @@ def main():
             "🎓 **Cursos**",
             "📘 **Meus Cursos**",
             "📱 **Aplicativos**",
+            "📲   **Meus Apps**",
             "💰 **Orçamento**",
             "📅 **Agenda**",
             "📣 **Consultor Mensal**",
@@ -3695,10 +3657,13 @@ def main():
         key="menu_principal",
     )
 
+    # ✅ Bloqueio global (antes de carregar qualquer tela)
+    exigir_acesso(MENU_PARA_MODULO.get(escolha))
+
+
     # --- ESTADOS DE CURSO: sobrescrevem o conteúdo da tela,
     # mas o menu continua visível na esquerda ---
     if st.session_state.get("curso_checkout"):
-        # usa as funções definidas no próprio app.py
         tela_checkout(st.session_state["curso_checkout"])
         return
 
@@ -3711,31 +3676,38 @@ def main():
         return
 
 
-
-
     if escolha == "🏠 **Início**":
         tela_inicio()
+
     elif escolha == "💳 Planos":
         tela_planos()
+
     elif escolha == "🏢 **Empresa**":
         tela_empresa()
+
     elif escolha == "❤️ **Saúde da Empresa**":
         from saude_empresa import tela_saude_empresa
         tela_saude_empresa()
+
     elif escolha == "📋 **Consultoria**":
         tela_consultoria()
+
     elif escolha == "🎓 **Cursos**":
         from cursos import tela_cursos
         tela_cursos()
+
     elif escolha == "📘 **Meus Cursos**":
         from cursos import tela_meus_cursos
         tela_meus_cursos()
+
     elif escolha == "📱 **Aplicativos**":
         from aplicativos import tela_aplicativos
         tela_aplicativos()
-    elif escolha == "📲 **Meus Apps**":
+
+    elif escolha == "📲   **Meus Apps**":
         from aplicativos import tela_meus_aplicativos
         tela_meus_aplicativos()
+
     elif escolha == "💰 **Orçamento**":
         from orcamento import tela_orcamento
         try:
@@ -3745,16 +3717,22 @@ def main():
             dados_empresa = {}
             st.error(f"Erro ao buscar dados da empresa: {e}")
         tela_orcamento(dados_empresa)
+
     elif escolha == "📅 **Agenda**":
         tela_agenda()
+
     elif escolha == "📣 **Consultor Mensal**":
-       tela_consultor_mensal()
+        tela_consultor_mensal()
+
     elif escolha == "📁 **Arquivos**":
         tela_arquivos()
+
     elif escolha == "🤖 **MARK IA**":
         tela_mark_ia()
+
     elif escolha == "🌐 **Site e Chat**":
         tela_site_cliente()
+
     elif escolha == "🚪 **Sair**":
         st.session_state.token = None
         st.session_state.modo_demo = False
@@ -3769,7 +3747,3 @@ def main():
 # Executa o app
 if __name__ == "__main__":
     main()
-
-
-
-
