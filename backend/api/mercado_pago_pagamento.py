@@ -1,3 +1,5 @@
+# backend/api/mercado_pago_pagamento.py
+
 from __future__ import annotations
 
 import os
@@ -15,6 +17,7 @@ from backend.models import Pagamento, Usuario
 from backend.models.planos import Plano
 from backend.utils.email_utils import enviar_email
 
+
 router = APIRouter(prefix="/mercado_pago", tags=["Mercado Pago"])
 
 MERCADO_PAGO_ACCESS_TOKEN = (os.getenv("MERCADO_PAGO_ACCESS_TOKEN") or "").strip()
@@ -25,16 +28,37 @@ MERCADO_PAGO_WEBHOOK_SECRET = (os.getenv("MERCADO_PAGO_WEBHOOK_SECRET") or "").s
 # Helpers
 # ---------------------------------------------------------------------
 def _parse_external_reference(external_reference: str) -> dict:
+    """
+    Aceita estes formatos (qualquer um):
+      kind=plano|plano_id=2|periodo=mensal|user_id=13|pag_id=4
+      kind:plano|plano_id:2|periodo:mensal|user:13|pag:4|ts:...
+
+    Retorna dict normalizado com:
+      kind, plano_id, curso_id, periodo, user_id, pag_id, etc.
+    """
     ref: Dict[str, Any] = {}
     if not external_reference:
         return ref
 
     parts = [p.strip() for p in external_reference.split("|") if p.strip()]
     for p in parts:
+        # suporta "k=v" e "k:v"
         if "=" in p:
             k, v = p.split("=", 1)
-            ref[k.strip()] = v.strip()
+        elif ":" in p:
+            k, v = p.split(":", 1)
+        else:
+            continue
 
+        ref[k.strip()] = v.strip()
+
+    # normaliza aliases
+    if "user" in ref and "user_id" not in ref:
+        ref["user_id"] = ref["user"]
+    if "pag" in ref and "pag_id" not in ref:
+        ref["pag_id"] = ref["pag"]
+
+    # normaliza ints quando der
     for k in ("plano_id", "curso_id", "user_id", "pag_id"):
         if k in ref:
             try:
@@ -46,6 +70,13 @@ def _parse_external_reference(external_reference: str) -> dict:
 
 
 def _extract_payment_id_from_request(request: Request, body_json: Optional[dict]) -> Optional[str]:
+    """
+    MP pode enviar:
+      - JSON: {"type":"payment","data":{"id":"123"}}
+      - JSON: {"action":"payment.updated","data":{"id":"123"}}
+      - Querystring: ?data.id=123&type=payment
+      - Querystring: ?id=123
+    """
     payment_id = None
 
     if isinstance(body_json, dict):
@@ -67,17 +98,18 @@ def _extract_payment_id_from_request(request: Request, body_json: Optional[dict]
 
 def _verify_webhook_signature(request: Request, payment_id: str) -> bool:
     """
-    Validação opcional. Se secret não estiver configurado, não bloqueia.
+    Validação opcional por assinatura.
+    Se não tiver secret configurado, retorna True (não bloqueia).
     """
     if not MERCADO_PAGO_WEBHOOK_SECRET:
         return True
 
     x_signature = request.headers.get("x-signature") or ""
-    # alguns ambientes usam x-request-id, outros x-mp-request-id
-    x_request_id = request.headers.get("x-request-id") or request.headers.get("x-mp-request-id") or ""
+    x_request_id = request.headers.get("x-request-id") or ""
     if not x_signature or not x_request_id:
         return False
 
+    # x-signature: "ts=...,v1=..."
     parts = {}
     for part in x_signature.split(","):
         if "=" in part:
@@ -100,28 +132,20 @@ def _verify_webhook_signature(request: Request, payment_id: str) -> bool:
 
 
 async def _mp_get_payment(payment_id: str) -> dict:
-    """
-    Nunca derruba webhook. Se falhar, retorna {}.
-    """
+    """Consulta pagamento no MP: GET /v1/payments/{id}."""
     if not MERCADO_PAGO_ACCESS_TOKEN:
-        return {}
+        raise HTTPException(status_code=500, detail="MERCADO_PAGO_ACCESS_TOKEN não configurado no ambiente.")
 
     url = f"https://api.mercadopago.com/v1/payments/{payment_id}"
     headers = {"Authorization": f"Bearer {MERCADO_PAGO_ACCESS_TOKEN}"}
 
-    try:
-        async with httpx.AsyncClient(timeout=30) as client:
-            r = await client.get(url, headers=headers)
-    except Exception:
-        return {}
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.get(url, headers=headers)
 
     if r.status_code != 200:
-        return {}
+        raise HTTPException(status_code=500, detail=f"Erro ao consultar pagamento no MP: {r.text}")
 
-    try:
-        return r.json() or {}
-    except Exception:
-        return {}
+    return r.json() or {}
 
 
 def _email_plano_aprovado(usuario: Usuario, plano_nome: str, periodo: str):
@@ -141,17 +165,26 @@ def _email_plano_aprovado(usuario: Usuario, plano_nome: str, periodo: str):
 
 
 # ---------------------------------------------------------------------
-# Endpoints
+# Rotas de verificação rápida (GET) e webhook real (POST)
 # ---------------------------------------------------------------------
 @router.get("/webhook")
-def mercado_pago_webhook_get():
-    # alguns validadores/testes batem em GET
+def webhook_up():
+    # isso te permite abrir no navegador e ver "webhook_up"
     return {"ok": True, "info": "webhook_up"}
 
 
 @router.post("/webhook")
 async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
-    # body pode não ser JSON -> não quebrar
+    """
+    Webhook de pagamentos.
+    Fluxo:
+      1) extrai payment_id
+      2) (opcional) valida assinatura
+      3) consulta pagamento no MP
+      4) localiza Pagamento no banco (por pag_id, mp_payment_id, external_reference)
+      5) atualiza status e libera acesso se approved
+    """
+    # body pode não ser JSON
     body_json = None
     try:
         body_json = await request.json()
@@ -162,17 +195,16 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
     if not payment_id:
         return {"ok": True, "ignored": "sem_payment_id"}
 
-    # validação opcional
     if MERCADO_PAGO_WEBHOOK_SECRET:
         if not _verify_webhook_signature(request, payment_id):
             raise HTTPException(status_code=401, detail="Webhook signature inválida.")
 
-    mp = await _mp_get_payment(payment_id)
-
-    # Se não conseguiu consultar o pagamento (simulador / id inválido / token faltando),
-    # não derruba o webhook.
-    if not mp:
-        return {"ok": True, "ignored": "mp_nao_consultavel", "payment_id": payment_id}
+    # consulta pagamento no MP
+    try:
+        mp = await _mp_get_payment(payment_id)
+    except Exception:
+        # no simulador do painel, o id costuma ser fake -> não derrubar
+        return {"ok": True, "warning": "mp_get_failed", "payment_id": payment_id}
 
     status = (mp.get("status") or "").lower()
     external_reference = mp.get("external_reference") or ""
@@ -180,6 +212,7 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
 
     ref = _parse_external_reference(external_reference)
 
+    # tenta localizar pagamento no banco
     pagamento = None
 
     # 1) por pag_id (preferencial)
@@ -187,11 +220,11 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
     if isinstance(pag_id, int):
         pagamento = db.query(Pagamento).filter(Pagamento.id == pag_id).first()
 
-    # 2) fallback: por mp_payment_id
+    # 2) fallback: por mp_payment_id (se existir no model)
     if not pagamento and hasattr(Pagamento, "mp_payment_id"):
         pagamento = db.query(Pagamento).filter(Pagamento.mp_payment_id == str(payment_id)).first()
 
-    # 3) fallback: por mp_external_reference
+    # 3) fallback: por external_reference (se existir campo no model)
     if not pagamento and external_reference and hasattr(Pagamento, "mp_external_reference"):
         pagamento = db.query(Pagamento).filter(Pagamento.mp_external_reference == external_reference).first()
 
@@ -214,13 +247,16 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
     if hasattr(pagamento, "mp_preference_id"):
         pagamento.mp_preference_id = str(preference_id) if preference_id else None
 
-    # Ainda não aprovado: salva status e sai
+    # Se não aprovado, só salva status
     if status != "approved":
+        # mantém "pending", "rejected", "cancelled" etc
         pagamento.status = status
         db.commit()
         return {"ok": True, "status": status, "pagamento_id": pagamento.id}
 
-    # APPROVED
+    # -------------------------
+    # APPROVED -> LIBERAÇÃO
+    # -------------------------
     pagamento.status = "aprovado"
     db.commit()
     db.refresh(pagamento)
@@ -229,20 +265,31 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
     if not usuario:
         return {"ok": True, "warning": "usuario_nao_encontrado", "pagamento_id": pagamento.id}
 
-    kind = (ref.get("kind") or "").lower()
+    kind = (ref.get("kind") or "plano").lower()  # se não vier, assume plano
 
-    # PLANO
+    # ---- PLANO
     if kind == "plano":
         periodo = (ref.get("periodo") or "mensal").lower()
         plano_id = ref.get("plano_id")
 
-        plano_nome = getattr(pagamento, "plano", None) or "Plano"
+        # resolve nome do plano
+        plano_nome = None
         if isinstance(plano_id, int):
             p = db.query(Plano).filter(Plano.id == plano_id).first()
             if p and p.nome:
                 plano_nome = p.nome
 
-        usuario.plano_atual = plano_nome
+        if not plano_nome:
+            # fallback: usa o plano atual ou um padrão
+            plano_nome = getattr(usuario, "plano_atual", None) or "Plano"
+
+        # atualiza usuário
+        if hasattr(usuario, "tipo_usuario"):
+            # seu print mostra "Pendente" -> vira "Cliente"
+            usuario.tipo_usuario = "Cliente"
+
+        if hasattr(usuario, "plano_atual"):
+            usuario.plano_atual = plano_nome
 
         expira = datetime.utcnow() + (timedelta(days=365) if periodo == "anual" else timedelta(days=30))
         for campo in ("plano_expira_em", "plano_expira", "expira_em"):
@@ -251,6 +298,7 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
                 break
 
         db.commit()
+
         _email_plano_aprovado(usuario, plano_nome, periodo)
 
         return {
@@ -262,7 +310,7 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
             "pagamento_id": pagamento.id,
         }
 
-    # CURSO (placeholder)
+    # ---- CURSO (se você quiser liberar aqui também no futuro)
     if kind == "curso":
         return {
             "ok": True,
@@ -270,7 +318,7 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
             "usuario_id": usuario.id,
             "pagamento_id": pagamento.id,
             "external_reference": external_reference,
-            "observacao": "Implementar a liberação do curso conforme seu modelo.",
+            "observacao": "Plugar aqui a liberação do curso conforme seu modelo (ex: tabela curso_compras).",
         }
 
     return {
