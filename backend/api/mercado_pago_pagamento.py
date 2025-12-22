@@ -28,28 +28,18 @@ MERCADO_PAGO_WEBHOOK_SECRET = (os.getenv("MERCADO_PAGO_WEBHOOK_SECRET") or "").s
 # Helpers
 # ---------------------------------------------------------------------
 def _parse_external_reference(external_reference: str) -> dict:
-    """
-    Aceita estes formatos (qualquer um):
-      kind=plano|plano_id=2|periodo=mensal|user_id=13|pag_id=4
-      kind:plano|plano_id:2|periodo:mensal|user:13|pag:4|ts:...
-
-    Retorna dict normalizado com:
-      kind, plano_id, curso_id, periodo, user_id, pag_id, etc.
-    """
     ref: Dict[str, Any] = {}
     if not external_reference:
         return ref
 
     parts = [p.strip() for p in external_reference.split("|") if p.strip()]
     for p in parts:
-        # suporta "k=v" e "k:v"
         if "=" in p:
             k, v = p.split("=", 1)
         elif ":" in p:
             k, v = p.split(":", 1)
         else:
             continue
-
         ref[k.strip()] = v.strip()
 
     # normaliza aliases
@@ -57,6 +47,14 @@ def _parse_external_reference(external_reference: str) -> dict:
         ref["user_id"] = ref["user"]
     if "pag" in ref and "pag_id" not in ref:
         ref["pag_id"] = ref["pag"]
+
+    # >>> AQUI está o seu bug: você envia "plano:4" e o código espera "plano_id"
+    if "plano" in ref and "plano_id" not in ref:
+        ref["plano_id"] = ref["plano"]
+
+    # (opcional) se você mandar "curso:10"
+    if "curso" in ref and "curso_id" not in ref:
+        ref["curso_id"] = ref["curso"]
 
     # normaliza ints quando der
     for k in ("plano_id", "curso_id", "user_id", "pag_id"):
@@ -67,6 +65,7 @@ def _parse_external_reference(external_reference: str) -> dict:
                 pass
 
     return ref
+
 
 
 def _extract_payment_id_from_request(request: Request, body_json: Optional[dict]) -> Optional[str]:
