@@ -34,7 +34,17 @@ def _mp_notification_url() -> Optional[str]:
     return f"{BACKEND_URL}/mercado_pago/webhook"
 
 
-def criar_preferencia_mp(titulo: str, valor: float, referencia_externa: str) -> dict:
+def criar_preferencia_mp(
+    titulo: str,
+    valor: float,
+    referencia_externa: str,
+    payer_email: str,
+    payer_first_name: str = "",
+    payer_last_name: str = "",
+    item_id: str = "",
+    item_description: str = "",
+    category_id: str = "services",
+) -> dict:
     if not MERCADO_PAGO_ACCESS_TOKEN:
         raise HTTPException(status_code=500, detail="MERCADO_PAGO_ACCESS_TOKEN não configurado no ambiente.")
 
@@ -44,21 +54,47 @@ def criar_preferencia_mp(titulo: str, valor: float, referencia_externa: str) -> 
         "Content-Type": "application/json",
     }
 
+    # -------------------------
+    # Back URLs (melhor para qualidade/score)
+    # -------------------------
     back_urls = None
     if FRONTEND_URL:
+        base = FRONTEND_URL.rstrip("/")
         back_urls = {
-            "success": f"{FRONTEND_URL}/",
-            "failure": f"{FRONTEND_URL}/",
-            "pending": f"{FRONTEND_URL}/",
+            "success": f"{base}/?mp=success",
+            "failure": f"{base}/?mp=failure",
+            "pending": f"{base}/?mp=pending",
         }
 
+    # -------------------------
+    # Item completo (id, description, category_id etc.)
+    # -------------------------
+    item = {
+        "id": item_id or referencia_externa[:50],  # fallback simples
+        "title": titulo,
+        "description": item_description or titulo,
+        "category_id": category_id or "services",
+        "quantity": 1,
+        "unit_price": float(valor),
+        "currency_id": "BRL",
+    }
+
     body = {
-        "items": [{
-            "title": titulo,
-            "quantity": 1,
-            "unit_price": float(valor),
-        }],
+        "items": [item],
         "external_reference": referencia_externa,
+
+        # Buyer (ajuda muito na qualidade)
+        "payer": {
+            "email": payer_email,
+            "name": payer_first_name or "",
+            "surname": payer_last_name or "",
+        },
+
+        # Metadata para conciliação/debug
+        "metadata": {
+            "external_reference": referencia_externa,
+            "tipo": "plano",
+        },
     }
 
     if back_urls:
@@ -78,6 +114,7 @@ def criar_preferencia_mp(titulo: str, valor: float, referencia_externa: str) -> 
         "preference_id": data.get("id"),
         "init_point": data.get("init_point"),
     }
+
 
 
 # =========================================================
@@ -342,11 +379,28 @@ def comprar_plano(
 
     titulo = f"Plano {plano.nome} ({meses} meses)"
 
+    # item_id (SKU interno)
+    item_id = f"plano_{plano.id}_{periodo}"
+
+    # description curta e clara
+    descricao = f"Assinatura do Plano {plano.nome} ({periodo}). Acesso ao sistema MivMark."
+
+    # nome/sobrenome (se você tiver no model Usuario; se não tiver, deixa vazio)
+    primeiro_nome = getattr(usuario, "nome", "") or ""
+    sobrenome = getattr(usuario, "sobrenome", "") or ""
+
     pref = criar_preferencia_mp(
-        titulo=titulo,
-        valor=valor,
+        titulo=f"Plano {plano.nome} ({periodo})",
+        valor=float(valor),
         referencia_externa=referencia,
+        payer_email=usuario.email,
+        payer_first_name=primeiro_nome,
+        payer_last_name=sobrenome,
+        item_id=item_id,
+        item_description=descricao,
+        category_id="services",
     )
+
 
     resp = {
         "mensagem": "Link de pagamento gerado",
