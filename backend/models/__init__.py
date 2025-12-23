@@ -9,6 +9,7 @@ from datetime import datetime
 from .ideias_mensais import IdeiasMensais
 from .consultor_mensal import ConsultorMensal
 from .cupom import CupomDesconto
+from backend.models.senha_reset import SenhaResetToken
 
 class Diagnostico(Base):
     __tablename__ = "diagnosticos"

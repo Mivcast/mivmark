@@ -97,6 +97,8 @@ from backend.api.planos import router as planos_router  # noqa: E402
 from backend.api.cupons import router as cupons_router  # noqa: E402
 from backend.api.checkout import router as checkout_router
 from backend.api.checkout_publico import router as checkout_publico_router
+from backend.api.conta import router as conta_router
+
 
 
 
@@ -121,6 +123,7 @@ app.include_router(mark_ia.router, prefix="/mark")
 app.include_router(cursos.router)
 app.include_router(checkout_router)
 app.include_router(checkout_publico_router)
+app.include_router(conta_router)
 
 # ✅ Mercado Pago fica em /api/mercado_pago/...
 app.include_router(mercado_pago_router, prefix="/api")

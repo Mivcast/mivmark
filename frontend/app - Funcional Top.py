@@ -1091,194 +1091,6 @@ def tela_empresa():
 
 
 
-def tela_minha_conta():
-    import streamlit as st
-    import httpx
-
-    API_URL = (st.session_state.get("API_URL") or "").strip().rstrip("/")
-    if not API_URL:
-        st.error("API_URL não definido em st.session_state['API_URL'].")
-        st.stop()
-
-    token = st.session_state.get("token")
-    if not token:
-        st.warning("Você precisa estar logado para acessar esta área.")
-        return
-
-    headers = {"Authorization": f"Bearer {token}"}
-
-    st.title("👤 Minha Conta")
-    st.caption("Aqui você vê seus dados e pode atualizar e-mail e senha com segurança.")
-
-    # -----------------------------
-    # Carrega dados do usuário
-    # -----------------------------
-    me = None
-    try:
-        r = httpx.get(f"{API_URL}/conta/me", headers=headers, timeout=30)
-        r.raise_for_status()
-        me = r.json()
-    except Exception as e:
-        st.error(f"Não foi possível carregar seus dados. Detalhe: {e}")
-        return
-
-    # -----------------------------
-    # Cards principais
-    # -----------------------------
-    col1, col2 = st.columns([2, 1])
-
-    with col1:
-        st.subheader("📌 Seus dados")
-        st.write(f"**Nome:** {me.get('nome', '')}")
-        st.write(f"**E-mail:** {me.get('email', '')}")
-
-    with col2:
-        st.subheader("🧾 Seu plano")
-        plano = me.get("plano") or me.get("tipo_usuario") or "Não identificado"
-        status = me.get("status") or ""
-        st.write(f"**Plano:** {plano}")
-        if status:
-            st.write(f"**Status:** {status}")
-
-        # CTA Upgrade
-        st.markdown("---")
-        st.info("Quer liberar mais módulos e recursos?")
-        if st.button("🚀 Ver planos e fazer upgrade", use_container_width=True):
-            st.session_state["menu"] = "🧩 Planos"
-            st.rerun()
-
-    st.markdown("---")
-
-    # -----------------------------
-    # Atualizar e-mail
-    # -----------------------------
-    st.subheader("✉️ Atualizar e-mail")
-    with st.form("form_email"):
-        email_novo = st.text_input("Novo e-mail", value=me.get("email", ""))
-        submit_email = st.form_submit_button("Salvar novo e-mail")
-
-    if submit_email:
-        try:
-            r = httpx.put(
-                f"{API_URL}/conta/me/email",
-                headers=headers,
-                json={"email_novo": email_novo},
-                timeout=30,
-            )
-            if r.status_code >= 400:
-                try:
-                    st.error(r.json().get("detail") or r.text)
-                except Exception:
-                    st.error(r.text)
-            else:
-                st.success(r.json().get("msg") or "E-mail atualizado.")
-                st.rerun()
-        except Exception as e:
-            st.error(f"Erro ao atualizar e-mail: {e}")
-
-    st.markdown("---")
-
-    # -----------------------------
-    # Atualizar senha
-    # -----------------------------
-    st.subheader("🔒 Trocar senha")
-    st.caption("Por segurança, sua senha atual não é exibida. Você troca informando a senha atual.")
-
-    with st.form("form_senha"):
-        senha_atual = st.text_input("Senha atual", type="password")
-        senha_nova = st.text_input("Nova senha (mín. 6 caracteres)", type="password")
-        senha_nova2 = st.text_input("Confirmar nova senha", type="password")
-        submit_senha = st.form_submit_button("Atualizar senha")
-
-    if submit_senha:
-        if not senha_atual or not senha_nova or not senha_nova2:
-            st.warning("Preencha todos os campos.")
-        elif senha_nova != senha_nova2:
-            st.warning("A confirmação da nova senha não confere.")
-        else:
-            try:
-                r = httpx.put(
-                    f"{API_URL}/conta/me/senha",
-                    headers=headers,
-                    json={"senha_atual": senha_atual, "senha_nova": senha_nova},
-                    timeout=30,
-                )
-                if r.status_code >= 400:
-                    try:
-                        st.error(r.json().get("detail") or r.text)
-                    except Exception:
-                        st.error(r.text)
-                else:
-                    st.success(r.json().get("msg") or "Senha atualizada.")
-            except Exception as e:
-                st.error(f"Erro ao atualizar senha: {e}")
-
-
-    st.markdown("---")
-    st.subheader("🆘 Esqueci minha senha")
-
-    with st.expander("Clique aqui se você não lembra a senha"):
-        email_me = (me.get("email") or "").strip()
-
-        # Etapa 1: enviar código
-        with st.form("form_esqueci_senha"):
-            email_reset = st.text_input("Seu e-mail", value=email_me)
-            enviar_codigo = st.form_submit_button("Enviar código por e-mail")
-
-        if enviar_codigo:
-            try:
-                r = httpx.post(
-                    f"{API_URL}/conta/esqueci-senha",
-                    json={"email": email_reset},
-                    timeout=30,
-                )
-                if r.status_code >= 400:
-                    try:
-                        st.error(r.json().get("detail") or r.text)
-                    except Exception:
-                        st.error(r.text)
-                else:
-                    st.success(r.json().get("msg") or "Se o e-mail estiver cadastrado, você receberá um código.")
-                    st.session_state["reset_email"] = email_reset.strip().lower()
-            except Exception as e:
-                st.error(f"Erro ao solicitar código: {e}")
-
-        st.markdown("### Redefinir senha com código")
-        reset_email = st.session_state.get("reset_email") or email_me
-
-        with st.form("form_redefinir_senha"):
-            email_confirm = st.text_input("E-mail", value=reset_email)
-            codigo = st.text_input("Código recebido (6 dígitos)")
-            nova = st.text_input("Nova senha", type="password")
-            nova2 = st.text_input("Confirmar nova senha", type="password")
-            redefinir = st.form_submit_button("Redefinir senha")
-
-        if redefinir:
-            if not codigo or not nova or not nova2 or not email_confirm:
-                st.warning("Preencha todos os campos.")
-            elif nova != nova2:
-                st.warning("A confirmação da nova senha não confere.")
-            else:
-                try:
-                    r = httpx.post(
-                        f"{API_URL}/conta/redefinir-senha",
-                        json={"email": email_confirm, "codigo": codigo, "senha_nova": nova},
-                        timeout=30,
-                    )
-                    if r.status_code >= 400:
-                        try:
-                            st.error(r.json().get("detail") or r.text)
-                        except Exception:
-                            st.error(r.text)
-                    else:
-                        st.success(r.json().get("msg") or "Senha redefinida com sucesso.")
-                except Exception as e:
-                    st.error(f"Erro ao redefinir senha: {e}")
-
-
-
-
-
 
 def tela_consultoria():
     # ⚠️ Verificação de acesso: Admin sempre tem acesso total
@@ -2009,7 +1821,7 @@ def tela_mark_ia():
 
 
 # ------------------- TELA DE PLANOS -------------------
-# ------------------- TELA DE PLANOS (V2 - MODAL) -------------------
+# ------------------- TELA DE PLANOS -------------------
 def tela_planos():
     import httpx
     import streamlit as st
@@ -2017,22 +1829,22 @@ def tela_planos():
 
     st.title("📦 Meus Planos")
 
-    API_URL = (st.session_state.get("API_URL") or "").strip().rstrip("/")
-    if not API_URL:
-        st.error("API_URL não definido em st.session_state['API_URL'].")
-        st.stop()
+    # Use o API_URL global se já existir no app.py
+
+    API_URL = st.session_state["API_URL"]
 
     # ======================================================
     # 1) DADOS DO USUÁRIO
     # ======================================================
     usuario = st.session_state.get("dados_usuario", {}) or {}
+
     plano_atual = usuario.get("plano_atual") or "Gratuito"
     if usuario.get("is_admin"):
         plano_atual = "Administrador (acesso total)"
 
     st.markdown(
         f"""
-        <div style='background-color:#f0f8ff; padding: 15px; border-left: 6px solid #007bff; border-radius: 8px; margin-bottom: 10px;'>
+        <div style='background-color:#f0f8ff; padding: 15px; border-left: 6px solid #007bff; border-radius: 8px; margin-bottom: 20px;'>
             <strong>🔒 Seu plano atual:</strong>
             <span style='font-size:18px; color:#007bff'> {plano_atual} </span><br>
             Para liberar mais recursos do sistema, você pode fazer upgrade agora mesmo.
@@ -2040,29 +1852,6 @@ def tela_planos():
         """,
         unsafe_allow_html=True,
     )
-
-    # Botão para atualizar o status após pagamento (webhook)
-    col_a, col_b = st.columns([1, 2])
-    with col_a:
-        if st.button("🔄 Atualizar meu plano agora"):
-            token = st.session_state.get("token")
-            if not token:
-                st.warning("Faça login novamente para atualizar.")
-            else:
-                try:
-                    r = httpx.get(
-                        f"{API_URL}/minha-conta",
-                        headers={"Authorization": f"Bearer {token}"},
-                        timeout=30
-                    )
-                    if r.status_code == 200:
-                        st.session_state["dados_usuario"] = r.json() or {}
-                        st.success("Plano atualizado com sucesso.")
-                        st.rerun()
-                    else:
-                        st.error((r.json() or {}).get("detail", r.text))
-                except Exception as e:
-                    st.error(f"Erro ao atualizar: {e}")
 
     # ======================================================
     # 2) ATIVAÇÃO DE PLANO POR TOKEN (CONSULTORIA)
@@ -2077,6 +1866,7 @@ def tela_planos():
 
     if st.button("Ativar token agora"):
         token_texto = (token_input or "").strip()
+
         if not token_texto:
             st.warning("Digite um token válido.")
         else:
@@ -2084,7 +1874,10 @@ def tela_planos():
             if not token_jwt:
                 st.error("Não foi possível identificar seu login. Saia e entre novamente no sistema antes de ativar o token.")
             else:
-                headers = {"Authorization": f"Bearer {token_jwt}", "Content-Type": "application/json"}
+                headers = {
+                    "Authorization": f"Bearer {token_jwt}",
+                    "Content-Type": "application/json",
+                }
                 try:
                     resp = httpx.post(
                         f"{API_URL}/usuario/ativar_token",
@@ -2092,16 +1885,29 @@ def tela_planos():
                         headers=headers,
                         timeout=30.0,
                     )
+
                     if resp.status_code == 200:
                         dados = resp.json() or {}
                         novo_plano = dados.get("plano") or "consultoria_full"
                         expira = dados.get("expira_em") or ""
+
                         st.session_state["dados_usuario"] = st.session_state.get("dados_usuario", {}) or {}
                         st.session_state["dados_usuario"]["plano_atual"] = novo_plano
-                        st.success(f"✅ Plano ativado!\n\nPlano: **{novo_plano}**\n\nVálido até: **{expira}**")
+
+                        st.success(
+                            f"✅ Plano ativado com sucesso!\n\n"
+                            f"Plano: **{novo_plano}**\n\n"
+                            f"Válido até: **{expira}**"
+                        )
+                        st.info("Se a tela não atualizar sozinha, clique em outra aba e volte em **Planos**.")
                         st.rerun()
                     else:
-                        st.error((resp.json() or {}).get("detail", resp.text))
+                        try:
+                            detalhe = (resp.json() or {}).get("detail", "Erro ao ativar token.")
+                        except Exception:
+                            detalhe = "Erro ao ativar token."
+                        st.error(f"⚠️ {detalhe}")
+
                 except Exception as e:
                     st.error(f"Erro ao conectar com o servidor para ativar o token: {e}")
 
@@ -2119,7 +1925,7 @@ def tela_planos():
         return
 
     # ======================================================
-    # 4) CUPONS (escopo=plano)
+    # 4) CARREGA CUPONS REAIS (escopo=plano) UMA ÚNICA VEZ
     # ======================================================
     cupons_plano = []
     try:
@@ -2128,6 +1934,16 @@ def tela_planos():
             cupons_plano = rcu.json() or []
     except Exception:
         cupons_plano = []
+
+    def _parse_date_iso(v):
+        """Aceita 'YYYY-MM-DD' ou 'YYYY-MM-DDTHH:MM:SS' e retorna date() ou None."""
+        if not v:
+            return None
+        v_str = str(v).split("T")[0].strip()
+        try:
+            return date.fromisoformat(v_str)
+        except Exception:
+            return None
 
     def achar_cupom(codigo: str):
         cod = (codigo or "").strip().lower()
@@ -2138,302 +1954,198 @@ def tela_planos():
                 return c
         return None
 
-    # ======================================================
-    # 5) ESTADOS DO MODAL
-    # ======================================================
-    if "plano_modal_aberto" not in st.session_state:
-        st.session_state["plano_modal_aberto"] = False
-    if "plano_confirm_modal_aberto" not in st.session_state:
-        st.session_state["plano_confirm_modal_aberto"] = False
-    if "plano_escolhido" not in st.session_state:
-        st.session_state["plano_escolhido"] = None
-    if "plano_checkout" not in st.session_state:
-        st.session_state["plano_checkout"] = {}
+    
+    def cupom_valido_para_plano(cupom: dict, plano_id: int) -> bool:
+        if not cupom:
+            return False
+        if not bool(cupom.get("ativo", False)):
+            return False
+
+        alvo = (cupom.get("plano_nome") or "").strip().lower()
+        if not alvo or alvo == "todos":
+            return True
+
+        return alvo == (plano_nome or "").strip().lower()
 
     # ======================================================
-    # 6) CONFIG: períodos (V1) + descontos por período
+    # 5) FUNÇÃO: CRIAR PREFERÊNCIA MP COM FALLBACK DE ROTA
     # ======================================================
-    PERIODOS = {
-        "Mensal": {"periodo_api": "mensal", "meses": 1, "quantidade": 1, "desconto_periodo": 0},
-        "3 meses": {"periodo_api": "mensal", "meses": 3, "quantidade": 3, "desconto_periodo": 5},
-        "6 meses": {"periodo_api": "mensal", "meses": 6, "quantidade": 6, "desconto_periodo": 10},
-        "12 meses": {"periodo_api": "anual", "meses": 12, "quantidade": 1, "desconto_periodo": 0},
-    }
+    def criar_preferencia_mp(plano_nome: str, preco: float, cupom_codigo: str | None):
+        token_jwt = st.session_state.get("token")
+        headers = {}
+        if token_jwt:
+            headers["Authorization"] = f"Bearer {token_jwt}"
+        headers["Content-Type"] = "application/json"
 
-    # ======================================================
-    # 7) FUNÇÃO: CHAMAR /planos/{id}/comprar com fallback
-    # ======================================================
-    def comprar_plano_backend(plano_id: int, cupom: str | None, periodo_api: str, quantidade: int):
-        token = st.session_state.get("token")
-        if not token:
-            raise RuntimeError("Token não encontrado. Faça logout/login novamente.")
-
-        headers = {"Authorization": f"Bearer {token}"}
-
-        params = {
-            "cupom": (cupom.lower() if cupom else None),
-            "periodo": periodo_api,
-            "quantidade": int(quantidade),   # ✅ NOVO
-            "metodo": "pix",
-            "gateway": "mercado_pago",
+        payload = {
+            "plano_nome": plano_nome,
+            "preco": float(preco),
+            "cupom": (cupom_codigo.strip().lower() if cupom_codigo else None),
         }
 
-        url1 = f"{API_URL}/planos/{int(plano_id)}/comprar"
-        url2 = f"{API_URL}/api/planos/{int(plano_id)}/comprar"
+        # Fallback (no seu projeto isso já variou)
+        urls = [
+            f"{API_URL}/mercado_pago/criar_preferencia",
+            f"{API_URL}/api/mercado_pago/criar_preferencia",
+        ]
 
-        try:
-            r = httpx.post(url1, headers=headers, params=params, timeout=30)
-        except Exception as e:
-            raise RuntimeError(f"Erro de rede: {e}")
+        last_resp_text = None
+        last_status = None
 
-        if r.status_code == 404:
-            r = httpx.post(url2, headers=headers, params=params, timeout=30)
-
-        if r.status_code >= 400:
+        for url in urls:
             try:
-                detail = (r.json() or {}).get("detail", r.text)
-            except Exception:
-                detail = r.text
-            raise RuntimeError(str(detail))
+                r = httpx.post(url, json=payload, headers=headers, timeout=30)
+                last_status = r.status_code
+                last_resp_text = r.text
 
-        return r.json() or {}
+                if r.status_code == 200:
+                    return r.json() or {}
+            except Exception as e:
+                last_resp_text = str(e)
+                last_status = None
 
-
-    # ======================================================
-    # 8) MODAL 1: escolhas (período, pagamento, cupom)
-    # ======================================================
-    @st.dialog("Escolha período e condições do plano")
-    def modal_escolha_plano():
-        plano = st.session_state.get("plano_escolhido") or {}
-        plano_id = plano.get("id")
-        nome_plano = plano.get("nome") or "Plano"
-        preco_mensal = float(plano.get("preco_mensal") or 0.0)
-
-        st.markdown(f"### {nome_plano}")
-        st.caption("Selecione o período, aplique cupom (se tiver) e avance para o resumo final.")
-
-        periodo_label = st.radio(
-            "🕒 Período",
-            list(PERIODOS.keys()),
-            index=0,
-            horizontal=True
-        )
-
-        # (V1) Forma de pagamento — recorrente fica para V2
-        tipo_cobranca = st.radio(
-            "💳 Tipo de cobrança",
-            [
-                "Pagamento único (renovação manual)",
-                "Recorrente (débito automático) — em breve",
-            ],
-            index=0
-        )
-        if "Recorrente" in tipo_cobranca:
-            st.info("⏳ A cobrança recorrente estará disponível em breve. Por enquanto, use Pagamento único.")
-            st.stop()
-
-        st.caption("A forma de pagamento (PIX, cartão, boleto) é escolhida no checkout do Mercado Pago.")
-
-
-        cupom_digitado = st.text_input("🎟 Cupom de desconto (opcional)", placeholder="Ex: MIV99").strip()
-
-        # Prévia rápida
-        cfg = PERIODOS[periodo_label]
-        meses = cfg["meses"]
-        desconto_periodo = cfg["desconto_periodo"]
-        quantidade = int(cfg.get("quantidade", meses))
-
-        if cfg["periodo_api"] == "anual" and plano.get("preco_anual"):
-            base = float(plano.get("preco_anual"))
-        else:
-            base = preco_mensal * meses
-        desconto_p = base * (desconto_periodo / 100.0)
-        subtotal = base - desconto_p
-
-        # Economia no anual (comparação visual)
-        if cfg["periodo_api"] == "anual":
-            valor_lista = preco_mensal * 12
-            valor_base = base  # já é o preco_anual ou fallback correto
-            economia = max(0.0, valor_lista - valor_base)
-
-            if economia > 0:
-                st.info(
-                    f"💡 Economia no plano anual: **R$ {economia:.2f}** "
-                    f"em relação ao pagamento mensal."
-                )
-
-
-        cupom = achar_cupom(cupom_digitado) if cupom_digitado else None
-        cupom_pct = float(cupom.get("desconto_percent") or 0.0) if cupom else 0.0
-        desconto_cupom = subtotal * (cupom_pct / 100.0)
-        total = max(0.0, subtotal - desconto_cupom)
-
-        st.markdown("---")
-        st.markdown("#### Prévia rápida")
-        st.write(f"- Valor base: **R$ {base:.2f}**")
-        if desconto_periodo:
-            st.write(f"- Desconto período ({desconto_periodo}%): **- R$ {desconto_p:.2f}**")
-        if cupom_digitado:
-            if cupom:
-                st.write(f"- Cupom {cupom_digitado.upper()} ({cupom_pct}%): **- R$ {desconto_cupom:.2f}**")
-            else:
-                st.warning("Cupom não encontrado ou inválido. Você pode prosseguir sem cupom.")
-
-        st.markdown(f"### Total estimado: **R$ {total:.2f}**")
-
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Cancelar"):
-                st.session_state["plano_modal_aberto"] = False
-                st.session_state["plano_confirm_modal_aberto"] = False
-                st.session_state["plano_checkout"] = {}
-                st.rerun()
-
-        with col2:
-            if st.button("Continuar para confirmar"):
-                st.session_state["plano_checkout"] = {
-                    "plano_id": int(plano_id),
-                    "nome_plano": nome_plano,
-                    "preco_mensal": float(preco_mensal),
-                    "periodo_label": periodo_label,
-                    "periodo_api": cfg["periodo_api"],
-                    "quantidade": quantidade,              # ✅ NOVO (ESSENCIAL)
-                    "meses": meses,
-                    "desconto_periodo": desconto_periodo,
-                    "cupom_digitado": cupom_digitado,
-                    "cupom_pct": cupom_pct,
-                    "total_estimado": float(total),
-                    "base": float(base),
-                    "desconto_periodo_valor": float(desconto_p),
-                    "desconto_cupom_valor": float(desconto_cupom),
-                    "tipo_cobranca": tipo_cobranca,
-                }
-                st.session_state["plano_modal_aberto"] = False
-                st.session_state["plano_confirm_modal_aberto"] = True
-                st.rerun()
+        # Se chegou aqui, não funcionou
+        raise RuntimeError(f"Falha ao criar preferência MP. status={last_status} resp={last_resp_text}")
 
     # ======================================================
-    # 9) MODAL 2: resumo final + gerar link MP
-    # ======================================================
-    @st.dialog("Confirme seu pedido")
-    def modal_confirmacao():
-        ck = st.session_state.get("plano_checkout") or {}
-        if not ck:
-            st.error("Nenhum checkout em andamento.")
-            if st.button("Fechar"):
-                st.session_state["plano_confirm_modal_aberto"] = False
-                st.rerun()
-            return
-
-        st.markdown("### 📦 Resumo do plano")
-
-        st.write(f"**Plano:** {ck['nome_plano']}")
-        st.write(f"**Período:** {ck['periodo_label']} ({ck['meses']} mês(es))")
-        st.write(f"**Tipo de cobrança:** {ck['tipo_cobranca']}")
-        st.caption("A forma de pagamento (PIX, cartão, boleto) será escolhida no checkout do Mercado Pago.")
-
-
-        st.markdown("---")
-        st.write(f"Valor base: **R$ {ck['base']:.2f}**")
-
-        if ck["desconto_periodo"]:
-            st.write(f"Desconto período ({ck['desconto_periodo']}%): **- R$ {ck['desconto_periodo_valor']:.2f}**")
-
-        if ck.get("cupom_digitado"):
-            if ck["cupom_pct"] > 0:
-                st.write(f"Cupom {ck['cupom_digitado'].upper()} ({ck['cupom_pct']}%): **- R$ {ck['desconto_cupom_valor']:.2f}**")
-            else:
-                st.write(f"Cupom informado: **{ck['cupom_digitado'].upper()}** (sem desconto aplicado)")
-
-        st.markdown(f"## 💳 Total: **R$ {ck['total_estimado']:.2f}**")
-
-        st.markdown("---")
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Voltar"):
-                st.session_state["plano_confirm_modal_aberto"] = False
-                st.session_state["plano_modal_aberto"] = True
-                st.rerun()
-
-        with col2:
-            if st.button("Gerar link de pagamento"):
-                try:
-                    data = comprar_plano_backend(
-                        plano_id=int(ck["plano_id"]),
-                        cupom=(ck.get("cupom_digitado") or None),
-                        periodo_api=str(ck["periodo_api"]),
-                        quantidade=int(ck.get("quantidade", 1)),
-                    )
-
-                    init_point = data.get("init_point")
-                    if init_point:
-                        st.success("✅ Link de pagamento gerado com sucesso.")
-                        st.link_button("Pagar agora no Mercado Pago", init_point)
-                        st.caption("Após pagar, volte aqui e clique em “Atualizar meu plano agora”.")
-                    else:
-                        st.success("✅ Resposta do backend:")
-                        st.json(data)
-
-                except Exception as e:
-                    st.error(f"Falha ao gerar pagamento: {e}")
-
-    # ======================================================
-    # 10) UI: cards dos planos (simples)
+    # 6) UI: PLANOS + CUPOM + LINK MP COM VALOR FINAL
     # ======================================================
     st.subheader("🚀 Planos Disponíveis")
     colunas = st.columns(4)
 
     for i, plano in enumerate(planos):
         with colunas[i % 4]:
+
             plano_id = plano.get("id", i)
             nome_plano = plano.get("nome") or "Plano"
+            plano_intencao_id = st.session_state.get("plano_intencao_id")
+            if plano_intencao_id and int(plano_id) == int(plano_intencao_id):
+                st.info("✅ Você escolheu este plano no cadastro. Finalize o pagamento abaixo para liberar o acesso.")
+
             descricao = plano.get("descricao") or ""
             preco_mensal = float(plano.get("preco_mensal") or 0.0)
             modulos = plano.get("modulos_liberados") or []
+
             destaques = "".join([f"<li>{m}</li>" for m in modulos])
 
             st.markdown(
                 f"""
-                <div style='border: 1px solid #ccc; border-radius: 10px; padding: 18px; margin-bottom: 10px;'>
+                <div style='border: 1px solid #ccc; border-radius: 10px; padding: 20px; margin-bottom: 10px;'>
                     <h4 style='margin-bottom:6px;'>{nome_plano}</h4>
                     <p style='margin-top:0; color:#555;'>{descricao}</p>
-                    <ul style='margin-top:6px; padding-left:18px;'>{destaques}</ul>
+                    <ul style='margin-top:6px;'>{destaques}</ul>
                     <p style='margin-top:10px;'><strong>💰 R$ {preco_mensal:.2f}/mês</strong></p>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            # Plano grátis
+            # Plano gratuito: não precisa pagar
             if preco_mensal <= 0:
                 st.caption("Plano gratuito não requer pagamento.")
                 if nome_plano == plano_atual:
                     st.info("✅ Esse já é seu plano atual.")
                 else:
-                    st.button(f"Quero esse plano: {nome_plano}", key=f"contratar_free_{plano_id}", disabled=True)
+                    st.button(
+                        f"Quero esse plano: {nome_plano}",
+                        key=f"contratar_free_{plano_id}",
+                        disabled=True
+                    )
+                    st.caption("Se quiser permitir troca para Gratuito, implemente a troca via backend.")
                 continue
 
-            # Plano atual
+            cupom_input = st.text_input(
+                f"Cupom para {nome_plano}",
+                key=f"cupom_plano_{plano_id}",
+                placeholder="Ex: MIV10",
+            ).strip()
+
+            # Se já é o plano atual
             if nome_plano == plano_atual:
                 st.info("✅ Esse já é seu plano atual.")
                 continue
 
-            # CTA
-            if st.button(f"Quero esse plano: {nome_plano}", key=f"abrir_modal_plano_{plano_id}"):
-                st.session_state["plano_escolhido"] = plano
-                st.session_state["plano_modal_aberto"] = True
-                st.session_state["plano_confirm_modal_aberto"] = False
-                st.rerun()
 
-    # ======================================================
-    # 11) ABRIR MODAIS (controlados por state)
-    # ======================================================
-    if st.session_state.get("plano_modal_aberto"):
-        modal_escolha_plano()
 
-    if st.session_state.get("plano_confirm_modal_aberto"):
-        modal_confirmacao()
 
+            def _safe_json(text: str):
+                try:
+                    return json.loads(text)
+                except Exception:
+                    return None
+
+            def _try_post(url: str, headers: dict, params: dict):
+                try:
+                    return httpx.post(url, headers=headers, params=params, timeout=30)
+                except Exception as e:
+                    return e
+
+            # ... dentro do for dos planos:
+
+
+            btn_key = f"contratar_plano_{plano_id}_{i}"  # i vem do enumerate(planos)
+
+            if st.button(f"Quero esse plano: {nome_plano}", key=f"contratar_plano_{plano_id}"):
+
+                token = st.session_state.get("token")
+                if not token:
+                    st.error("❌ Token não encontrado. Faça logout e login novamente.")
+                    st.stop()
+
+                headers = {
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                }
+
+                cupom_digitado = (cupom_input or "").strip()
+
+                params = {
+                    "cupom": (cupom_digitado.lower() if cupom_digitado else None),
+                    "periodo": "mensal",
+                    "metodo": "pix",
+                    "gateway": "mercado_pago",
+                    # 🔕 não envia debug
+                }
+
+                def _try_post(url: str):
+                    try:
+                        return httpx.post(url, headers=headers, params=params, timeout=30)
+                    except Exception as e:
+                        return e
+
+                url1 = f"{API_URL.rstrip('/')}/planos/{int(plano_id)}/comprar"
+                url2 = f"{API_URL.rstrip('/')}/api/planos/{int(plano_id)}/comprar"  # fallback
+
+                resp = _try_post(url1)
+
+                if isinstance(resp, Exception):
+                    st.error(f"Erro de rede ao chamar backend: {resp}")
+                    st.stop()
+
+                # se 404, tenta /api
+                if resp.status_code == 404:
+                    resp = _try_post(url2)
+
+                    if isinstance(resp, Exception):
+                        st.error(f"Erro de rede ao chamar backend (/api): {resp}")
+                        st.stop()
+
+                if resp.status_code >= 400:
+                    try:
+                        st.error(resp.json().get("detail", resp.text))
+                    except Exception:
+                        st.error(resp.text)
+                    st.stop()
+
+                data = resp.json() or {}
+
+                init_point = data.get("init_point")
+                if init_point:
+                    st.success("✅ Link de pagamento gerado:")
+                    st.link_button("Pagar agora no Mercado Pago", init_point)
+                else:
+                    st.success("✅ Resposta do backend:")
+                    st.json(data)
 
 
 
@@ -3701,269 +3413,6 @@ def tela_checkout_app(app_id):
 
 
 
-def tela_contato_mivcast():
-    import streamlit as st
-    import os
-    import urllib.parse
-    from datetime import datetime
-
-    # Import do utilitário de e-mail (backend)
-    # Ajuste o caminho se seu projeto tiver outra estrutura
-    try:
-        from backend.utils.email_utils import enviar_email, EMAIL_ADMIN
-        EMAIL_UTILS_OK = True
-    except Exception as e:
-        EMAIL_UTILS_OK = False
-        EMAIL_UTILS_ERRO = str(e)
-
-    st.title("📞 Contato e Suporte — MivCast")
-
-    # =========================
-    # CONFIG
-    # =========================
-    SUPORTE_EMAIL = (os.getenv("MIVCAST_SUPORTE_EMAIL", "sitesmiv@gmail.com") or "").strip()
-
-    # Seu WhatsApp fixo (formato wa.me)
-    WHATSAPP_NUMERO = "5517997061273"
-
-    SITE_URL = (os.getenv("www.mivcast.com.br", "") or "").strip()
-
-    # =========================
-    # Cards de contato
-    # =========================
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.subheader("E-mail")
-        st.write(f"📧 **{SUPORTE_EMAIL}**")
-        st.caption("Atendimento, suporte, sugestões e solicitações comerciais.")
-
-    with col2:
-        st.subheader("WhatsApp")
-        st.write(f"📱 **+55 (17) 99706-1273**")
-        st.caption("Mais rápido para suporte e alinhamentos.")
-
-    with col3:
-        st.subheader("Site / Apresentação")
-        if SITE_URL:
-            st.write(f"🌐 {www.mivcast.com.br}")
-        else:
-            st.info("www.mivcast.com.br")
-
-    st.divider()
-
-    # =========================
-    # Sobre a MivCast
-    # =========================
-    with st.expander("Conhecer a MivCast e o que fazemos", expanded=False):
-        st.markdown(
-            """
-**A MivCast** é uma agência e plataforma que organiza e executa estratégias de marketing com foco em resultado prático.
-Aqui no MivMark, você tem módulos que ajudam a estruturar sua presença digital, rotinas e ações de crescimento.
-
-**Podemos te apoiar com:**
-- Branding (identidade, posicionamento, tom de voz)
-- Tráfego pago (Google Ads / Meta Ads)
-- Conteúdo e social media (planejamento e criativos)
-- Sites e páginas (institucional, landing page, chat com IA)
-- Estruturação comercial (ofertas, funil, processo de atendimento)
-- Consultoria empresarial e planos de execução
-            """.strip()
-        )
-
-    st.divider()
-
-    # =========================
-    # Formulário de suporte
-    # =========================
-    st.subheader("Abrir um chamado (suporte, sugestão ou interesse comercial)")
-
-    usuario = st.session_state.get("dados_usuario", {}) or {}
-    nome_user = (usuario.get("nome") or "").strip()
-    email_user = (usuario.get("email") or "").strip()
-    plano_user = (usuario.get("plano_atual") or "Gratuito").strip()
-
-    with st.form("form_suporte_mivcast"):
-        c1, c2 = st.columns(2)
-        with c1:
-            nome = st.text_input("Seu nome", value=nome_user, placeholder="Ex.: Matheus Nascimento")
-        with c2:
-            email = st.text_input("Seu e-mail", value=email_user, placeholder="Ex.: seuemail@gmail.com")
-
-        tipo = st.selectbox(
-            "Tipo de contato",
-            [
-                "Suporte (bug/erro)",
-                "Sugestão de melhoria",
-                "Dúvida sobre planos/assinatura",
-                "Interesse em serviço (orçamento)",
-                "Outro",
-            ],
-        )
-
-        prioridade = st.select_slider("Prioridade", options=["Baixa", "Média", "Alta"], value="Média")
-
-        assunto = st.text_input("Assunto", placeholder="Ex.: Erro ao abrir o módulo de Cursos")
-        mensagem = st.text_area(
-            "Explique com detalhes",
-            placeholder="Se for erro, descreva o que você clicou, o que esperava e o que aconteceu. Se possível, cole o texto do erro.",
-            height=160,
-        )
-
-        anexos = st.text_input(
-            "Links úteis (opcional)",
-            placeholder="Cole aqui links/imagens (Print no Drive, Imgur, etc.)",
-        )
-
-        enviado = st.form_submit_button("Gerar mensagem e opções de envio")
-
-    if enviado:
-        if not nome or not email or not assunto or not mensagem:
-            st.error("Preencha pelo menos: Nome, E-mail, Assunto e Mensagem.")
-            return
-
-        agora = datetime.now().strftime("%d/%m/%Y %H:%M")
-        contexto_txt = (
-            f"CHAMADO MIVCAST\n"
-            f"Data/Hora: {agora}\n"
-            f"Nome: {nome}\n"
-            f"E-mail: {email}\n"
-            f"Plano: {plano_user}\n"
-            f"Tipo: {tipo}\n"
-            f"Prioridade: {prioridade}\n"
-            f"Assunto: {assunto}\n\n"
-            f"Mensagem:\n{mensagem}\n\n"
-            f"Links/Anexos:\n{anexos or '-'}\n"
-        )
-
-        st.success("Mensagem pronta. Agora escolha o canal para enviar.")
-        st.code(contexto_txt, language="text")
-
-        # =========================
-        # 1) WhatsApp (abrir)
-        # =========================
-        texto_wa = urllib.parse.quote(contexto_txt)
-        wa_url = f"https://wa.me/{WHATSAPP_NUMERO}?text={texto_wa}"
-        st.link_button("Abrir WhatsApp com a mensagem pronta", wa_url)
-
-        # =========================
-        # 2) E-mail automático (SMTP)
-        # =========================
-        st.subheader("Enviar por e-mail")
-
-        if EMAIL_UTILS_OK:
-            destino = (EMAIL_ADMIN or SUPORTE_EMAIL).strip()
-            st.caption(f"Destino do chamado: {destino}")
-
-            assunto_email = f"[MivMark] {tipo} — {assunto}"
-
-            corpo_html = f"""
-            <h3>Chamado MivCast</h3>
-            <pre style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">
-{contexto_txt}
-            </pre>
-            """
-
-            colA, colB = st.columns(2)
-
-            with colA:
-                if st.button("Enviar e-mail agora (automático)", key="btn_enviar_email_agora"):
-                    with st.spinner("Enviando e-mail para o suporte e confirmação para você..."):
-
-                        # 1) Envia para o admin/suporte
-                        ok_admin = enviar_email(
-                            destinatario=destino,
-                            assunto=assunto_email,
-                            corpo_html=corpo_html,
-                            corpo_texto=contexto_txt,
-                            cc_admin=False
-                        )
-
-                        # 2) Confirmação para o usuário (se e-mail válido foi preenchido)
-                        ok_user = True
-                        user_email = (email or "").strip()
-
-                        if user_email:
-                            assunto_conf = "Recebemos seu chamado — MivCast"
-                            corpo_txt_conf = (
-                                f"Olá, {nome}.\n\n"
-                                "Recebemos seu chamado e vamos responder em breve.\n"
-                                "Abaixo está uma cópia do que foi enviado:\n\n"
-                                f"{contexto_txt}\n"
-                                "Atenciosamente,\n"
-                                "Equipe MivCast\n"
-                            )
-
-                            corpo_html_conf = f"""
-                            <p>Olá, <b>{nome}</b>.</p>
-                            <p>Recebemos seu chamado e vamos responder em breve.</p>
-                            <p>Abaixo está uma cópia do que foi enviado:</p>
-                            <pre style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">
-                {contexto_txt}
-                            </pre>
-                            <p>Atenciosamente,<br/>Equipe MivCast</p>
-                            """
-
-                            ok_user = enviar_email(
-                                destinatario=user_email,
-                                assunto=assunto_conf,
-                                corpo_html=corpo_html_conf,
-                                corpo_texto=corpo_txt_conf,
-                                cc_admin=False
-                            )
-
-                    if ok_admin and ok_user:
-                        st.success("Chamado enviado para o suporte e confirmação enviada para seu e-mail.")
-                    elif ok_admin and not ok_user:
-                        st.warning("Chamado enviado para o suporte, mas não foi possível enviar a confirmação para o seu e-mail.")
-                    else:
-                        st.error("Falha ao enviar o e-mail para o suporte. Verifique as variáveis EMAIL_USER/EMAIL_PASSWORD no ambiente.")
-
-
-            with colB:
-                # Alternativa: mailto (abre cliente de e-mail do usuário)
-                subject = urllib.parse.quote(assunto_email)
-                body = urllib.parse.quote(contexto_txt)
-                mailto = f"mailto:{destino}?subject={subject}&body={body}"
-                st.link_button("Abrir e-mail (mailto) com a mensagem pronta", mailto)
-
-        else:
-            st.warning(
-                "Não foi possível importar o email_utils do backend. "
-                "O envio automático por SMTP ficará indisponível neste ambiente."
-            )
-            st.caption(f"Detalhe técnico: {EMAIL_UTILS_ERRO}")
-            # Ainda oferece mailto
-            subject = urllib.parse.quote(f"[MivMark] {tipo} — {assunto}")
-            body = urllib.parse.quote(contexto_txt)
-            mailto = f"mailto:{SUPORTE_EMAIL}?subject={subject}&body={body}"
-            st.link_button("Abrir e-mail (mailto) com a mensagem pronta", mailto)
-
-    st.divider()
-
-    # =========================
-    # Atalhos rápidos
-    # =========================
-    st.subheader("Atalhos rápidos")
-    cols = st.columns(3)
-
-    with cols[0]:
-        st.write("• Suporte por e-mail")
-        st.caption(SUPORTE_EMAIL)
-
-    with cols[1]:
-        st.write("• Suporte por WhatsApp")
-        st.caption("+55 (17) 99706-1273")
-
-    with cols[2]:
-        if SITE_URL:
-            st.write("• Conhecer a MivCast")
-            st.caption(SITE_URL)
-        else:
-            st.write("• Apresentação")
-            st.caption("www.mivcast.com.br")
-
-
 
 
 
@@ -4143,14 +3592,12 @@ def main():
         "arquivo": "📁 Arquivos",
         "mark": "🤖 MARK IA",
         "site_chat": "🌐 Site e Chat",
-                   "contato_mivcast": "📞 Contato MivCast",
     }
 
     # Item do menu -> slug do módulo (ou None se não bloqueia)
     MENU_PARA_MODULO = {
         "🏠 **Início**": None,
         "💳 Planos": None,
-        "👤 Minha Conta": None,
         "🏢 **Empresa**": "empresa",
         "❤️ **Saúde da Empresa**": "saude",
         "📋 **Consultoria**": "consultoria",
@@ -4164,7 +3611,6 @@ def main():
         "📁 **Arquivos**": "arquivo",
         "🤖 **MARK IA**": "mark",
         "🌐 **Site e Chat**": "site_chat",
-                   "📞 **Contato MivCast**": None,
         "🚪 **Sair**": None,
     }
 
@@ -4193,7 +3639,6 @@ def main():
         [
             "🏠 **Início**",
             "💳 Planos",
-            "👤 Minha Conta",
             "🏢 **Empresa**",
             "❤️ **Saúde da Empresa**",
             "📋 **Consultoria**",
@@ -4207,7 +3652,6 @@ def main():
             "📁 **Arquivos**",
             "🤖 **MARK IA**",
             "🌐 **Site e Chat**",
-            "📞 **Contato MivCast**",
             "🚪 **Sair**"
         ],
         key="menu_principal",
@@ -4237,9 +3681,6 @@ def main():
 
     elif escolha == "💳 Planos":
         tela_planos()
-
-    elif escolha == "👤 Minha Conta":
-        tela_minha_conta()
 
     elif escolha == "🏢 **Empresa**":
         tela_empresa()
@@ -4291,9 +3732,6 @@ def main():
 
     elif escolha == "🌐 **Site e Chat**":
         tela_site_cliente()
-
-    elif escolha == "📞 **Contato MivCast**":
-        tela_contato_mivcast()
 
     elif escolha == "🚪 **Sair**":
         st.session_state.token = None

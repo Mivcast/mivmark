@@ -1091,194 +1091,6 @@ def tela_empresa():
 
 
 
-def tela_minha_conta():
-    import streamlit as st
-    import httpx
-
-    API_URL = (st.session_state.get("API_URL") or "").strip().rstrip("/")
-    if not API_URL:
-        st.error("API_URL não definido em st.session_state['API_URL'].")
-        st.stop()
-
-    token = st.session_state.get("token")
-    if not token:
-        st.warning("Você precisa estar logado para acessar esta área.")
-        return
-
-    headers = {"Authorization": f"Bearer {token}"}
-
-    st.title("👤 Minha Conta")
-    st.caption("Aqui você vê seus dados e pode atualizar e-mail e senha com segurança.")
-
-    # -----------------------------
-    # Carrega dados do usuário
-    # -----------------------------
-    me = None
-    try:
-        r = httpx.get(f"{API_URL}/conta/me", headers=headers, timeout=30)
-        r.raise_for_status()
-        me = r.json()
-    except Exception as e:
-        st.error(f"Não foi possível carregar seus dados. Detalhe: {e}")
-        return
-
-    # -----------------------------
-    # Cards principais
-    # -----------------------------
-    col1, col2 = st.columns([2, 1])
-
-    with col1:
-        st.subheader("📌 Seus dados")
-        st.write(f"**Nome:** {me.get('nome', '')}")
-        st.write(f"**E-mail:** {me.get('email', '')}")
-
-    with col2:
-        st.subheader("🧾 Seu plano")
-        plano = me.get("plano") or me.get("tipo_usuario") or "Não identificado"
-        status = me.get("status") or ""
-        st.write(f"**Plano:** {plano}")
-        if status:
-            st.write(f"**Status:** {status}")
-
-        # CTA Upgrade
-        st.markdown("---")
-        st.info("Quer liberar mais módulos e recursos?")
-        if st.button("🚀 Ver planos e fazer upgrade", use_container_width=True):
-            st.session_state["menu"] = "🧩 Planos"
-            st.rerun()
-
-    st.markdown("---")
-
-    # -----------------------------
-    # Atualizar e-mail
-    # -----------------------------
-    st.subheader("✉️ Atualizar e-mail")
-    with st.form("form_email"):
-        email_novo = st.text_input("Novo e-mail", value=me.get("email", ""))
-        submit_email = st.form_submit_button("Salvar novo e-mail")
-
-    if submit_email:
-        try:
-            r = httpx.put(
-                f"{API_URL}/conta/me/email",
-                headers=headers,
-                json={"email_novo": email_novo},
-                timeout=30,
-            )
-            if r.status_code >= 400:
-                try:
-                    st.error(r.json().get("detail") or r.text)
-                except Exception:
-                    st.error(r.text)
-            else:
-                st.success(r.json().get("msg") or "E-mail atualizado.")
-                st.rerun()
-        except Exception as e:
-            st.error(f"Erro ao atualizar e-mail: {e}")
-
-    st.markdown("---")
-
-    # -----------------------------
-    # Atualizar senha
-    # -----------------------------
-    st.subheader("🔒 Trocar senha")
-    st.caption("Por segurança, sua senha atual não é exibida. Você troca informando a senha atual.")
-
-    with st.form("form_senha"):
-        senha_atual = st.text_input("Senha atual", type="password")
-        senha_nova = st.text_input("Nova senha (mín. 6 caracteres)", type="password")
-        senha_nova2 = st.text_input("Confirmar nova senha", type="password")
-        submit_senha = st.form_submit_button("Atualizar senha")
-
-    if submit_senha:
-        if not senha_atual or not senha_nova or not senha_nova2:
-            st.warning("Preencha todos os campos.")
-        elif senha_nova != senha_nova2:
-            st.warning("A confirmação da nova senha não confere.")
-        else:
-            try:
-                r = httpx.put(
-                    f"{API_URL}/conta/me/senha",
-                    headers=headers,
-                    json={"senha_atual": senha_atual, "senha_nova": senha_nova},
-                    timeout=30,
-                )
-                if r.status_code >= 400:
-                    try:
-                        st.error(r.json().get("detail") or r.text)
-                    except Exception:
-                        st.error(r.text)
-                else:
-                    st.success(r.json().get("msg") or "Senha atualizada.")
-            except Exception as e:
-                st.error(f"Erro ao atualizar senha: {e}")
-
-
-    st.markdown("---")
-    st.subheader("🆘 Esqueci minha senha")
-
-    with st.expander("Clique aqui se você não lembra a senha"):
-        email_me = (me.get("email") or "").strip()
-
-        # Etapa 1: enviar código
-        with st.form("form_esqueci_senha"):
-            email_reset = st.text_input("Seu e-mail", value=email_me)
-            enviar_codigo = st.form_submit_button("Enviar código por e-mail")
-
-        if enviar_codigo:
-            try:
-                r = httpx.post(
-                    f"{API_URL}/conta/esqueci-senha",
-                    json={"email": email_reset},
-                    timeout=30,
-                )
-                if r.status_code >= 400:
-                    try:
-                        st.error(r.json().get("detail") or r.text)
-                    except Exception:
-                        st.error(r.text)
-                else:
-                    st.success(r.json().get("msg") or "Se o e-mail estiver cadastrado, você receberá um código.")
-                    st.session_state["reset_email"] = email_reset.strip().lower()
-            except Exception as e:
-                st.error(f"Erro ao solicitar código: {e}")
-
-        st.markdown("### Redefinir senha com código")
-        reset_email = st.session_state.get("reset_email") or email_me
-
-        with st.form("form_redefinir_senha"):
-            email_confirm = st.text_input("E-mail", value=reset_email)
-            codigo = st.text_input("Código recebido (6 dígitos)")
-            nova = st.text_input("Nova senha", type="password")
-            nova2 = st.text_input("Confirmar nova senha", type="password")
-            redefinir = st.form_submit_button("Redefinir senha")
-
-        if redefinir:
-            if not codigo or not nova or not nova2 or not email_confirm:
-                st.warning("Preencha todos os campos.")
-            elif nova != nova2:
-                st.warning("A confirmação da nova senha não confere.")
-            else:
-                try:
-                    r = httpx.post(
-                        f"{API_URL}/conta/redefinir-senha",
-                        json={"email": email_confirm, "codigo": codigo, "senha_nova": nova},
-                        timeout=30,
-                    )
-                    if r.status_code >= 400:
-                        try:
-                            st.error(r.json().get("detail") or r.text)
-                        except Exception:
-                            st.error(r.text)
-                    else:
-                        st.success(r.json().get("msg") or "Senha redefinida com sucesso.")
-                except Exception as e:
-                    st.error(f"Erro ao redefinir senha: {e}")
-
-
-
-
-
 
 def tela_consultoria():
     # ⚠️ Verificação de acesso: Admin sempre tem acesso total
@@ -3963,7 +3775,10 @@ Aqui no MivMark, você tem módulos que ajudam a estruturar sua presença digita
             st.write("• Apresentação")
             st.caption("www.mivcast.com.br")
 
-
+    st.info(
+        "Se você quiser, o próximo passo é transformar isso em um sistema de tickets: "
+        "salvar no banco, gerar protocolo, e permitir histórico do usuário dentro do MivMark."
+    )
 
 
 
@@ -4150,7 +3965,6 @@ def main():
     MENU_PARA_MODULO = {
         "🏠 **Início**": None,
         "💳 Planos": None,
-        "👤 Minha Conta": None,
         "🏢 **Empresa**": "empresa",
         "❤️ **Saúde da Empresa**": "saude",
         "📋 **Consultoria**": "consultoria",
@@ -4193,7 +4007,6 @@ def main():
         [
             "🏠 **Início**",
             "💳 Planos",
-            "👤 Minha Conta",
             "🏢 **Empresa**",
             "❤️ **Saúde da Empresa**",
             "📋 **Consultoria**",
@@ -4237,9 +4050,6 @@ def main():
 
     elif escolha == "💳 Planos":
         tela_planos()
-
-    elif escolha == "👤 Minha Conta":
-        tela_minha_conta()
 
     elif escolha == "🏢 **Empresa**":
         tela_empresa()
