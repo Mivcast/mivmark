@@ -164,6 +164,7 @@ def comprar_plano(
     plano_id: int,
     cupom: Optional[str] = Query(default=None),
     periodo: Literal["mensal", "anual"] = Query(default="mensal"),
+    quantidade: int = Query(default=1, ge=1, le=12),  # 👈 NOVO
     metodo: Literal["pix", "cartao"] = Query(default="pix"),
     gateway: str = Query(default="mercado_pago"),
     debug: bool = Query(default=False),
@@ -171,9 +172,11 @@ def comprar_plano(
     usuario: Usuario = Depends(get_usuario_logado),
 ):
     dbg: Dict[str, Any] = {}
+
     dbg["plano_id"] = plano_id
     dbg["cupom_recebido"] = cupom
     dbg["periodo"] = periodo
+    dbg["quantidade"] = quantidade
     dbg["metodo"] = metodo
     dbg["gateway"] = gateway
 
@@ -183,22 +186,34 @@ def comprar_plano(
 
     dbg["plano_nome"] = plano.nome
 
-    if periodo == "anual":
-        valor = float(plano.preco_anual or 0.0)
-    else:
-        valor = float(plano.preco_mensal or 0.0)
+    # -------------------------------------------------
+    # 1) CALCULA VALOR BASE
+    # -------------------------------------------------
+    preco_mensal = float(plano.preco_mensal or 0.0)
+    preco_anual = float(plano.preco_anual or 0.0)
 
-    dbg["valor_base"] = valor
+    if periodo == "anual":
+        # anual sempre é 12 meses
+        valor = preco_anual if preco_anual > 0 else preco_mensal * 12
+        meses = 12
+    else:
+        # mensal com quantidade (1, 3, 6)
+        valor = preco_mensal * quantidade
+        meses = quantidade
+
+    dbg["valor_base"] = float(valor)
+    dbg["meses"] = meses
 
     if valor <= 0:
         raise HTTPException(status_code=400, detail="Plano com preço inválido (0).")
 
-    # ---- valida cupom (escopo=plano) ----
+    # -------------------------------------------------
+    # 2) VALIDA CUPOM (escopo=plano)
+    # -------------------------------------------------
     codigo_cupom = _normalizar_codigo(cupom)
     dbg["codigo_normalizado"] = codigo_cupom
 
     if codigo_cupom:
-        # importante: normaliza também no SQL (trim + lower)
         c = (
             db.query(CupomDesconto)
             .filter(
@@ -209,16 +224,27 @@ def comprar_plano(
             .first()
         )
 
-        # debug de inspeção
         if debug:
             ultimos = (
-                db.query(CupomDesconto.id, CupomDesconto.codigo, CupomDesconto.escopo, CupomDesconto.ativo, CupomDesconto.plano_nome)
+                db.query(
+                    CupomDesconto.id,
+                    CupomDesconto.codigo,
+                    CupomDesconto.escopo,
+                    CupomDesconto.ativo,
+                    CupomDesconto.plano_nome,
+                )
                 .order_by(CupomDesconto.id.desc())
                 .limit(20)
                 .all()
             )
             dbg["cupons_ultimos_20"] = [
-                {"id": x[0], "codigo": x[1], "escopo": x[2], "ativo": x[3], "plano_nome": x[4]}
+                {
+                    "id": x[0],
+                    "codigo": x[1],
+                    "escopo": x[2],
+                    "ativo": x[3],
+                    "plano_nome": x[4],
+                }
                 for x in ultimos
             ]
 
@@ -226,8 +252,6 @@ def comprar_plano(
             if debug:
                 return {"ok": False, "erro": "cupom_nao_encontrado", "debug": dbg}
             raise HTTPException(status_code=400, detail="Cupom inválido.")
-
-        dbg["cupom_encontrado"] = {"id": c.id, "codigo": c.codigo, "escopo": c.escopo, "ativo": c.ativo, "plano_nome": c.plano_nome}
 
         if _cupom_expirado(c.valido_ate):
             if debug:
@@ -249,22 +273,29 @@ def comprar_plano(
 
         valor = valor * (1 - desconto / 100.0)
 
-    dbg["valor_final"] = float(valor)
+    valor = round(float(valor), 2)
+    dbg["valor_final"] = valor
 
-    # cupom 100%: libera na hora
+    # -------------------------------------------------
+    # 3) CUPOM 100% → LIBERA NA HORA
+    # -------------------------------------------------
     if valor <= 0.01:
         usuario.plano_atual = plano.nome
-        usuario.plano_expira_em = datetime.utcnow() + (timedelta(days=365) if periodo == "anual" else timedelta(days=30))
+        usuario.plano_expira_em = datetime.utcnow() + timedelta(days=30 * meses)
         db.commit()
+
         out = {"mensagem": "Plano liberado com cupom de 100%."}
         if debug:
             out["debug"] = dbg
         return out
 
+    # -------------------------------------------------
+    # 4) CRIA PAGAMENTO PENDENTE
+    # -------------------------------------------------
     pagamento = Pagamento(
         usuario_id=usuario.id,
         plano=plano.nome,
-        valor=float(valor),
+        valor=valor,
         status="pendente",
         gateway=gateway,
         data_pagamento=datetime.utcnow(),
@@ -273,24 +304,40 @@ def comprar_plano(
     db.commit()
     db.refresh(pagamento)
 
-    referencia = f"plano:{plano.id}|periodo:{periodo}|user:{usuario.id}|pag:{pagamento.id}|ts:{int(datetime.utcnow().timestamp())}"
+    # -------------------------------------------------
+    # 5) MERCADO PAGO
+    # -------------------------------------------------
+    referencia = (
+        f"plano:{plano.id}|"
+        f"periodo:{periodo}|"
+        f"qtd:{quantidade}|"
+        f"user:{usuario.id}|"
+        f"pag:{pagamento.id}|"
+        f"ts:{int(datetime.utcnow().timestamp())}"
+    )
+
+    titulo = f"Plano {plano.nome} ({meses} meses)"
+
     pref = criar_preferencia_mp(
-        titulo=f"Plano {plano.nome} ({periodo})",
-        valor=float(valor),
+        titulo=titulo,
+        valor=valor,
         referencia_externa=referencia,
     )
 
     resp = {
         "mensagem": "Link de pagamento gerado",
         "pagamento_id": pagamento.id,
-        "valor": float(valor),
+        "valor": valor,
         "status": "aguardando",
         "init_point": pref.get("init_point"),
         "preference_id": pref.get("preference_id"),
     }
+
     if debug:
         resp["debug"] = dbg
+
     return resp
+
 
 
 @router.get("/__ping")
