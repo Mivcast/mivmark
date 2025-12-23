@@ -1821,7 +1821,7 @@ def tela_mark_ia():
 
 
 # ------------------- TELA DE PLANOS -------------------
-# ------------------- TELA DE PLANOS -------------------
+# ------------------- TELA DE PLANOS (V2 - MODAL) -------------------
 def tela_planos():
     import httpx
     import streamlit as st
@@ -1829,22 +1829,22 @@ def tela_planos():
 
     st.title("📦 Meus Planos")
 
-    # Use o API_URL global se já existir no app.py
-
-    API_URL = st.session_state["API_URL"]
+    API_URL = (st.session_state.get("API_URL") or "").strip().rstrip("/")
+    if not API_URL:
+        st.error("API_URL não definido em st.session_state['API_URL'].")
+        st.stop()
 
     # ======================================================
     # 1) DADOS DO USUÁRIO
     # ======================================================
     usuario = st.session_state.get("dados_usuario", {}) or {}
-
     plano_atual = usuario.get("plano_atual") or "Gratuito"
     if usuario.get("is_admin"):
         plano_atual = "Administrador (acesso total)"
 
     st.markdown(
         f"""
-        <div style='background-color:#f0f8ff; padding: 15px; border-left: 6px solid #007bff; border-radius: 8px; margin-bottom: 20px;'>
+        <div style='background-color:#f0f8ff; padding: 15px; border-left: 6px solid #007bff; border-radius: 8px; margin-bottom: 10px;'>
             <strong>🔒 Seu plano atual:</strong>
             <span style='font-size:18px; color:#007bff'> {plano_atual} </span><br>
             Para liberar mais recursos do sistema, você pode fazer upgrade agora mesmo.
@@ -1852,6 +1852,29 @@ def tela_planos():
         """,
         unsafe_allow_html=True,
     )
+
+    # Botão para atualizar o status após pagamento (webhook)
+    col_a, col_b = st.columns([1, 2])
+    with col_a:
+        if st.button("🔄 Atualizar meu plano agora"):
+            token = st.session_state.get("token")
+            if not token:
+                st.warning("Faça login novamente para atualizar.")
+            else:
+                try:
+                    r = httpx.get(
+                        f"{API_URL}/minha-conta",
+                        headers={"Authorization": f"Bearer {token}"},
+                        timeout=30
+                    )
+                    if r.status_code == 200:
+                        st.session_state["dados_usuario"] = r.json() or {}
+                        st.success("Plano atualizado com sucesso.")
+                        st.rerun()
+                    else:
+                        st.error((r.json() or {}).get("detail", r.text))
+                except Exception as e:
+                    st.error(f"Erro ao atualizar: {e}")
 
     # ======================================================
     # 2) ATIVAÇÃO DE PLANO POR TOKEN (CONSULTORIA)
@@ -1866,7 +1889,6 @@ def tela_planos():
 
     if st.button("Ativar token agora"):
         token_texto = (token_input or "").strip()
-
         if not token_texto:
             st.warning("Digite um token válido.")
         else:
@@ -1874,10 +1896,7 @@ def tela_planos():
             if not token_jwt:
                 st.error("Não foi possível identificar seu login. Saia e entre novamente no sistema antes de ativar o token.")
             else:
-                headers = {
-                    "Authorization": f"Bearer {token_jwt}",
-                    "Content-Type": "application/json",
-                }
+                headers = {"Authorization": f"Bearer {token_jwt}", "Content-Type": "application/json"}
                 try:
                     resp = httpx.post(
                         f"{API_URL}/usuario/ativar_token",
@@ -1885,29 +1904,16 @@ def tela_planos():
                         headers=headers,
                         timeout=30.0,
                     )
-
                     if resp.status_code == 200:
                         dados = resp.json() or {}
                         novo_plano = dados.get("plano") or "consultoria_full"
                         expira = dados.get("expira_em") or ""
-
                         st.session_state["dados_usuario"] = st.session_state.get("dados_usuario", {}) or {}
                         st.session_state["dados_usuario"]["plano_atual"] = novo_plano
-
-                        st.success(
-                            f"✅ Plano ativado com sucesso!\n\n"
-                            f"Plano: **{novo_plano}**\n\n"
-                            f"Válido até: **{expira}**"
-                        )
-                        st.info("Se a tela não atualizar sozinha, clique em outra aba e volte em **Planos**.")
+                        st.success(f"✅ Plano ativado!\n\nPlano: **{novo_plano}**\n\nVálido até: **{expira}**")
                         st.rerun()
                     else:
-                        try:
-                            detalhe = (resp.json() or {}).get("detail", "Erro ao ativar token.")
-                        except Exception:
-                            detalhe = "Erro ao ativar token."
-                        st.error(f"⚠️ {detalhe}")
-
+                        st.error((resp.json() or {}).get("detail", resp.text))
                 except Exception as e:
                     st.error(f"Erro ao conectar com o servidor para ativar o token: {e}")
 
@@ -1925,7 +1931,7 @@ def tela_planos():
         return
 
     # ======================================================
-    # 4) CARREGA CUPONS REAIS (escopo=plano) UMA ÚNICA VEZ
+    # 4) CUPONS (escopo=plano)
     # ======================================================
     cupons_plano = []
     try:
@@ -1934,16 +1940,6 @@ def tela_planos():
             cupons_plano = rcu.json() or []
     except Exception:
         cupons_plano = []
-
-    def _parse_date_iso(v):
-        """Aceita 'YYYY-MM-DD' ou 'YYYY-MM-DDTHH:MM:SS' e retorna date() ou None."""
-        if not v:
-            return None
-        v_str = str(v).split("T")[0].strip()
-        try:
-            return date.fromisoformat(v_str)
-        except Exception:
-            return None
 
     def achar_cupom(codigo: str):
         cod = (codigo or "").strip().lower()
@@ -1954,198 +1950,278 @@ def tela_planos():
                 return c
         return None
 
-    
-    def cupom_valido_para_plano(cupom: dict, plano_id: int) -> bool:
-        if not cupom:
-            return False
-        if not bool(cupom.get("ativo", False)):
-            return False
-
-        alvo = (cupom.get("plano_nome") or "").strip().lower()
-        if not alvo or alvo == "todos":
-            return True
-
-        return alvo == (plano_nome or "").strip().lower()
+    # ======================================================
+    # 5) ESTADOS DO MODAL
+    # ======================================================
+    if "plano_modal_aberto" not in st.session_state:
+        st.session_state["plano_modal_aberto"] = False
+    if "plano_confirm_modal_aberto" not in st.session_state:
+        st.session_state["plano_confirm_modal_aberto"] = False
+    if "plano_escolhido" not in st.session_state:
+        st.session_state["plano_escolhido"] = None
+    if "plano_checkout" not in st.session_state:
+        st.session_state["plano_checkout"] = {}
 
     # ======================================================
-    # 5) FUNÇÃO: CRIAR PREFERÊNCIA MP COM FALLBACK DE ROTA
+    # 6) CONFIG: períodos (V1) + descontos por período
     # ======================================================
-    def criar_preferencia_mp(plano_nome: str, preco: float, cupom_codigo: str | None):
-        token_jwt = st.session_state.get("token")
-        headers = {}
-        if token_jwt:
-            headers["Authorization"] = f"Bearer {token_jwt}"
-        headers["Content-Type"] = "application/json"
+    PERIODOS = {
+        "Mensal": {"periodo_api": "mensal", "meses": 1, "desconto_periodo": 0},
+        "3 meses": {"periodo_api": "trimestral", "meses": 3, "desconto_periodo": 5},
+        "6 meses": {"periodo_api": "semestral", "meses": 6, "desconto_periodo": 10},
+        "12 meses": {"periodo_api": "anual", "meses": 12, "desconto_periodo": 15},
+    }
 
-        payload = {
-            "plano_nome": plano_nome,
-            "preco": float(preco),
-            "cupom": (cupom_codigo.strip().lower() if cupom_codigo else None),
+    # ======================================================
+    # 7) FUNÇÃO: CHAMAR /planos/{id}/comprar com fallback
+    # ======================================================
+    def comprar_plano_backend(plano_id: int, cupom: str | None, periodo_api: str):
+        token = st.session_state.get("token")
+        if not token:
+            raise RuntimeError("Token não encontrado. Faça logout/login novamente.")
+
+        headers = {"Authorization": f"Bearer {token}"}
+
+        params = {
+            "cupom": (cupom.lower() if cupom else None),
+            "periodo": periodo_api,
+            "metodo": "pix",
+            "gateway": "mercado_pago",
         }
 
-        # Fallback (no seu projeto isso já variou)
-        urls = [
-            f"{API_URL}/mercado_pago/criar_preferencia",
-            f"{API_URL}/api/mercado_pago/criar_preferencia",
-        ]
+        url1 = f"{API_URL}/planos/{int(plano_id)}/comprar"
+        url2 = f"{API_URL}/api/planos/{int(plano_id)}/comprar"
 
-        last_resp_text = None
-        last_status = None
+        try:
+            r = httpx.post(url1, headers=headers, params=params, timeout=30)
+        except Exception as e:
+            raise RuntimeError(f"Erro de rede: {e}")
 
-        for url in urls:
+        if r.status_code == 404:
+            r = httpx.post(url2, headers=headers, params=params, timeout=30)
+
+        if r.status_code >= 400:
             try:
-                r = httpx.post(url, json=payload, headers=headers, timeout=30)
-                last_status = r.status_code
-                last_resp_text = r.text
+                detail = (r.json() or {}).get("detail", r.text)
+            except Exception:
+                detail = r.text
+            raise RuntimeError(str(detail))
 
-                if r.status_code == 200:
-                    return r.json() or {}
-            except Exception as e:
-                last_resp_text = str(e)
-                last_status = None
-
-        # Se chegou aqui, não funcionou
-        raise RuntimeError(f"Falha ao criar preferência MP. status={last_status} resp={last_resp_text}")
+        return r.json() or {}
 
     # ======================================================
-    # 6) UI: PLANOS + CUPOM + LINK MP COM VALOR FINAL
+    # 8) MODAL 1: escolhas (período, pagamento, cupom)
+    # ======================================================
+    @st.dialog("Escolha período e condições do plano")
+    def modal_escolha_plano():
+        plano = st.session_state.get("plano_escolhido") or {}
+        plano_id = plano.get("id")
+        nome_plano = plano.get("nome") or "Plano"
+        preco_mensal = float(plano.get("preco_mensal") or 0.0)
+
+        st.markdown(f"### {nome_plano}")
+        st.caption("Selecione o período, aplique cupom (se tiver) e avance para o resumo final.")
+
+        periodo_label = st.radio(
+            "🕒 Período",
+            list(PERIODOS.keys()),
+            index=0,
+            horizontal=True
+        )
+
+        # (V1) Forma de pagamento — recorrente fica para V2
+        tipo_cobranca = st.radio(
+            "💳 Tipo de cobrança",
+            [
+                "Pagamento único (renovação manual)",
+                "Recorrente (débito automático) — em breve",
+            ],
+            index=0
+        )
+
+        st.caption("A forma de pagamento (PIX, cartão, boleto) é escolhida no checkout do Mercado Pago.")
+
+
+        cupom_digitado = st.text_input("🎟 Cupom de desconto (opcional)", placeholder="Ex: MIV99").strip()
+
+        # Prévia rápida
+        cfg = PERIODOS[periodo_label]
+        meses = cfg["meses"]
+        desconto_periodo = cfg["desconto_periodo"]
+
+        base = preco_mensal * meses
+        desconto_p = base * (desconto_periodo / 100.0)
+        subtotal = base - desconto_p
+
+        cupom = achar_cupom(cupom_digitado) if cupom_digitado else None
+        cupom_pct = float(cupom.get("desconto_percent") or 0.0) if cupom else 0.0
+        desconto_cupom = subtotal * (cupom_pct / 100.0)
+        total = max(0.0, subtotal - desconto_cupom)
+
+        st.markdown("---")
+        st.markdown("#### Prévia rápida")
+        st.write(f"- Valor base: **R$ {base:.2f}**")
+        if desconto_periodo:
+            st.write(f"- Desconto período ({desconto_periodo}%): **- R$ {desconto_p:.2f}**")
+        if cupom_digitado:
+            if cupom:
+                st.write(f"- Cupom {cupom_digitado.upper()} ({cupom_pct}%): **- R$ {desconto_cupom:.2f}**")
+            else:
+                st.warning("Cupom não encontrado ou inválido. Você pode prosseguir sem cupom.")
+
+        st.markdown(f"### Total estimado: **R$ {total:.2f}**")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Cancelar"):
+                st.session_state["plano_modal_aberto"] = False
+                st.session_state["plano_confirm_modal_aberto"] = False
+                st.session_state["plano_checkout"] = {}
+                st.rerun()
+
+        with col2:
+            if st.button("Continuar para confirmar"):
+                st.session_state["plano_checkout"] = {
+                    "plano_id": int(plano_id),
+                    "nome_plano": nome_plano,
+                    "preco_mensal": float(preco_mensal),
+                    "periodo_label": periodo_label,
+                    "periodo_api": cfg["periodo_api"],
+                    "meses": meses,
+                    "desconto_periodo": desconto_periodo,
+                    "cupom_digitado": cupom_digitado,
+                    "cupom_pct": cupom_pct,
+                    "total_estimado": float(total),
+                    "base": float(base),
+                    "desconto_periodo_valor": float(desconto_p),
+                    "desconto_cupom_valor": float(desconto_cupom),
+                    "tipo_cobranca": tipo_cobranca,
+                }
+                st.session_state["plano_modal_aberto"] = False
+                st.session_state["plano_confirm_modal_aberto"] = True
+                st.rerun()
+
+    # ======================================================
+    # 9) MODAL 2: resumo final + gerar link MP
+    # ======================================================
+    @st.dialog("Confirme seu pedido")
+    def modal_confirmacao():
+        ck = st.session_state.get("plano_checkout") or {}
+        if not ck:
+            st.error("Nenhum checkout em andamento.")
+            if st.button("Fechar"):
+                st.session_state["plano_confirm_modal_aberto"] = False
+                st.rerun()
+            return
+
+        st.markdown("### 📦 Resumo do plano")
+
+        st.write(f"**Plano:** {ck['nome_plano']}")
+        st.write(f"**Período:** {ck['periodo_label']} ({ck['meses']} mês(es))")
+        st.write(f"**Tipo de cobrança:** {ck['tipo_cobranca']}")
+        st.caption("A forma de pagamento (PIX, cartão, boleto) será escolhida no checkout do Mercado Pago.")
+
+
+        st.markdown("---")
+        st.write(f"Valor base: **R$ {ck['base']:.2f}**")
+
+        if ck["desconto_periodo"]:
+            st.write(f"Desconto período ({ck['desconto_periodo']}%): **- R$ {ck['desconto_periodo_valor']:.2f}**")
+
+        if ck.get("cupom_digitado"):
+            if ck["cupom_pct"] > 0:
+                st.write(f"Cupom {ck['cupom_digitado'].upper()} ({ck['cupom_pct']}%): **- R$ {ck['desconto_cupom_valor']:.2f}**")
+            else:
+                st.write(f"Cupom informado: **{ck['cupom_digitado'].upper()}** (sem desconto aplicado)")
+
+        st.markdown(f"## 💳 Total: **R$ {ck['total_estimado']:.2f}**")
+
+        st.markdown("---")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Voltar"):
+                st.session_state["plano_confirm_modal_aberto"] = False
+                st.session_state["plano_modal_aberto"] = True
+                st.rerun()
+
+        with col2:
+            if st.button("Gerar link de pagamento"):
+                try:
+                    data = comprar_plano_backend(
+                        plano_id=int(ck["plano_id"]),
+                        cupom=(ck.get("cupom_digitado") or None),
+                        periodo_api=str(ck["periodo_api"]),
+                    )
+
+                    init_point = data.get("init_point")
+                    if init_point:
+                        st.success("✅ Link de pagamento gerado com sucesso.")
+                        st.link_button("Pagar agora no Mercado Pago", init_point)
+                        st.caption("Após pagar, volte aqui e clique em “Atualizar meu plano agora”.")
+                    else:
+                        st.success("✅ Resposta do backend:")
+                        st.json(data)
+
+                except Exception as e:
+                    st.error(f"Falha ao gerar pagamento: {e}")
+
+    # ======================================================
+    # 10) UI: cards dos planos (simples)
     # ======================================================
     st.subheader("🚀 Planos Disponíveis")
     colunas = st.columns(4)
 
     for i, plano in enumerate(planos):
         with colunas[i % 4]:
-
             plano_id = plano.get("id", i)
             nome_plano = plano.get("nome") or "Plano"
-            plano_intencao_id = st.session_state.get("plano_intencao_id")
-            if plano_intencao_id and int(plano_id) == int(plano_intencao_id):
-                st.info("✅ Você escolheu este plano no cadastro. Finalize o pagamento abaixo para liberar o acesso.")
-
             descricao = plano.get("descricao") or ""
             preco_mensal = float(plano.get("preco_mensal") or 0.0)
             modulos = plano.get("modulos_liberados") or []
-
             destaques = "".join([f"<li>{m}</li>" for m in modulos])
 
             st.markdown(
                 f"""
-                <div style='border: 1px solid #ccc; border-radius: 10px; padding: 20px; margin-bottom: 10px;'>
+                <div style='border: 1px solid #ccc; border-radius: 10px; padding: 18px; margin-bottom: 10px;'>
                     <h4 style='margin-bottom:6px;'>{nome_plano}</h4>
                     <p style='margin-top:0; color:#555;'>{descricao}</p>
-                    <ul style='margin-top:6px;'>{destaques}</ul>
+                    <ul style='margin-top:6px; padding-left:18px;'>{destaques}</ul>
                     <p style='margin-top:10px;'><strong>💰 R$ {preco_mensal:.2f}/mês</strong></p>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            # Plano gratuito: não precisa pagar
+            # Plano grátis
             if preco_mensal <= 0:
                 st.caption("Plano gratuito não requer pagamento.")
                 if nome_plano == plano_atual:
                     st.info("✅ Esse já é seu plano atual.")
                 else:
-                    st.button(
-                        f"Quero esse plano: {nome_plano}",
-                        key=f"contratar_free_{plano_id}",
-                        disabled=True
-                    )
-                    st.caption("Se quiser permitir troca para Gratuito, implemente a troca via backend.")
+                    st.button(f"Quero esse plano: {nome_plano}", key=f"contratar_free_{plano_id}", disabled=True)
                 continue
 
-            cupom_input = st.text_input(
-                f"Cupom para {nome_plano}",
-                key=f"cupom_plano_{plano_id}",
-                placeholder="Ex: MIV10",
-            ).strip()
-
-            # Se já é o plano atual
+            # Plano atual
             if nome_plano == plano_atual:
                 st.info("✅ Esse já é seu plano atual.")
                 continue
 
+            # CTA
+            if st.button(f"Quero esse plano: {nome_plano}", key=f"abrir_modal_plano_{plano_id}"):
+                st.session_state["plano_escolhido"] = plano
+                st.session_state["plano_modal_aberto"] = True
+                st.session_state["plano_confirm_modal_aberto"] = False
+                st.rerun()
 
+    # ======================================================
+    # 11) ABRIR MODAIS (controlados por state)
+    # ======================================================
+    if st.session_state.get("plano_modal_aberto"):
+        modal_escolha_plano()
 
+    if st.session_state.get("plano_confirm_modal_aberto"):
+        modal_confirmacao()
 
-            def _safe_json(text: str):
-                try:
-                    return json.loads(text)
-                except Exception:
-                    return None
-
-            def _try_post(url: str, headers: dict, params: dict):
-                try:
-                    return httpx.post(url, headers=headers, params=params, timeout=30)
-                except Exception as e:
-                    return e
-
-            # ... dentro do for dos planos:
-
-
-            btn_key = f"contratar_plano_{plano_id}_{i}"  # i vem do enumerate(planos)
-
-            if st.button(f"Quero esse plano: {nome_plano}", key=f"contratar_plano_{plano_id}"):
-
-                token = st.session_state.get("token")
-                if not token:
-                    st.error("❌ Token não encontrado. Faça logout e login novamente.")
-                    st.stop()
-
-                headers = {
-                    "Authorization": f"Bearer {token}",
-                    "Content-Type": "application/json",
-                }
-
-                cupom_digitado = (cupom_input or "").strip()
-
-                params = {
-                    "cupom": (cupom_digitado.lower() if cupom_digitado else None),
-                    "periodo": "mensal",
-                    "metodo": "pix",
-                    "gateway": "mercado_pago",
-                    # 🔕 não envia debug
-                }
-
-                def _try_post(url: str):
-                    try:
-                        return httpx.post(url, headers=headers, params=params, timeout=30)
-                    except Exception as e:
-                        return e
-
-                url1 = f"{API_URL.rstrip('/')}/planos/{int(plano_id)}/comprar"
-                url2 = f"{API_URL.rstrip('/')}/api/planos/{int(plano_id)}/comprar"  # fallback
-
-                resp = _try_post(url1)
-
-                if isinstance(resp, Exception):
-                    st.error(f"Erro de rede ao chamar backend: {resp}")
-                    st.stop()
-
-                # se 404, tenta /api
-                if resp.status_code == 404:
-                    resp = _try_post(url2)
-
-                    if isinstance(resp, Exception):
-                        st.error(f"Erro de rede ao chamar backend (/api): {resp}")
-                        st.stop()
-
-                if resp.status_code >= 400:
-                    try:
-                        st.error(resp.json().get("detail", resp.text))
-                    except Exception:
-                        st.error(resp.text)
-                    st.stop()
-
-                data = resp.json() or {}
-
-                init_point = data.get("init_point")
-                if init_point:
-                    st.success("✅ Link de pagamento gerado:")
-                    st.link_button("Pagar agora no Mercado Pago", init_point)
-                else:
-                    st.success("✅ Resposta do backend:")
-                    st.json(data)
 
 
 
