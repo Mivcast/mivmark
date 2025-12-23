@@ -1966,16 +1966,16 @@ def tela_planos():
     # 6) CONFIG: períodos (V1) + descontos por período
     # ======================================================
     PERIODOS = {
-        "Mensal": {"periodo_api": "mensal", "meses": 1, "desconto_periodo": 0},
-        "3 meses": {"periodo_api": "trimestral", "meses": 3, "desconto_periodo": 5},
-        "6 meses": {"periodo_api": "semestral", "meses": 6, "desconto_periodo": 10},
-        "12 meses": {"periodo_api": "anual", "meses": 12, "desconto_periodo": 15},
+        "Mensal": {"periodo_api": "mensal", "meses": 1, "quantidade": 1, "desconto_periodo": 0},
+        "3 meses": {"periodo_api": "mensal", "meses": 3, "quantidade": 3, "desconto_periodo": 5},
+        "6 meses": {"periodo_api": "mensal", "meses": 6, "quantidade": 6, "desconto_periodo": 10},
+        "12 meses": {"periodo_api": "anual", "meses": 12, "quantidade": 1, "desconto_periodo": 0},
     }
 
     # ======================================================
     # 7) FUNÇÃO: CHAMAR /planos/{id}/comprar com fallback
     # ======================================================
-    def comprar_plano_backend(plano_id: int, cupom: str | None, periodo_api: str):
+    def comprar_plano_backend(plano_id: int, cupom: str | None, periodo_api: str, quantidade: int):
         token = st.session_state.get("token")
         if not token:
             raise RuntimeError("Token não encontrado. Faça logout/login novamente.")
@@ -1985,6 +1985,7 @@ def tela_planos():
         params = {
             "cupom": (cupom.lower() if cupom else None),
             "periodo": periodo_api,
+            "quantidade": int(quantidade),   # ✅ NOVO
             "metodo": "pix",
             "gateway": "mercado_pago",
         }
@@ -2008,6 +2009,7 @@ def tela_planos():
             raise RuntimeError(str(detail))
 
         return r.json() or {}
+
 
     # ======================================================
     # 8) MODAL 1: escolhas (período, pagamento, cupom)
@@ -2038,6 +2040,9 @@ def tela_planos():
             ],
             index=0
         )
+        if "Recorrente" in tipo_cobranca:
+            st.info("⏳ A cobrança recorrente estará disponível em breve. Por enquanto, use Pagamento único.")
+            st.stop()
 
         st.caption("A forma de pagamento (PIX, cartão, boleto) é escolhida no checkout do Mercado Pago.")
 
@@ -2048,10 +2053,27 @@ def tela_planos():
         cfg = PERIODOS[periodo_label]
         meses = cfg["meses"]
         desconto_periodo = cfg["desconto_periodo"]
+        quantidade = int(cfg.get("quantidade", meses))
 
-        base = preco_mensal * meses
+        if cfg["periodo_api"] == "anual" and plano.get("preco_anual"):
+            base = float(plano.get("preco_anual"))
+        else:
+            base = preco_mensal * meses
         desconto_p = base * (desconto_periodo / 100.0)
         subtotal = base - desconto_p
+
+        # Economia no anual (comparação visual)
+        if cfg["periodo_api"] == "anual":
+            valor_lista = preco_mensal * 12
+            valor_base = base  # já é o preco_anual ou fallback correto
+            economia = max(0.0, valor_lista - valor_base)
+
+            if economia > 0:
+                st.info(
+                    f"💡 Economia no plano anual: **R$ {economia:.2f}** "
+                    f"em relação ao pagamento mensal."
+                )
+
 
         cupom = achar_cupom(cupom_digitado) if cupom_digitado else None
         cupom_pct = float(cupom.get("desconto_percent") or 0.0) if cupom else 0.0
@@ -2087,6 +2109,7 @@ def tela_planos():
                     "preco_mensal": float(preco_mensal),
                     "periodo_label": periodo_label,
                     "periodo_api": cfg["periodo_api"],
+                    "quantidade": quantidade,              # ✅ NOVO (ESSENCIAL)
                     "meses": meses,
                     "desconto_periodo": desconto_periodo,
                     "cupom_digitado": cupom_digitado,
@@ -2151,6 +2174,7 @@ def tela_planos():
                         plano_id=int(ck["plano_id"]),
                         cupom=(ck.get("cupom_digitado") or None),
                         periodo_api=str(ck["periodo_api"]),
+                        quantidade=int(ck.get("quantidade", 1)),
                     )
 
                     init_point = data.get("init_point")

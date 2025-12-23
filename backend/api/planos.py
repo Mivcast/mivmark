@@ -201,6 +201,30 @@ def comprar_plano(
         valor = preco_mensal * quantidade
         meses = quantidade
 
+    # -------------------------------------------------
+    # 1.1) DESCONTO POR PERÍODO (V1)
+    # - 3 meses: 5%
+    # - 6 meses: 10%
+    # - anual: NÃO aplica aqui (usa preco_anual do banco)
+    # -------------------------------------------------
+    desconto_periodo_pct = 0.0
+
+    if periodo == "mensal":
+        if quantidade == 3:
+            desconto_periodo_pct = 5.0
+        elif quantidade == 6:
+            desconto_periodo_pct = 10.0
+
+    # aplica desconto do período (somente mensal 3/6)
+    if desconto_periodo_pct > 0:
+        valor = valor * (1 - desconto_periodo_pct / 100.0)
+
+    dbg["desconto_periodo_pct_backend"] = desconto_periodo_pct
+    dbg["valor_pos_desconto_periodo"] = float(valor)
+
+
+
+
     dbg["valor_base"] = float(valor)
     dbg["meses"] = meses
 
