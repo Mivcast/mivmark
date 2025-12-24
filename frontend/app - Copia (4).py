@@ -1783,24 +1783,14 @@ def tela_mark_ia():
     import os
     import streamlit as st
     import streamlit.components.v1 as components
-    import httpx
+    import httpx  # garantir que httpx está disponível
 
+    # 🔹 Pega o ID do usuário logado (se tiver)
+    dados_usuario = st.session_state.get("dados_usuario", {}) or {}
+    usuario_id = dados_usuario.get("id", None)
 
-    # =====================================================
-    # 🔹 USUÁRIO LOGADO
-    # =====================================================
-    dados_usuario = st.session_state.get("dados_usuario") or {}
-    usuario_id = dados_usuario.get("id")
-
-    if not usuario_id:
-        st.error("Usuário não identificado. Faça login novamente.")
-        st.stop()
-
-    # =====================================================
-    # 🔹 HTML DO CHAT
-    # =====================================================
+    # 🔹 Lê o HTML do chat
     caminho_html = os.path.join("frontend", "mark_chat.html")
-
     try:
         with open(caminho_html, "r", encoding="utf-8") as f:
             html = f.read()
@@ -1808,134 +1798,209 @@ def tela_mark_ia():
         st.error(f"Arquivo não encontrado: {caminho_html}")
         return
 
-    html = html.replace("{{USUARIO_ID}}", str(usuario_id))
+    # 🔹 Injeta o ID do usuário dentro do HTML
+    html = html.replace("{{USUARIO_ID}}", str(usuario_id or ""))
 
-    # =====================================================
-    # 🔹 ESTILO DO IFRAME
-    # =====================================================
+    # 🔹 CSS global para o iframe do MARK usar quase toda a tela
     st.markdown(
         """
         <style>
-        iframe[srcdoc*="MARK.IA"] {
-            width: 100% !important;
-            height: calc(100vh - 280px) !important;
-            border: none;
-            border-radius: 22px;
-            box-shadow: 0 18px 40px rgba(15,23,42,0.16);
-        }
+          /* Desktop / notebooks grandes */
+          iframe[srcdoc*="MARK.IA Chat"] {
+              width: 100% !important;
+              height: calc(100vh - 280px) !important;
+              border: none;
+              border-radius: 24px;
+              box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+          }
+
+          /* Tablets e notebooks menores */
+          @media (max-width: 1100px) and (min-width: 769px) {
+              iframe[srcdoc*="MARK.IA Chat"] {
+                  height: calc(100vh - 260px) !important;
+              }
+          }
+
+          /* Celulares em geral */
+          @media (max-width: 768px) {
+              iframe[srcdoc*="MARK.IA Chat"] {
+                  height: calc(100vh - 240px) !important;
+                  border-radius: 18px;
+              }
+          }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    components.html(html, height=650, scrolling=False)
+    # 🔹 Renderiza o chat
+    components.html(
+        html,
+        height=650,
+        scrolling=False,
+    )
 
-    # =====================================================
-    # 📘 TEXTO DE APOIO
-    # =====================================================
+    # 🔹 Texto de apoio abaixo do chat
     st.markdown(
         """
         ### Como usar o MARK IA
-        - Digite sua dúvida no chat acima  
-        - Use o microfone (quando disponível)  
-        - Clique em **Limpar conversa** para um novo assunto
+
+        - Digite sua dúvida na caixa de mensagem do chat acima.  
+        - Clique no botão de **microfone** para falar em vez de digitar (quando disponível).  
+        - Use o botão de **limpar conversa** para começar um novo assunto.  
+
+        Caso alguma parte do layout fique um pouquinho cortada em algum dispositivo,
+        é porque logo abaixo do chat ficam estas instruções e textos de apoio.
         """
     )
 
-    # =====================================================
-    # 🔍 BUSCA NO HISTÓRICO (ÚNICO ENDPOINT)
-    # =====================================================
-    st.markdown("---")
+
+    # ===============================
+    # 🔎 BUSCA NO HISTÓRICO DO MARK
+    # ===============================
+
     st.subheader("🔍 Buscar no histórico")
 
     termo_busca = st.text_input(
-        "Digite uma palavra, frase ou parte da data",
-        placeholder="Ex.: orçamento, Instagram, Google Ads"
+        "Digite uma palavra, frase ou parte da data:",
+        placeholder="Ex.: Google Ads, orçamento, Instagram..."
     ).strip()
 
     params = {}
     if termo_busca:
         params["busca"] = termo_busca
 
-    headers = get_headers()
+    # 🔐 Cabeçalho com token (se existir)
+    token = st.session_state.get("access_token", "")
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    # Sempre inicializa a lista
     registros = []
 
     try:
-        r = httpx.get(
-            f"{API_URL}/mark/historico",
+        r_hist = httpx.get(
+            f"{API_URL}/mark/historico_v2",
             params=params,
-            headers=headers,
-            timeout=30
+            headers=headers or None,   # se estiver vazio, manda None
+            timeout=30,
         )
 
-        if r.status_code in (401, 403):
-            st.error("Sessão expirada. Faça login novamente.")
-            st.stop()
+        if r_hist.status_code == 200:
+            registros = r_hist.json()
 
-        if r.status_code == 200:
-            registros = r.json() or []
+            if not registros:
+                if termo_busca:
+                    st.info("Nenhum registro encontrado para essa busca.")
+                else:
+                    st.info("Nenhuma interação registrada ainda.")
+            else:
+                st.markdown("---")
+
+                for h in registros:
+                    data = h.get("data_envio") or ""
+                    remetente = h.get("remetente", "").capitalize()
+                    mensagem = h.get("mensagem", "")
+
+                    st.markdown(f"### 🕒 {data}")
+                    st.markdown(f"**{remetente}:** {mensagem}")
+                    st.markdown("---")
+
         else:
-            st.error(f"Erro ao buscar histórico ({r.status_code})")
+            st.error(f"Erro ao carregar histórico: {r_hist.status_code}")
 
     except Exception as e:
-        st.error(f"Erro de conexão: {e}")
-        return
+        st.error(f"Erro ao carregar histórico: {e}")
 
-    # =====================================================
-    # 📜 EXIBIÇÃO DO HISTÓRICO
-    # =====================================================
-    if not registros:
-        st.info("Nenhuma conversa encontrada.")
-        return
 
-    registros = sorted(
-        registros,
-        key=lambda x: (x.get("data_envio") is None, str(x.get("data_envio") or "")),
-        reverse=True
-    )
+    # =====================================
+    # 📤 EXPORTAR HISTÓRICO COMO .TXT
+    # =====================================
 
-    for item in registros:
-        remetente_raw = (item.get("remetente") or "").lower()
-        remetente = "Você" if remetente_raw == "usuario" else "MARK IA"
-
-        mensagem = item.get("mensagem", "")
-        data = (item.get("data_envio") or "").replace("T", " ").split(".")[0]
-
-        st.markdown(
-            f"""
-            <div style="
-                margin-bottom: 12px;
-                padding: 12px;
-                border-radius: 10px;
-                background: {'#e0edff' if remetente=='Você' else '#f7f7f7'};
-            ">
-                <b>{remetente}</b> — <small>{data}</small><br>
-                <div style="margin-top:6px;font-size:15px;">
-                    {mensagem}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
+    if registros:
+        conteudo_txt = "\n\n".join(
+            [
+                f"{h.get('data_envio', '')} - {h.get('remetente', '').capitalize()}: {h.get('mensagem', '')}"
+                for h in registros
+            ]
         )
 
-    # =====================================================
-    # 📤 EXPORTAR HISTÓRICO
-    # =====================================================
-    conteudo_txt = "\n\n".join(
-        f"{h.get('data_envio')} - {h.get('remetente').upper()}: {h.get('mensagem')}"
-        for h in registros
-    )
+        st.download_button(
+            "📤 Exportar histórico (.txt)",
+            data=conteudo_txt,
+            file_name="historico_mark.txt",
+            mime="text/plain",
+        )
 
-    st.download_button(
-        "📤 Exportar histórico (.txt)",
-        conteudo_txt,
-        file_name="historico_mark.txt",
-        mime="text/plain",
-    )
+
+
+
+
+    # ===============================
+    # BLOCO: Histórico abaixo do chat
+    # ===============================
+    st.markdown("---")
+    st.markdown("### 🧠 Histórico de Conversas com o MARK")
+
+    # ❌ Sem header Authorization aqui
+    try:
+        r = httpx.get(f"{API_URL}/mark/historico_v2", timeout=10.0)
+        if r.status_code == 200:
+            historico_total = r.json()
+        else:
+            st.warning(f"Não foi possível carregar o histórico (status {r.status_code}).")
+            historico_total = []
+    except Exception as e:
+        st.error(f"Erro ao buscar histórico: {e}")
+        historico_total = []
+
+    # 🔹 Filtra só do usuário logado (se tiver ID)
+    if usuario_id:
+        historico = [
+            h for h in historico_total
+            if h.get("usuario_id") == usuario_id
+        ]
+    else:
+        historico = historico_total
+
+    # Exibição formatada
+    if not historico:
+        st.info("Nenhuma conversa registrada ainda.")
+    else:
+        historico = sorted(
+            historico,
+            key=lambda x: (x.get("data_envio") or ""),
+            reverse=True,
+        )
+
+        for item in historico:
+            remetente_raw = (item.get("remetente") or "").lower()
+            remetente = "Você" if remetente_raw == "usuário" else "MARK IA"
+            mensagem = item.get("mensagem", "")
+            data = item.get("data_envio", "") or ""
+            if data:
+                data = data.replace("T", " ").split(".")[0]
+
+            st.markdown(
+                f"""
+                <div style="
+                    margin-bottom: 12px;
+                    padding: 12px;
+                    border-radius: 10px;
+                    background: {'#e0edff' if remetente=='Você' else '#f7f7f7'};
+                    ">
+                    <b>{remetente}</b> — <small>{data}</small>
+                    <br>
+                    <div style="margin-top: 6px; font-size: 15px;">
+                        {mensagem}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
     st.markdown("---")
-
-
 
 
 
@@ -3157,245 +3222,51 @@ def painel_admin_aplicativos():
 
 
 
-import math
-import httpx
-import streamlit as st
-
-
-# =====================================================
-# PROGRESSO
-# =====================================================
-def _carregar_progresso_aulas():
-    try:
-        r = httpx.get(f"{API_URL}/cursos/progresso", headers=get_headers(), timeout=30)
-        if r.status_code == 200:
-            return set(r.json().get("aulas_concluidas", []))
-    except Exception:
-        pass
-    return set()
-
-
-def _info_progresso_do_curso(curso, aulas_concluidas_set: set):
-    aulas = curso.get("aulas") or []
-    total = len(aulas)
-    feitas = len([a for a in aulas if a.get("id") in aulas_concluidas_set])
-
-    progresso = (feitas / total) if total else 0.0
-    concluido = (total > 0 and feitas == total)
-    em_andamento = (feitas > 0 and not concluido)
-
-    return feitas, total, progresso, concluido, em_andamento
-
-
-# =====================================================
-# CARD: MEU CURSO (com progresso)
-# =====================================================
-def card_meu_curso(curso, aulas_concluidas_set: set):
-    curso_id = curso["id"]
-
-    if curso.get("capa_url"):
-        st.image(curso["capa_url"], use_container_width=True)
-
-    st.markdown(f"### {curso.get('titulo', 'Curso')}")
-    st.caption(f"Categoria: {curso.get('categoria') or 'Sem categoria'}")
-
-    gratuito = bool(curso.get("gratuito", False))
-    preco = float(curso.get("preco") or 0.0)
-
-    selos = []
-    if gratuito:
-        selos.append("🟢 Gratuito")
-    else:
-        selos.append(f"💰 R$ {preco:.2f}")
-        selos.append(f"⚡ Pix: R$ {preco * 0.9:.2f}")
-
-    if curso.get("destaque"):
-        selos.append("🔥 Popular")
-
-    st.markdown(" • ".join(selos))
-
-    feitas, total, progresso, concluido, em_andamento = _info_progresso_do_curso(curso, aulas_concluidas_set)
-
-    st.progress(progresso)
-    pct = math.floor(progresso * 100)
-    if total:
-        st.caption(f"{feitas} de {total} aulas concluídas ({pct}%)")
-    else:
-        st.caption("0 aulas cadastradas")
-
-    texto_btn = "✅ Concluído" if concluido else ("▶️ Continuar" if em_andamento else "▶️ Começar")
-    if st.button(texto_btn, key=f"meu_continuar_{curso_id}", use_container_width=True):
-        st.session_state["curso_liberado"] = curso_id
-        st.session_state.pop("curso_espiar", None)
-        st.session_state.pop("curso_checkout", None)
-        st.rerun()
-
-
-# =====================================================
-# CARD: CURSO DISPONÍVEL (comprar/espiar)
-# =====================================================
-def card_curso(curso, liberado=False):
-    curso_id = curso["id"]
-
-    if curso.get("capa_url"):
-        st.image(curso["capa_url"], use_container_width=True)
-
-    st.markdown(f"### {curso.get('titulo', 'Curso')}")
-    st.caption(f"Categoria: {curso.get('categoria') or 'Sem categoria'}")
-
-    gratuito = bool(curso.get("gratuito", False))
-    preco = float(curso.get("preco") or 0.0)
-
-    if gratuito:
-        st.markdown("🟢 **Gratuito**")
-    else:
-        st.markdown(f"💰 R$ {preco:.2f}")
-        st.caption(f"⚡ Pix: R$ {preco * 0.9:.2f}")
-
-    if liberado:
-        if st.button("▶️ Acessar", key=f"acessar_{curso_id}", use_container_width=True):
-            st.session_state["curso_liberado"] = curso_id
-            st.session_state.pop("curso_espiar", None)
-            st.session_state.pop("curso_checkout", None)
-            st.rerun()
-    else:
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("👁️ Espiar", key=f"espiar_{curso_id}", use_container_width=True):
-                st.session_state["curso_espiar"] = curso_id
-                st.rerun()
-        with col2:
-            if st.button("💳 Comprar", key=f"comprar_{curso_id}", use_container_width=True):
-                st.session_state["curso_checkout"] = curso_id
-                st.rerun()
-
-
-# =====================================================
-# TELA UNIFICADA: MEUS CURSOS + CURSOS DISPONÍVEIS
-# =====================================================
 def tela_cursos():
-    # Fluxos prioritários
-    if st.session_state.get("curso_checkout"):
-        tela_checkout(st.session_state["curso_checkout"])
-        return
+    if not usuario_tem_acesso("cursos"):
+        mostrar_bloqueio_modulo("Cursos")
+        st.stop()
 
-    if st.session_state.get("curso_liberado"):
-        tela_detalhe_curso(st.session_state["curso_liberado"])
-        return
+    st.header("🎓 Meus Cursos")
 
-    if st.session_state.get("curso_espiar"):
-        tela_detalhe_curso(st.session_state["curso_espiar"])
-        return
-
-    st.title("🎓 Cursos")
-
-    # Buscar cursos
     try:
-        r = httpx.get(f"{API_URL}/cursos/", headers=get_headers(), timeout=30)
-        r.raise_for_status()
-        cursos = r.json()
+        r = httpx.get(f"{API_URL}/cursos/", headers=get_headers())
+        if r.status_code == 200:
+            cursos = r.json()
+        else:
+            st.error("Erro ao carregar cursos.")
+            return
     except Exception as e:
-        st.error(f"Erro ao carregar cursos: {e}")
+        st.error(f"Erro ao buscar cursos: {e}")
         return
-
-    cursos = sorted(cursos, key=lambda c: (c.get("ordem") or 9999, c.get("titulo") or ""))
-
-    cursos_liberados = set(st.session_state.get("cursos_liberados", []))
-    cursos_comprados = set(st.session_state.get("comprados", []))
-
-    # Separar meus cursos vs disponíveis
-    meus_cursos = []
-    outros_cursos = []
 
     for curso in cursos:
-        curso_id = curso["id"]
-        liberado = bool(curso.get("gratuito")) or (curso_id in cursos_liberados) or (curso_id in cursos_comprados)
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.image(curso["capa_url"], width=120)
+        with col2:
+            st.subheader(curso["titulo"])
+            st.caption(f"Categoria: {curso['categoria']}")
+            st.write(curso["descricao"])
+            preco = f"R$ {curso['preco']:.2f}" if not curso["gratuito"] else "Gratuito"
+            st.markdown(f"💰 **Preço:** {preco}")
 
-        if liberado:
-            meus_cursos.append(curso)
-        else:
-            outros_cursos.append(curso)
-
-    # =====================================================
-    # MEUS CURSOS (com filtro + progresso)
-    # =====================================================
-    if meus_cursos:
-        st.subheader("📚 Meus Cursos")
-
-        filtro_meus = st.radio(
-            "Filtrar:",
-            ["Todos", "Gratuitos", "Pagos", "Em andamento", "Concluídos"],
-            horizontal=True,
-            key="filtro_meus_cursos",
-        )
-
-        aulas_concluidas_set = _carregar_progresso_aulas()
-
-        meus_filtrados = []
-        for curso in meus_cursos:
-            gratuito = bool(curso.get("gratuito", False))
-            feitas, total, progresso, concluido, em_andamento = _info_progresso_do_curso(curso, aulas_concluidas_set)
-
-            if filtro_meus == "Gratuitos" and not gratuito:
-                continue
-            if filtro_meus == "Pagos" and gratuito:
-                continue
-            if filtro_meus == "Em andamento" and not em_andamento:
-                continue
-            if filtro_meus == "Concluídos" and not concluido:
-                continue
-
-            meus_filtrados.append(curso)
-
-        if not meus_filtrados:
-            st.info("Nenhum curso encontrado para este filtro.")
-        else:
-            cols = st.columns(4)
-            for idx, curso in enumerate(meus_filtrados):
-                with cols[idx % 4]:
-                    card_meu_curso(curso, aulas_concluidas_set)
-
-        st.markdown("---")
-
-    # =====================================================
-    # CURSOS DISPONÍVEIS (não liberados)
-    # =====================================================
-    st.subheader("🎓 Cursos Disponíveis")
-
-    if not outros_cursos:
-        st.info("No momento, não há novos cursos disponíveis.")
-        return
-
-    categorias = sorted({(c.get("categoria") or "Outros") for c in outros_cursos})
-    categorias_opcoes = ["Todas"] + categorias
-
-    col_f1, col_f2 = st.columns(2)
-    with col_f1:
-        categoria_escolhida = st.selectbox("Categoria:", categorias_opcoes, key="filtro_cat_disponiveis")
-    with col_f2:
-        tipo = st.selectbox("Tipo:", ["Todos", "Gratuitos", "Pagos"], key="filtro_tipo_disponiveis")
-
-    cursos_filtrados = []
-    for curso in outros_cursos:
-        cat = (curso.get("categoria") or "Outros")
-        if categoria_escolhida != "Todas" and cat != categoria_escolhida:
-            continue
-
-        if tipo == "Gratuitos" and not curso.get("gratuito"):
-            continue
-        if tipo == "Pagos" and curso.get("gratuito"):
-            continue
-
-        cursos_filtrados.append(curso)
-
-    if not cursos_filtrados:
-        st.info("Nenhum curso disponível para este filtro.")
-        return
-
-    cols = st.columns(4)
-    for idx, curso in enumerate(cursos_filtrados):
-        with cols[idx % 4]:
-            card_curso(curso, liberado=False)
+            # Se o curso é gratuito ou já está liberado para o usuário
+            if curso["gratuito"] or curso["id"] in st.session_state.get("cursos_liberados", []):
+                if st.button("▶️ Acessar", key=f"acessar_{curso['id']}"):
+                    # Aqui usamos a mesma chave que o main() enxerga
+                    st.session_state["curso_liberado"] = curso["id"]
+                    st.rerun()
+            else:
+                col_b1, col_b2 = st.columns(2)
+                with col_b1:
+                    if st.button("👁️ Espiar", key=f"espiar_{curso['id']}"):
+                        st.session_state["curso_espiar"] = curso["id"]
+                        st.rerun()
+                with col_b2:
+                    if st.button("💳 Comprar", key=f"comprar_{curso['id']}"):
+                        st.session_state["curso_checkout"] = curso["id"]
+                        st.rerun()
 
 
 
@@ -4284,7 +4155,9 @@ def main():
         "❤️ **Saúde da Empresa**": "saude",
         "📋 **Consultoria**": "consultoria",
         "🎓 **Cursos**": "cursos",
+        "📘 **Meus Cursos**": "cursos",
         "📱 **Aplicativos**": "aplicativos",
+        "📲   **Meus Apps**": "aplicativos",
         "💰 **Orçamento**": "orcamento",
         "📅 **Agenda**": "agenda",
         "📣 **Consultor Mensal**": "consultor_mensal",
@@ -4325,7 +4198,9 @@ def main():
             "❤️ **Saúde da Empresa**",
             "📋 **Consultoria**",
             "🎓 **Cursos**",
+            "📘 **Meus Cursos**",
             "📱 **Aplicativos**",
+            "📲   **Meus Apps**",
             "💰 **Orçamento**",
             "📅 **Agenda**",
             "📣 **Consultor Mensal**",
@@ -4377,12 +4252,20 @@ def main():
         tela_consultoria()
 
     elif escolha == "🎓 **Cursos**":
-          tela_cursos()
+        from cursos import tela_cursos
+        tela_cursos()
+
+    elif escolha == "📘 **Meus Cursos**":
+        from cursos import tela_meus_cursos
+        tela_meus_cursos()
 
     elif escolha == "📱 **Aplicativos**":
         from aplicativos import tela_aplicativos
         tela_aplicativos()
 
+    elif escolha == "📲   **Meus Apps**":
+        from aplicativos import tela_meus_aplicativos
+        tela_meus_aplicativos()
 
     elif escolha == "💰 **Orçamento**":
         from orcamento import tela_orcamento

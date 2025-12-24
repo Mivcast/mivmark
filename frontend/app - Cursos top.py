@@ -1783,24 +1783,14 @@ def tela_mark_ia():
     import os
     import streamlit as st
     import streamlit.components.v1 as components
-    import httpx
+    import httpx  # garantir que httpx está disponível
 
+    # 🔹 Pega o ID do usuário logado (se tiver)
+    dados_usuario = st.session_state.get("dados_usuario", {}) or {}
+    usuario_id = dados_usuario.get("id", None)
 
-    # =====================================================
-    # 🔹 USUÁRIO LOGADO
-    # =====================================================
-    dados_usuario = st.session_state.get("dados_usuario") or {}
-    usuario_id = dados_usuario.get("id")
-
-    if not usuario_id:
-        st.error("Usuário não identificado. Faça login novamente.")
-        st.stop()
-
-    # =====================================================
-    # 🔹 HTML DO CHAT
-    # =====================================================
+    # 🔹 Lê o HTML do chat
     caminho_html = os.path.join("frontend", "mark_chat.html")
-
     try:
         with open(caminho_html, "r", encoding="utf-8") as f:
             html = f.read()
@@ -1808,134 +1798,209 @@ def tela_mark_ia():
         st.error(f"Arquivo não encontrado: {caminho_html}")
         return
 
-    html = html.replace("{{USUARIO_ID}}", str(usuario_id))
+    # 🔹 Injeta o ID do usuário dentro do HTML
+    html = html.replace("{{USUARIO_ID}}", str(usuario_id or ""))
 
-    # =====================================================
-    # 🔹 ESTILO DO IFRAME
-    # =====================================================
+    # 🔹 CSS global para o iframe do MARK usar quase toda a tela
     st.markdown(
         """
         <style>
-        iframe[srcdoc*="MARK.IA"] {
-            width: 100% !important;
-            height: calc(100vh - 280px) !important;
-            border: none;
-            border-radius: 22px;
-            box-shadow: 0 18px 40px rgba(15,23,42,0.16);
-        }
+          /* Desktop / notebooks grandes */
+          iframe[srcdoc*="MARK.IA Chat"] {
+              width: 100% !important;
+              height: calc(100vh - 280px) !important;
+              border: none;
+              border-radius: 24px;
+              box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+          }
+
+          /* Tablets e notebooks menores */
+          @media (max-width: 1100px) and (min-width: 769px) {
+              iframe[srcdoc*="MARK.IA Chat"] {
+                  height: calc(100vh - 260px) !important;
+              }
+          }
+
+          /* Celulares em geral */
+          @media (max-width: 768px) {
+              iframe[srcdoc*="MARK.IA Chat"] {
+                  height: calc(100vh - 240px) !important;
+                  border-radius: 18px;
+              }
+          }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    components.html(html, height=650, scrolling=False)
+    # 🔹 Renderiza o chat
+    components.html(
+        html,
+        height=650,
+        scrolling=False,
+    )
 
-    # =====================================================
-    # 📘 TEXTO DE APOIO
-    # =====================================================
+    # 🔹 Texto de apoio abaixo do chat
     st.markdown(
         """
         ### Como usar o MARK IA
-        - Digite sua dúvida no chat acima  
-        - Use o microfone (quando disponível)  
-        - Clique em **Limpar conversa** para um novo assunto
+
+        - Digite sua dúvida na caixa de mensagem do chat acima.  
+        - Clique no botão de **microfone** para falar em vez de digitar (quando disponível).  
+        - Use o botão de **limpar conversa** para começar um novo assunto.  
+
+        Caso alguma parte do layout fique um pouquinho cortada em algum dispositivo,
+        é porque logo abaixo do chat ficam estas instruções e textos de apoio.
         """
     )
 
-    # =====================================================
-    # 🔍 BUSCA NO HISTÓRICO (ÚNICO ENDPOINT)
-    # =====================================================
-    st.markdown("---")
+
+    # ===============================
+    # 🔎 BUSCA NO HISTÓRICO DO MARK
+    # ===============================
+
     st.subheader("🔍 Buscar no histórico")
 
     termo_busca = st.text_input(
-        "Digite uma palavra, frase ou parte da data",
-        placeholder="Ex.: orçamento, Instagram, Google Ads"
+        "Digite uma palavra, frase ou parte da data:",
+        placeholder="Ex.: Google Ads, orçamento, Instagram..."
     ).strip()
 
     params = {}
     if termo_busca:
         params["busca"] = termo_busca
 
-    headers = get_headers()
+    # 🔐 Cabeçalho com token (se existir)
+    token = st.session_state.get("access_token", "")
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    # Sempre inicializa a lista
     registros = []
 
     try:
-        r = httpx.get(
-            f"{API_URL}/mark/historico",
+        r_hist = httpx.get(
+            f"{API_URL}/mark/historico_v2",
             params=params,
-            headers=headers,
-            timeout=30
+            headers=headers or None,   # se estiver vazio, manda None
+            timeout=30,
         )
 
-        if r.status_code in (401, 403):
-            st.error("Sessão expirada. Faça login novamente.")
-            st.stop()
+        if r_hist.status_code == 200:
+            registros = r_hist.json()
 
-        if r.status_code == 200:
-            registros = r.json() or []
+            if not registros:
+                if termo_busca:
+                    st.info("Nenhum registro encontrado para essa busca.")
+                else:
+                    st.info("Nenhuma interação registrada ainda.")
+            else:
+                st.markdown("---")
+
+                for h in registros:
+                    data = h.get("data_envio") or ""
+                    remetente = h.get("remetente", "").capitalize()
+                    mensagem = h.get("mensagem", "")
+
+                    st.markdown(f"### 🕒 {data}")
+                    st.markdown(f"**{remetente}:** {mensagem}")
+                    st.markdown("---")
+
         else:
-            st.error(f"Erro ao buscar histórico ({r.status_code})")
+            st.error(f"Erro ao carregar histórico: {r_hist.status_code}")
 
     except Exception as e:
-        st.error(f"Erro de conexão: {e}")
-        return
+        st.error(f"Erro ao carregar histórico: {e}")
 
-    # =====================================================
-    # 📜 EXIBIÇÃO DO HISTÓRICO
-    # =====================================================
-    if not registros:
-        st.info("Nenhuma conversa encontrada.")
-        return
 
-    registros = sorted(
-        registros,
-        key=lambda x: (x.get("data_envio") is None, str(x.get("data_envio") or "")),
-        reverse=True
-    )
+    # =====================================
+    # 📤 EXPORTAR HISTÓRICO COMO .TXT
+    # =====================================
 
-    for item in registros:
-        remetente_raw = (item.get("remetente") or "").lower()
-        remetente = "Você" if remetente_raw == "usuario" else "MARK IA"
-
-        mensagem = item.get("mensagem", "")
-        data = (item.get("data_envio") or "").replace("T", " ").split(".")[0]
-
-        st.markdown(
-            f"""
-            <div style="
-                margin-bottom: 12px;
-                padding: 12px;
-                border-radius: 10px;
-                background: {'#e0edff' if remetente=='Você' else '#f7f7f7'};
-            ">
-                <b>{remetente}</b> — <small>{data}</small><br>
-                <div style="margin-top:6px;font-size:15px;">
-                    {mensagem}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
+    if registros:
+        conteudo_txt = "\n\n".join(
+            [
+                f"{h.get('data_envio', '')} - {h.get('remetente', '').capitalize()}: {h.get('mensagem', '')}"
+                for h in registros
+            ]
         )
 
-    # =====================================================
-    # 📤 EXPORTAR HISTÓRICO
-    # =====================================================
-    conteudo_txt = "\n\n".join(
-        f"{h.get('data_envio')} - {h.get('remetente').upper()}: {h.get('mensagem')}"
-        for h in registros
-    )
+        st.download_button(
+            "📤 Exportar histórico (.txt)",
+            data=conteudo_txt,
+            file_name="historico_mark.txt",
+            mime="text/plain",
+        )
 
-    st.download_button(
-        "📤 Exportar histórico (.txt)",
-        conteudo_txt,
-        file_name="historico_mark.txt",
-        mime="text/plain",
-    )
+
+
+
+
+    # ===============================
+    # BLOCO: Histórico abaixo do chat
+    # ===============================
+    st.markdown("---")
+    st.markdown("### 🧠 Histórico de Conversas com o MARK")
+
+    # ❌ Sem header Authorization aqui
+    try:
+        r = httpx.get(f"{API_URL}/mark/historico_v2", timeout=10.0)
+        if r.status_code == 200:
+            historico_total = r.json()
+        else:
+            st.warning(f"Não foi possível carregar o histórico (status {r.status_code}).")
+            historico_total = []
+    except Exception as e:
+        st.error(f"Erro ao buscar histórico: {e}")
+        historico_total = []
+
+    # 🔹 Filtra só do usuário logado (se tiver ID)
+    if usuario_id:
+        historico = [
+            h for h in historico_total
+            if h.get("usuario_id") == usuario_id
+        ]
+    else:
+        historico = historico_total
+
+    # Exibição formatada
+    if not historico:
+        st.info("Nenhuma conversa registrada ainda.")
+    else:
+        historico = sorted(
+            historico,
+            key=lambda x: (x.get("data_envio") or ""),
+            reverse=True,
+        )
+
+        for item in historico:
+            remetente_raw = (item.get("remetente") or "").lower()
+            remetente = "Você" if remetente_raw == "usuário" else "MARK IA"
+            mensagem = item.get("mensagem", "")
+            data = item.get("data_envio", "") or ""
+            if data:
+                data = data.replace("T", " ").split(".")[0]
+
+            st.markdown(
+                f"""
+                <div style="
+                    margin-bottom: 12px;
+                    padding: 12px;
+                    border-radius: 10px;
+                    background: {'#e0edff' if remetente=='Você' else '#f7f7f7'};
+                    ">
+                    <b>{remetente}</b> — <small>{data}</small>
+                    <br>
+                    <div style="margin-top: 6px; font-size: 15px;">
+                        {mensagem}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
     st.markdown("---")
-
-
 
 
 
@@ -4284,7 +4349,9 @@ def main():
         "❤️ **Saúde da Empresa**": "saude",
         "📋 **Consultoria**": "consultoria",
         "🎓 **Cursos**": "cursos",
+        "📘 **Meus Cursos**": "cursos",
         "📱 **Aplicativos**": "aplicativos",
+        "📲   **Meus Apps**": "aplicativos",
         "💰 **Orçamento**": "orcamento",
         "📅 **Agenda**": "agenda",
         "📣 **Consultor Mensal**": "consultor_mensal",
@@ -4325,7 +4392,9 @@ def main():
             "❤️ **Saúde da Empresa**",
             "📋 **Consultoria**",
             "🎓 **Cursos**",
+            "📘 **Meus Cursos**",
             "📱 **Aplicativos**",
+            "📲   **Meus Apps**",
             "💰 **Orçamento**",
             "📅 **Agenda**",
             "📣 **Consultor Mensal**",
@@ -4379,10 +4448,17 @@ def main():
     elif escolha == "🎓 **Cursos**":
           tela_cursos()
 
+    elif escolha == "📘 **Meus Cursos**":
+        from cursos import tela_meus_cursos
+        tela_meus_cursos()
+
     elif escolha == "📱 **Aplicativos**":
         from aplicativos import tela_aplicativos
         tela_aplicativos()
 
+    elif escolha == "📲   **Meus Apps**":
+        from aplicativos import tela_meus_aplicativos
+        tela_meus_aplicativos()
 
     elif escolha == "💰 **Orçamento**":
         from orcamento import tela_orcamento
