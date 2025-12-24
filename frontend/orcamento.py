@@ -157,7 +157,9 @@ def tela_orcamento(dados_empresa):
     st.markdown("---")
     st.subheader("📁 Orçamentos Salvos")
 
-    caminho = os.path.join("data", "clientes", "orcamentos")
+    dados_user = st.session_state.get("dados_usuario") or {}
+    usuario_id = dados_user.get("id") or dados_user.get("usuario_id") or "anon"
+    caminho = os.path.join("data", "clientes", str(usuario_id), "orcamentos")
     os.makedirs(caminho, exist_ok=True)
 
     arquivos = [f for f in os.listdir(caminho) if f.lower().endswith((".docx", ".pdf"))]
@@ -491,7 +493,10 @@ def salvar_orcamento_docx(
     # --------------------------------------------------------------
     slug_cliente = nome_cliente.replace(" ", "_").lower() if nome_cliente else "cliente"
     nome_base = f"orcamento_{slug_cliente}_{data_orcamento.strftime('%Y%m%d')}"
-    caminho = os.path.join("data", "clientes", "orcamentos")
+    dados_user = st.session_state.get("dados_usuario") or {}
+    usuario_id = dados_user.get("id") or dados_user.get("usuario_id") or "anon"
+
+    caminho = os.path.join("data", "clientes", str(usuario_id), "orcamentos")
     os.makedirs(caminho, exist_ok=True)
 
     docx_path = os.path.join(caminho, f"{nome_base}.docx")

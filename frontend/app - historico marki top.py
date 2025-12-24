@@ -251,7 +251,8 @@ def tela_inicio():
     st.markdown("""
     <div style="background-color: #e0fce2; border: 1px solid #b2f5c2; border-radius: 8px; padding: 10px 20px; margin-top: 15px; margin-bottom: 25px;">
         <strong>🎁 Você tem um desconto exclusivo!</strong><br>
-        Atualize seu Plano e ganhe DESCONTOS INCRÍVEIS nos pacotes semestral ou anual!      
+        Escolha seu plano e ganhe 25% de desconto no primeiro pagamento. 
+        <a href="#" style="color: #007bff;">Escolher plano</a>
     </div>
     """, unsafe_allow_html=True)
 
@@ -935,7 +936,7 @@ def tela_empresa():
 
     # 🗺 Endereço
     st.markdown("#### 🗺 Endereço Completo")
-    cnpj = st.text_input("CNPJ ou CPF", value=dados.get("cnpj", ""))
+    cnpj = st.text_input("CNPJ", value=dados.get("cnpj", ""))
     col1, col2 = st.columns(2)
     with col1:
         rua = st.text_input("Rua / Avenida", value=dados.get("rua", ""))
@@ -1141,8 +1142,10 @@ def tela_minha_conta():
 
         # CTA Upgrade
         st.markdown("---")
-        st.info("Quer liberar mais módulos e recursos? Experimente ATUALIZAR SEU PLANO. No Plano Premium você terá um SITE totalmente seu, único. E voce terá um ATENDENTE VIRTUAL INTELIGENTE que irá responder a qualquer dúvida do seu cliente, e ainda te ajudará a vender mais.")
-
+        st.info("Quer liberar mais módulos e recursos?")
+        if st.button("🚀 Ver planos e fazer upgrade", use_container_width=True):
+            st.session_state["menu"] = "🧩 Planos"
+            st.rerun()
 
     st.markdown("---")
 
@@ -3833,13 +3836,26 @@ def tela_contato_mivcast():
     import urllib.parse
     from datetime import datetime
 
+    # Import do utilitário de e-mail (backend)
+    # Ajuste o caminho se seu projeto tiver outra estrutura
+    try:
+        from backend.utils.email_utils import enviar_email, EMAIL_ADMIN
+        EMAIL_UTILS_OK = True
+    except Exception as e:
+        EMAIL_UTILS_OK = False
+        EMAIL_UTILS_ERRO = str(e)
+
     st.title("📞 Contato e Suporte — MivCast")
 
     # =========================
     # CONFIG
     # =========================
+    SUPORTE_EMAIL = (os.getenv("MIVCAST_SUPORTE_EMAIL", "sitesmiv@gmail.com") or "").strip()
+
+    # Seu WhatsApp fixo (formato wa.me)
     WHATSAPP_NUMERO = "5517997061273"
-    SITE_URL = (os.getenv("MIVCAST_SITE_URL", "https://www.mivcast.com.br") or "").strip()
+
+    SITE_URL = (os.getenv("www.mivcast.com.br", "") or "").strip()
 
     # =========================
     # Cards de contato
@@ -3847,18 +3863,21 @@ def tela_contato_mivcast():
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.subheader("Canal oficial")
-        st.write("WhatsApp")
-        st.caption("Por enquanto, todo suporte e solicitações serão atendidos via WhatsApp.")
+        st.subheader("E-mail")
+        st.write(f"📧 **{SUPORTE_EMAIL}**")
+        st.caption("Atendimento, suporte, sugestões e solicitações comerciais.")
 
     with col2:
         st.subheader("WhatsApp")
-        st.write("📱 **+55 (17) 99706-1273**")
-        st.caption("Mais rápido para suporte, sugestões e alinhamentos.")
+        st.write(f"📱 **+55 (17) 99706-1273**")
+        st.caption("Mais rápido para suporte e alinhamentos.")
 
     with col3:
         st.subheader("Site / Apresentação")
-        st.write(f"🌐 {SITE_URL}")
+        if SITE_URL:
+            st.write(f"🌐 {www.mivcast.com.br}")
+        else:
+            st.info("www.mivcast.com.br")
 
     st.divider()
 
@@ -3890,10 +3909,15 @@ Aqui no MivMark, você tem módulos que ajudam a estruturar sua presença digita
 
     usuario = st.session_state.get("dados_usuario", {}) or {}
     nome_user = (usuario.get("nome") or "").strip()
+    email_user = (usuario.get("email") or "").strip()
     plano_user = (usuario.get("plano_atual") or "Gratuito").strip()
 
     with st.form("form_suporte_mivcast"):
-        nome = st.text_input("Seu nome", value=nome_user, placeholder="Ex.: Matheus Nascimento")
+        c1, c2 = st.columns(2)
+        with c1:
+            nome = st.text_input("Seu nome", value=nome_user, placeholder="Ex.: Matheus Nascimento")
+        with c2:
+            email = st.text_input("Seu e-mail", value=email_user, placeholder="Ex.: seuemail@gmail.com")
 
         tipo = st.selectbox(
             "Tipo de contato",
@@ -3920,11 +3944,11 @@ Aqui no MivMark, você tem módulos que ajudam a estruturar sua presença digita
             placeholder="Cole aqui links/imagens (Print no Drive, Imgur, etc.)",
         )
 
-        enviado = st.form_submit_button("Enviar no WhatsApp")
+        enviado = st.form_submit_button("Gerar mensagem e opções de envio")
 
     if enviado:
-        if not nome or not assunto or not mensagem:
-            st.error("Preencha pelo menos: Nome, Assunto e Mensagem.")
+        if not nome or not email or not assunto or not mensagem:
+            st.error("Preencha pelo menos: Nome, E-mail, Assunto e Mensagem.")
             return
 
         agora = datetime.now().strftime("%d/%m/%Y %H:%M")
@@ -3932,6 +3956,7 @@ Aqui no MivMark, você tem módulos que ajudam a estruturar sua presença digita
             f"CHAMADO MIVCAST\n"
             f"Data/Hora: {agora}\n"
             f"Nome: {nome}\n"
+            f"E-mail: {email}\n"
             f"Plano: {plano_user}\n"
             f"Tipo: {tipo}\n"
             f"Prioridade: {prioridade}\n"
@@ -3940,14 +3965,108 @@ Aqui no MivMark, você tem módulos que ajudam a estruturar sua presença digita
             f"Links/Anexos:\n{anexos or '-'}\n"
         )
 
+        st.success("Mensagem pronta. Agora escolha o canal para enviar.")
+        st.code(contexto_txt, language="text")
+
+        # =========================
+        # 1) WhatsApp (abrir)
+        # =========================
         texto_wa = urllib.parse.quote(contexto_txt)
         wa_url = f"https://wa.me/{WHATSAPP_NUMERO}?text={texto_wa}"
-
-        st.success("Pronto. Clique abaixo para abrir o WhatsApp com a mensagem preenchida.")
         st.link_button("Abrir WhatsApp com a mensagem pronta", wa_url)
 
-        with st.expander("Ver / copiar a mensagem gerada", expanded=False):
-            st.code(contexto_txt, language="text")
+        # =========================
+        # 2) E-mail automático (SMTP)
+        # =========================
+        st.subheader("Enviar por e-mail")
+
+        if EMAIL_UTILS_OK:
+            destino = (EMAIL_ADMIN or SUPORTE_EMAIL).strip()
+            st.caption(f"Destino do chamado: {destino}")
+
+            assunto_email = f"[MivMark] {tipo} — {assunto}"
+
+            corpo_html = f"""
+            <h3>Chamado MivCast</h3>
+            <pre style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">
+{contexto_txt}
+            </pre>
+            """
+
+            colA, colB = st.columns(2)
+
+            with colA:
+                if st.button("Enviar e-mail agora (automático)", key="btn_enviar_email_agora"):
+                    with st.spinner("Enviando e-mail para o suporte e confirmação para você..."):
+
+                        # 1) Envia para o admin/suporte
+                        ok_admin = enviar_email(
+                            destinatario=destino,
+                            assunto=assunto_email,
+                            corpo_html=corpo_html,
+                            corpo_texto=contexto_txt,
+                            cc_admin=False
+                        )
+
+                        # 2) Confirmação para o usuário (se e-mail válido foi preenchido)
+                        ok_user = True
+                        user_email = (email or "").strip()
+
+                        if user_email:
+                            assunto_conf = "Recebemos seu chamado — MivCast"
+                            corpo_txt_conf = (
+                                f"Olá, {nome}.\n\n"
+                                "Recebemos seu chamado e vamos responder em breve.\n"
+                                "Abaixo está uma cópia do que foi enviado:\n\n"
+                                f"{contexto_txt}\n"
+                                "Atenciosamente,\n"
+                                "Equipe MivCast\n"
+                            )
+
+                            corpo_html_conf = f"""
+                            <p>Olá, <b>{nome}</b>.</p>
+                            <p>Recebemos seu chamado e vamos responder em breve.</p>
+                            <p>Abaixo está uma cópia do que foi enviado:</p>
+                            <pre style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">
+                {contexto_txt}
+                            </pre>
+                            <p>Atenciosamente,<br/>Equipe MivCast</p>
+                            """
+
+                            ok_user = enviar_email(
+                                destinatario=user_email,
+                                assunto=assunto_conf,
+                                corpo_html=corpo_html_conf,
+                                corpo_texto=corpo_txt_conf,
+                                cc_admin=False
+                            )
+
+                    if ok_admin and ok_user:
+                        st.success("Chamado enviado para o suporte e confirmação enviada para seu e-mail.")
+                    elif ok_admin and not ok_user:
+                        st.warning("Chamado enviado para o suporte, mas não foi possível enviar a confirmação para o seu e-mail.")
+                    else:
+                        st.error("Falha ao enviar o e-mail para o suporte. Verifique as variáveis EMAIL_USER/EMAIL_PASSWORD no ambiente.")
+
+
+            with colB:
+                # Alternativa: mailto (abre cliente de e-mail do usuário)
+                subject = urllib.parse.quote(assunto_email)
+                body = urllib.parse.quote(contexto_txt)
+                mailto = f"mailto:{destino}?subject={subject}&body={body}"
+                st.link_button("Abrir e-mail (mailto) com a mensagem pronta", mailto)
+
+        else:
+            st.warning(
+                "Não foi possível importar o email_utils do backend. "
+                "O envio automático por SMTP ficará indisponível neste ambiente."
+            )
+            st.caption(f"Detalhe técnico: {EMAIL_UTILS_ERRO}")
+            # Ainda oferece mailto
+            subject = urllib.parse.quote(f"[MivMark] {tipo} — {assunto}")
+            body = urllib.parse.quote(contexto_txt)
+            mailto = f"mailto:{SUPORTE_EMAIL}?subject={subject}&body={body}"
+            st.link_button("Abrir e-mail (mailto) com a mensagem pronta", mailto)
 
     st.divider()
 
@@ -3955,16 +4074,23 @@ Aqui no MivMark, você tem módulos que ajudam a estruturar sua presença digita
     # Atalhos rápidos
     # =========================
     st.subheader("Atalhos rápidos")
-    cols = st.columns(2)
+    cols = st.columns(3)
 
     with cols[0]:
-        st.write("• Suporte por WhatsApp (oficial)")
-        st.caption("+55 (17) 99706-1273")
+        st.write("• Suporte por e-mail")
+        st.caption(SUPORTE_EMAIL)
 
     with cols[1]:
-        st.write("• Site")
-        st.caption(SITE_URL)
+        st.write("• Suporte por WhatsApp")
+        st.caption("+55 (17) 99706-1273")
 
+    with cols[2]:
+        if SITE_URL:
+            st.write("• Conhecer a MivCast")
+            st.caption(SITE_URL)
+        else:
+            st.write("• Apresentação")
+            st.caption("www.mivcast.com.br")
 
 
 
