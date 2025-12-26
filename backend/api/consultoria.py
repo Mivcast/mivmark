@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, sessionmaker
-from typing import List, Dict
+from typing import List, Dict, Any
 from backend.database import engine
 from backend.models import Consultoria, Usuario
 from backend.api.auth import get_current_user
@@ -10,19 +10,21 @@ from datetime import datetime
 router = APIRouter()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# -------------------------
 # Schemas
-class TarefaChecklist(BaseModel):
-    checklist: List[bool]
-    concluido: bool
-
+# -------------------------
 class ProgressoSchema(BaseModel):
-    progresso: Dict[str, TarefaChecklist]  # 👈 Corrigido: chaves como string para compatibilidade com JSONField
+    # Agora aceita JSON completo por tópico: checklist, concluido, comentario, favorito, prioridade, atualizado_em...
+    progresso: Dict[str, Dict[str, Any]]
 
 class ConsultoriaSchema(BaseModel):
     etapa_atual: str
     etapas_concluidas: List[str] = []
 
+
+# -------------------------
 # Iniciar consultoria
+# -------------------------
 @router.post("/consultoria/iniciar")
 def iniciar_consultoria(usuario: Usuario = Depends(get_current_user)):
     db: Session = SessionLocal()
@@ -45,7 +47,10 @@ def iniciar_consultoria(usuario: Usuario = Depends(get_current_user)):
     db.close()
     return {"mensagem": "Consultoria iniciada com sucesso!"}
 
+
+# -------------------------
 # Atualizar progresso completo
+# -------------------------
 @router.put("/consultoria/progresso")
 def atualizar_progresso(dados: ProgressoSchema, usuario: Usuario = Depends(get_current_user)):
     db: Session = SessionLocal()
@@ -53,18 +58,25 @@ def atualizar_progresso(dados: ProgressoSchema, usuario: Usuario = Depends(get_c
         consultoria = db.query(Consultoria).filter(Consultoria.usuario_id == usuario.id).first()
         if not consultoria:
             raise HTTPException(status_code=404, detail="Consultoria não encontrada.")
-        
-        # Salvar como dicionário puro
-        consultoria.progresso = {str(k): v.dict() for k, v in dados.progresso.items()}
+
+        # Salva o JSON completo (tudo que o frontend envia)
+        consultoria.progresso = {str(k): v for k, v in dados.progresso.items()}
         db.commit()
         return {"mensagem": "Progresso atualizado com sucesso."}
+
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()
 
+
+# -------------------------
 # Consultar progresso completo
+# -------------------------
 @router.get("/consultoria/progresso")
 def consultar_progresso(usuario: Usuario = Depends(get_current_user)):
     db: Session = SessionLocal()
@@ -76,7 +88,10 @@ def consultar_progresso(usuario: Usuario = Depends(get_current_user)):
     finally:
         db.close()
 
+
+# -------------------------
 # Consultar status geral da consultoria
+# -------------------------
 @router.get("/consultoria")
 def consultar_consultoria(usuario: Usuario = Depends(get_current_user)):
     db: Session = SessionLocal()
@@ -92,7 +107,10 @@ def consultar_consultoria(usuario: Usuario = Depends(get_current_user)):
     finally:
         db.close()
 
+
+# -------------------------
 # Atualizar etapa atual
+# -------------------------
 @router.put("/consultoria/etapa")
 def atualizar_etapa(dados: ConsultoriaSchema, usuario: Usuario = Depends(get_current_user)):
     db: Session = SessionLocal()
@@ -100,7 +118,7 @@ def atualizar_etapa(dados: ConsultoriaSchema, usuario: Usuario = Depends(get_cur
         consultoria = db.query(Consultoria).filter(Consultoria.usuario_id == usuario.id).first()
         if not consultoria:
             raise HTTPException(status_code=404, detail="Consultoria não encontrada.")
-        
+
         consultoria.etapa_atual = dados.etapa_atual
         consultoria.etapas_concluidas = dados.etapas_concluidas
         db.commit()

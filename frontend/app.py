@@ -1358,6 +1358,34 @@ def tela_consultoria():
 
     for t in topicos:
         tid = str(t["id"])
+        # Se não existe progresso para o tópico, cria zerado
+        if tid not in progresso:
+            progresso[tid] = {
+                "checklist": [False] * len(t["checklist"]),
+                "concluido": False,
+                "comentario": "",
+                "favorito": False,
+                "prioridade": "Média",
+                "atualizado_em": datetime.datetime.now().isoformat()
+            }
+        else:
+            progresso[tid].setdefault("comentario", "")
+            progresso[tid].setdefault("favorito", False)
+            progresso[tid].setdefault("prioridade", "Média")
+            progresso[tid].setdefault("atualizado_em", datetime.datetime.now().isoformat())
+
+            # ✅ NORMALIZA O TAMANHO DO CHECKLIST (evita IndexError)
+            chk = progresso[tid].get("checklist", [])
+            if not isinstance(chk, list):
+                chk = []
+
+            alvo = len(t["checklist"])
+            if len(chk) < alvo:
+                chk.extend([False] * (alvo - len(chk)))   # completa novos itens
+            elif len(chk) > alvo:
+                chk = chk[:alvo]  # corta se o JSON tiver menos itens agora
+
+            progresso[tid]["checklist"] = chk
         if tid not in progresso:
             progresso[tid] = {
                 "checklist": [False] * len(t["checklist"]),
@@ -1385,9 +1413,32 @@ def tela_consultoria():
     modo = st.radio("🔎 Como deseja estudar?", ["Ordem Estratégica", "Por Setor"], horizontal=True)
     filtro = st.radio("🎯 Filtro:", ["Todos", "Pendentes", "Favoritos", "Alta Prioridade"], horizontal=True)
 
+
     def exibir_topico(t):
         tid = str(t["id"])
         dados = progresso[tid]
+
+        # ✅ NORMALIZA checklist salvo para o tamanho atual do tópico
+        chk = dados.get("checklist", [])
+        if not isinstance(chk, list):
+            chk = []
+
+        alvo = len(t.get("checklist", []))
+        if len(chk) < alvo:
+            chk.extend([False] * (alvo - len(chk)))
+        elif len(chk) > alvo:
+            chk = chk[:alvo]
+
+        dados["checklist"] = chk
+
+        # ✅ Garante defaults (caso venha incompleto da API)
+        dados.setdefault("comentario", "")
+        dados.setdefault("favorito", False)
+        dados.setdefault("prioridade", "Média")
+        dados.setdefault("concluido", False)
+        dados.setdefault("atualizado_em", datetime.datetime.now().isoformat())
+
+        # ... filtros
         if filtro == "Pendentes" and dados["concluido"]:
             return
         if filtro == "Favoritos" and not dados["favorito"]:
@@ -1398,6 +1449,7 @@ def tela_consultoria():
         st.markdown(f"### {t['id']}. {t['titulo']}")
         st.write(t["descricao"])
 
+        # -------- CHECKLIST --------
         for i, item in enumerate(t["checklist"]):
             key = f"chk_{tid}_{i}"
             novo_valor = st.checkbox(item, value=dados["checklist"][i], key=key)
@@ -1406,14 +1458,57 @@ def tela_consultoria():
                 dados["atualizado_em"] = datetime.datetime.now().isoformat()
                 st.session_state.consultoria_alterado = True
 
-        dados["concluido"] = all(dados["checklist"])
+        # ✅ calcula concluído fora do loop
+        novo_concluido = all(dados["checklist"])
+        if novo_concluido != dados.get("concluido", False):
+            dados["concluido"] = novo_concluido
+            dados["atualizado_em"] = datetime.datetime.now().isoformat()
+            st.session_state.consultoria_alterado = True
 
-        st.selectbox("📌 Prioridade", ["Alta", "Média", "Baixa"], key=f"prioridade_{tid}", index=["Alta", "Média", "Baixa"].index(dados["prioridade"]), on_change=lambda: atualizar_prioridade(dados, tid))
-        dados["favorito"] = st.checkbox("⭐ Marcar como favorito", value=dados["favorito"], key=f"fav_{tid}")
-        dados["comentario"] = st.text_area("📝 Comentário", value=dados["comentario"], key=f"obs_{tid}", height=80)
-        st.caption(f"📆 Última atualização: {datetime.datetime.fromisoformat(dados['atualizado_em']).strftime('%d/%m/%Y %H:%M')}")
+        # -------- PRIORIDADE --------
+        opcoes_prio = ["Alta", "Média", "Baixa"]
+        prio_atual = dados.get("prioridade", "Média")
+        if prio_atual not in opcoes_prio:
+            prio_atual = "Média"
+
+        prio_nova = st.selectbox(
+            "📌 Prioridade",
+            opcoes_prio,
+            index=opcoes_prio.index(prio_atual),
+            key=f"prioridade_{tid}",
+        )
+        if prio_nova != dados.get("prioridade"):
+            dados["prioridade"] = prio_nova
+            dados["atualizado_em"] = datetime.datetime.now().isoformat()
+            st.session_state.consultoria_alterado = True
+
+        # -------- FAVORITO --------
+        fav_novo = st.checkbox("⭐ Marcar como favorito", value=bool(dados.get("favorito", False)), key=f"fav_{tid}")
+        if fav_novo != bool(dados.get("favorito", False)):
+            dados["favorito"] = fav_novo
+            dados["atualizado_em"] = datetime.datetime.now().isoformat()
+            st.session_state.consultoria_alterado = True
+
+        # -------- COMENTÁRIO --------
+        comentario_atual = dados.get("comentario", "") or ""
+        coment_novo = st.text_area("📝 Comentário", value=comentario_atual, key=f"obs_{tid}", height=80)
+        if coment_novo != comentario_atual:
+            dados["comentario"] = coment_novo
+            dados["atualizado_em"] = datetime.datetime.now().isoformat()
+            st.session_state.consultoria_alterado = True
+
+        # -------- RODAPÉ --------
+        try:
+            dt = datetime.datetime.fromisoformat(dados.get("atualizado_em") or "")
+            dt_txt = dt.strftime("%d/%m/%Y %H:%M")
+        except Exception:
+            dt_txt = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+
+        st.caption(f"📆 Última atualização: {dt_txt}")
         st.success("✅ Concluído" if dados["concluido"] else "🔲 Em andamento")
         st.divider()
+
+
 
     def atualizar_prioridade(dados, tid):
         dados["prioridade"] = st.session_state[f"prioridade_{tid}"]

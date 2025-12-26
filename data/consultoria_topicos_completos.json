@@ -1,884 +1,1753 @@
 [
   {
-    "id": 1,
-    "titulo": "Título do Tópico 1",
-    "descricao": "Descrição detalhada do tópico 1 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 1",
-      "Checklist item 2 do tópico 1",
-      "Checklist item 3 do tópico 1"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
+  "id": 1,
+  "titulo": "Análise das Dores da Sua Empresa",
+  "descricao": "Antes de resolver qualquer problema, é preciso enxergá-lo. Muitas empresas não crescem porque tratam sintomas e não as causas. Entender as dores do negócio é o primeiro passo para encontrar soluções reais, reduzir desperdícios e fortalecer o controle estratégico do dono. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Liste todos os pontos que geram incômodo, estresse ou retrabalho.",
+    "Observe o que mais rouba tempo e energia no dia a dia.",
+    "Analise gargalos: onde a empresa trava (vendas, equipe, entrega, comunicação, financeiro).",
+    "Reflita sobre erros que se repetem constantemente.",
+    "Peça feedback honesto de clientes, funcionários e parceiros.",
+    "Identifique o que depende exclusivamente de você e impede a delegação.",
+    "Avalie se as ferramentas e processos atuais ainda servem à fase do negócio.",
+    "Classifique as dores por gravidade: críticas (travando), importantes (afetam resultado), leves (melhoráveis).",
+    "Priorize as dores que mais impactam o caixa, a imagem ou o tempo.",
+    "Busque a causa, não o sintoma (ex.: queda nas vendas pode vir de precificação errada, equipe desmotivada ou marketing confuso).",
+    "Defina ações práticas e mensuráveis para cada dor.",
+    "Crie metas de melhoria com prazos realistas.",
+    "Acompanhe mensalmente o progresso e ajuste o plano conforme resultados."
+  ],
+  "setores_relacionados": [
+    "Dono",
+    "Gestão",
+    "Marketing",
+    "Operacional"
     ]
   },
-  {
-    "id": 2,
-    "titulo": "Título do Tópico 2",
-    "descricao": "Descrição detalhada do tópico 2 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 2",
-      "Checklist item 2 do tópico 2",
-      "Checklist item 3 do tópico 2"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 3,
-    "titulo": "Título do Tópico 3",
-    "descricao": "Descrição detalhada do tópico 3 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 3",
-      "Checklist item 2 do tópico 3",
-      "Checklist item 3 do tópico 3"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 4,
-    "titulo": "Título do Tópico 4",
-    "descricao": "Descrição detalhada do tópico 4 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 4",
-      "Checklist item 2 do tópico 4",
-      "Checklist item 3 do tópico 4"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 5,
-    "titulo": "Título do Tópico 5",
-    "descricao": "Descrição detalhada do tópico 5 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 5",
-      "Checklist item 2 do tópico 5",
-      "Checklist item 3 do tópico 5"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 6,
-    "titulo": "Título do Tópico 6",
-    "descricao": "Descrição detalhada do tópico 6 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 6",
-      "Checklist item 2 do tópico 6",
-      "Checklist item 3 do tópico 6"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 7,
-    "titulo": "Título do Tópico 7",
-    "descricao": "Descrição detalhada do tópico 7 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 7",
-      "Checklist item 2 do tópico 7",
-      "Checklist item 3 do tópico 7"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 8,
-    "titulo": "Título do Tópico 8",
-    "descricao": "Descrição detalhada do tópico 8 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 8",
-      "Checklist item 2 do tópico 8",
-      "Checklist item 3 do tópico 8"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 9,
-    "titulo": "Título do Tópico 9",
-    "descricao": "Descrição detalhada do tópico 9 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 9",
-      "Checklist item 2 do tópico 9",
-      "Checklist item 3 do tópico 9"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 10,
-    "titulo": "Título do Tópico 10",
-    "descricao": "Descrição detalhada do tópico 10 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 10",
-      "Checklist item 2 do tópico 10",
-      "Checklist item 3 do tópico 10"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 11,
-    "titulo": "Título do Tópico 11",
-    "descricao": "Descrição detalhada do tópico 11 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 11",
-      "Checklist item 2 do tópico 11",
-      "Checklist item 3 do tópico 11"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 12,
-    "titulo": "Título do Tópico 12",
-    "descricao": "Descrição detalhada do tópico 12 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 12",
-      "Checklist item 2 do tópico 12",
-      "Checklist item 3 do tópico 12"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 13,
-    "titulo": "Título do Tópico 13",
-    "descricao": "Descrição detalhada do tópico 13 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 13",
-      "Checklist item 2 do tópico 13",
-      "Checklist item 3 do tópico 13"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 14,
-    "titulo": "Título do Tópico 14",
-    "descricao": "Descrição detalhada do tópico 14 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 14",
-      "Checklist item 2 do tópico 14",
-      "Checklist item 3 do tópico 14"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 15,
-    "titulo": "Título do Tópico 15",
-    "descricao": "Descrição detalhada do tópico 15 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 15",
-      "Checklist item 2 do tópico 15",
-      "Checklist item 3 do tópico 15"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 16,
-    "titulo": "Título do Tópico 16",
-    "descricao": "Descrição detalhada do tópico 16 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 16",
-      "Checklist item 2 do tópico 16",
-      "Checklist item 3 do tópico 16"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 17,
-    "titulo": "Título do Tópico 17",
-    "descricao": "Descrição detalhada do tópico 17 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 17",
-      "Checklist item 2 do tópico 17",
-      "Checklist item 3 do tópico 17"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 18,
-    "titulo": "Título do Tópico 18",
-    "descricao": "Descrição detalhada do tópico 18 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 18",
-      "Checklist item 2 do tópico 18",
-      "Checklist item 3 do tópico 18"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 19,
-    "titulo": "Título do Tópico 19",
-    "descricao": "Descrição detalhada do tópico 19 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 19",
-      "Checklist item 2 do tópico 19",
-      "Checklist item 3 do tópico 19"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 20,
-    "titulo": "Título do Tópico 20",
-    "descricao": "Descrição detalhada do tópico 20 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 20",
-      "Checklist item 2 do tópico 20",
-      "Checklist item 3 do tópico 20"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 21,
-    "titulo": "Título do Tópico 21",
-    "descricao": "Descrição detalhada do tópico 21 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 21",
-      "Checklist item 2 do tópico 21",
-      "Checklist item 3 do tópico 21"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 22,
-    "titulo": "Título do Tópico 22",
-    "descricao": "Descrição detalhada do tópico 22 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 22",
-      "Checklist item 2 do tópico 22",
-      "Checklist item 3 do tópico 22"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 23,
-    "titulo": "Título do Tópico 23",
-    "descricao": "Descrição detalhada do tópico 23 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 23",
-      "Checklist item 2 do tópico 23",
-      "Checklist item 3 do tópico 23"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 24,
-    "titulo": "Título do Tópico 24",
-    "descricao": "Descrição detalhada do tópico 24 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 24",
-      "Checklist item 2 do tópico 24",
-      "Checklist item 3 do tópico 24"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 25,
-    "titulo": "Título do Tópico 25",
-    "descricao": "Descrição detalhada do tópico 25 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 25",
-      "Checklist item 2 do tópico 25",
-      "Checklist item 3 do tópico 25"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 26,
-    "titulo": "Título do Tópico 26",
-    "descricao": "Descrição detalhada do tópico 26 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 26",
-      "Checklist item 2 do tópico 26",
-      "Checklist item 3 do tópico 26"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 27,
-    "titulo": "Título do Tópico 27",
-    "descricao": "Descrição detalhada do tópico 27 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 27",
-      "Checklist item 2 do tópico 27",
-      "Checklist item 3 do tópico 27"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 28,
-    "titulo": "Título do Tópico 28",
-    "descricao": "Descrição detalhada do tópico 28 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 28",
-      "Checklist item 2 do tópico 28",
-      "Checklist item 3 do tópico 28"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 29,
-    "titulo": "Título do Tópico 29",
-    "descricao": "Descrição detalhada do tópico 29 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 29",
-      "Checklist item 2 do tópico 29",
-      "Checklist item 3 do tópico 29"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 30,
-    "titulo": "Título do Tópico 30",
-    "descricao": "Descrição detalhada do tópico 30 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 30",
-      "Checklist item 2 do tópico 30",
-      "Checklist item 3 do tópico 30"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 31,
-    "titulo": "Título do Tópico 31",
-    "descricao": "Descrição detalhada do tópico 31 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 31",
-      "Checklist item 2 do tópico 31",
-      "Checklist item 3 do tópico 31"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 32,
-    "titulo": "Título do Tópico 32",
-    "descricao": "Descrição detalhada do tópico 32 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 32",
-      "Checklist item 2 do tópico 32",
-      "Checklist item 3 do tópico 32"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 33,
-    "titulo": "Título do Tópico 33",
-    "descricao": "Descrição detalhada do tópico 33 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 33",
-      "Checklist item 2 do tópico 33",
-      "Checklist item 3 do tópico 33"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 34,
-    "titulo": "Título do Tópico 34",
-    "descricao": "Descrição detalhada do tópico 34 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 34",
-      "Checklist item 2 do tópico 34",
-      "Checklist item 3 do tópico 34"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 35,
-    "titulo": "Título do Tópico 35",
-    "descricao": "Descrição detalhada do tópico 35 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 35",
-      "Checklist item 2 do tópico 35",
-      "Checklist item 3 do tópico 35"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 36,
-    "titulo": "Título do Tópico 36",
-    "descricao": "Descrição detalhada do tópico 36 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 36",
-      "Checklist item 2 do tópico 36",
-      "Checklist item 3 do tópico 36"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 37,
-    "titulo": "Título do Tópico 37",
-    "descricao": "Descrição detalhada do tópico 37 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 37",
-      "Checklist item 2 do tópico 37",
-      "Checklist item 3 do tópico 37"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 38,
-    "titulo": "Título do Tópico 38",
-    "descricao": "Descrição detalhada do tópico 38 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 38",
-      "Checklist item 2 do tópico 38",
-      "Checklist item 3 do tópico 38"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 39,
-    "titulo": "Título do Tópico 39",
-    "descricao": "Descrição detalhada do tópico 39 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 39",
-      "Checklist item 2 do tópico 39",
-      "Checklist item 3 do tópico 39"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 40,
-    "titulo": "Título do Tópico 40",
-    "descricao": "Descrição detalhada do tópico 40 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 40",
-      "Checklist item 2 do tópico 40",
-      "Checklist item 3 do tópico 40"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 41,
-    "titulo": "Título do Tópico 41",
-    "descricao": "Descrição detalhada do tópico 41 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 41",
-      "Checklist item 2 do tópico 41",
-      "Checklist item 3 do tópico 41"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 42,
-    "titulo": "Título do Tópico 42",
-    "descricao": "Descrição detalhada do tópico 42 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 42",
-      "Checklist item 2 do tópico 42",
-      "Checklist item 3 do tópico 42"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 43,
-    "titulo": "Título do Tópico 43",
-    "descricao": "Descrição detalhada do tópico 43 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 43",
-      "Checklist item 2 do tópico 43",
-      "Checklist item 3 do tópico 43"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 44,
-    "titulo": "Título do Tópico 44",
-    "descricao": "Descrição detalhada do tópico 44 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 44",
-      "Checklist item 2 do tópico 44",
-      "Checklist item 3 do tópico 44"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 45,
-    "titulo": "Título do Tópico 45",
-    "descricao": "Descrição detalhada do tópico 45 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 45",
-      "Checklist item 2 do tópico 45",
-      "Checklist item 3 do tópico 45"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 46,
-    "titulo": "Título do Tópico 46",
-    "descricao": "Descrição detalhada do tópico 46 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 46",
-      "Checklist item 2 do tópico 46",
-      "Checklist item 3 do tópico 46"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 47,
-    "titulo": "Título do Tópico 47",
-    "descricao": "Descrição detalhada do tópico 47 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 47",
-      "Checklist item 2 do tópico 47",
-      "Checklist item 3 do tópico 47"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 48,
-    "titulo": "Título do Tópico 48",
-    "descricao": "Descrição detalhada do tópico 48 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 48",
-      "Checklist item 2 do tópico 48",
-      "Checklist item 3 do tópico 48"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 49,
-    "titulo": "Título do Tópico 49",
-    "descricao": "Descrição detalhada do tópico 49 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 49",
-      "Checklist item 2 do tópico 49",
-      "Checklist item 3 do tópico 49"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 50,
-    "titulo": "Título do Tópico 50",
-    "descricao": "Descrição detalhada do tópico 50 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 50",
-      "Checklist item 2 do tópico 50",
-      "Checklist item 3 do tópico 50"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 51,
-    "titulo": "Título do Tópico 51",
-    "descricao": "Descrição detalhada do tópico 51 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 51",
-      "Checklist item 2 do tópico 51",
-      "Checklist item 3 do tópico 51"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 52,
-    "titulo": "Título do Tópico 52",
-    "descricao": "Descrição detalhada do tópico 52 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 52",
-      "Checklist item 2 do tópico 52",
-      "Checklist item 3 do tópico 52"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 53,
-    "titulo": "Título do Tópico 53",
-    "descricao": "Descrição detalhada do tópico 53 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 53",
-      "Checklist item 2 do tópico 53",
-      "Checklist item 3 do tópico 53"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 54,
-    "titulo": "Título do Tópico 54",
-    "descricao": "Descrição detalhada do tópico 54 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 54",
-      "Checklist item 2 do tópico 54",
-      "Checklist item 3 do tópico 54"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 55,
-    "titulo": "Título do Tópico 55",
-    "descricao": "Descrição detalhada do tópico 55 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 55",
-      "Checklist item 2 do tópico 55",
-      "Checklist item 3 do tópico 55"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 56,
-    "titulo": "Título do Tópico 56",
-    "descricao": "Descrição detalhada do tópico 56 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 56",
-      "Checklist item 2 do tópico 56",
-      "Checklist item 3 do tópico 56"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 57,
-    "titulo": "Título do Tópico 57",
-    "descricao": "Descrição detalhada do tópico 57 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 57",
-      "Checklist item 2 do tópico 57",
-      "Checklist item 3 do tópico 57"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 58,
-    "titulo": "Título do Tópico 58",
-    "descricao": "Descrição detalhada do tópico 58 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 58",
-      "Checklist item 2 do tópico 58",
-      "Checklist item 3 do tópico 58"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 59,
-    "titulo": "Título do Tópico 59",
-    "descricao": "Descrição detalhada do tópico 59 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 59",
-      "Checklist item 2 do tópico 59",
-      "Checklist item 3 do tópico 59"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 60,
-    "titulo": "Título do Tópico 60",
-    "descricao": "Descrição detalhada do tópico 60 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 60",
-      "Checklist item 2 do tópico 60",
-      "Checklist item 3 do tópico 60"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 61,
-    "titulo": "Título do Tópico 61",
-    "descricao": "Descrição detalhada do tópico 61 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 61",
-      "Checklist item 2 do tópico 61",
-      "Checklist item 3 do tópico 61"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  },
-  {
-    "id": 62,
-    "titulo": "Título do Tópico 62",
-    "descricao": "Descrição detalhada do tópico 62 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 62",
-      "Checklist item 2 do tópico 62",
-      "Checklist item 3 do tópico 62"
-    ],
-    "setores_relacionados": [
-      "Dono",
-      "Gestão"
-    ]
-  },
-  {
-    "id": 63,
-    "titulo": "Título do Tópico 63",
-    "descricao": "Descrição detalhada do tópico 63 com orientações estratégicas.",
-    "checklist": [
-      "Checklist item 1 do tópico 63",
-      "Checklist item 2 do tópico 63",
-      "Checklist item 3 do tópico 63"
-    ],
-    "setores_relacionados": [
-      "Comercial",
-      "Tecnológico"
-    ]
-  }
+ {
+  "id": 2,
+  "titulo": "Inteligências Artificiais e Ferramentas Digitais",
+  "descricao": "A inteligência artificial deixou de ser futuro e virou presente. Hoje, quem sabe usar IA e ferramentas digitais trabalha mais rápido, economiza dinheiro e escala resultados que antes só grandes empresas conseguiam. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Mapeie as áreas da empresa que consomem mais tempo (ex.: atendimento, marketing, financeiro).",
+    "Escolha as ferramentas certas para cada área (ex.: ChatGPT para textos, Canva para design, Notion/Trello para gestão).",
+    "Automatize tarefas simples primeiro (agendamentos, respostas automáticas, planilhas).",
+    "Integre sistemas para eliminar retrabalho (ex.: CRM + WhatsApp).",
+    "Crie indicadores para medir economia de tempo e custo.",
+    "Treine a equipe no uso básico das ferramentas.",
+    "Revise periodicamente se as ferramentas estão entregando os resultados esperados."
+  ],
+  "setores_relacionados": [
+    "Gestão",
+    "Marketing",
+    "Tecnologia",
+    "Operacional"
+  ]
+},
+{
+  "id": 3,
+  "titulo": "Gestão de Equipes e Delegar com Eficiência",
+  "descricao": "Nenhum negócio cresce de verdade sozinho. Formar uma equipe — própria ou terceirizada — é o que permite escalar, manter a qualidade e liberar o dono para pensar no crescimento em vez de apagar incêndios. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Liste as funções que mais consomem seu tempo e podem ser delegadas.",
+    "Escolha profissionais com perfil e valores compatíveis com o propósito da empresa.",
+    "Defina papéis, responsabilidades e indicadores claros (quem faz o quê, como e quando).",
+    "Crie um manual simples de tom de voz, padrões de atendimento e forma de entrega.",
+    "Use ferramentas de gestão (Trello, Notion, ClickUp, WhatsApp Business) para organizar tarefas e prazos.",
+    "Faça reuniões rápidas e objetivas semanais para revisar resultados.",
+    "Reconheça bons desempenhos e corrija falhas com clareza e empatia.",
+    "Evite centralizar tudo em você — o papel do dono é liderar e ensinar o jeito certo, não fazer tudo sozinho."
+  ],
+  "setores_relacionados": [
+    "Dono",
+    "Gestão",
+    "Operacional",
+    "Recursos Humanos"
+  ]
+},
+{
+  "id": 4,
+  "titulo": "Desenvolvimento Pessoal do Empresário",
+  "descricao": "Uma empresa nunca cresce além da capacidade do seu dono. Quando o empresário investe em autoconhecimento, liderança e inteligência emocional, ele toma melhores decisões, inspira sua equipe e constrói uma empresa mais sólida e preparada para o futuro. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Reserve tempo semanal para reflexão, leitura e aprendizado.",
+    "Identifique pontos fortes e fracos como líder e gestor.",
+    "Busque feedback sincero da equipe, clientes e mentores.",
+    "Estude autodesenvolvimento, comportamento humano e liderança.",
+    "Desenvolvimento Emocional: pratique controle de emoções, empatia e resiliência.",
+    "Liderança: aprimore motivação de equipe, comunicação assertiva e inspiradora.",
+    "Autoconhecimento: conheça hábitos, mentalidade, pontos fortes e limitações.",
+    "Gestão do Tempo e Produtividade: pratique foco, disciplina e priorização.",
+    "Comportamento Humano: aprenda sobre gatilhos de decisão, expressões e perfis comportamentais.",
+    "Relacionamentos e Networking: construa conexões de valor.",
+    "Reserve 1 hora por semana para estudo e reflexão pessoal.",
+    "Realize uma autoavaliação mensal de forças, fraquezas e oportunidades.",
+    "Participe de mentorias, grupos de empresários ou treinamentos.",
+    "Leia pelo menos 1 livro por mês sobre liderança, psicologia ou negócios.",
+    "Registre aprendizados e avanços em um diário de desenvolvimento."
+  ],
+  "setores_relacionados": [
+    "Dono",
+    "Gestão",
+    "Liderança",
+    "Recursos Humanos"
+  ]
+},
+ {
+  "id": 5,
+  "titulo": "Analisar Nicho e Oportunidades de Mercado",
+  "descricao": "Quem tenta vender para todo mundo, acaba não conectando com ninguém. Conhecer o nicho em que você atua — e as oportunidades que ele oferece — é o primeiro passo para posicionar sua marca de forma estratégica e aumentar suas vendas, seja você uma empresa física, digital, prestador de serviços ou infoprodutor. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Identifique o público ideal: idade, renda, estilo de vida, profissão e valores.",
+    "Descubra dores, desejos e resultados que esse público busca resolver ou alcançar.",
+    "Analise concorrentes diretos e indiretos (locais e digitais).",
+    "Pesquise tendências e mudanças de comportamento no setor.",
+    "Avalie se o nicho está crescendo, saturado ou se há espaço para inovação.",
+    "Crie um mapa de oportunidades: o que as pessoas buscam que ainda não encontram?",
+    "Observe os diferenciais e lacunas que os concorrentes não exploram.",
+    "Analise quais segmentos do seu público têm maior ticket médio e fidelização.",
+    "Teste pequenas ofertas e conteúdos para validar o interesse do público.",
+    "Ajuste sua comunicação, produto e posicionamento conforme os aprendizados do mercado."
+  ],
+  "setores_relacionados": [
+    "Dono",
+    "Gestão",
+    "Marketing",
+    "Comercial"
+  ]
+},
+
+ {
+  "id": 6,
+  "titulo": "Mapear Concorrentes Diretos e Indiretos",
+  "descricao": "Você não precisa copiar seus concorrentes, mas precisa conhecer cada passo deles. Entender quem disputa a atenção do seu cliente mostra onde sua empresa deve se diferenciar e onde pode ganhar espaço. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Liste empresas que oferecem o mesmo produto ou serviço que o seu.",
+    "Identifique preços, promoções, condições de pagamento e diferenciais.",
+    "Analise a comunicação visual e verbal (site, redes sociais, anúncios, vídeos).",
+    "Observe a qualidade do atendimento e da experiência do cliente.",
+    "Registre pontos fortes que atraem clientes.",
+    "Aponte pontos fracos para você evitar reproduzir.",
+    "Identifique empresas que resolvem o mesmo problema de outra forma (ex.: Netflix x cinema, delivery x restaurante).",
+    "Use ferramentas como Google Trends, Facebook Ads Library, SimilarWeb e redes sociais para analisá-los.",
+    "Observe comportamentos de consumo e tendências de substituição.",
+    "Avalie o impacto desses concorrentes na sua venda.",
+    "Mapeie se há migração de clientes para esses novos canais ou formatos.",
+    "Monte um relatório visual com os principais concorrentes, destacando oportunidades de diferenciação."
+  ],
+  "setores_relacionados": [
+    "Dono",
+    "Gestão",
+    "Marketing",
+    "Comercial"
+  ]
+},
+
+{
+  "id": 7,
+  "titulo": "Diagnosticar e Validar Produtos e Serviços",
+  "descricao": "Antes de lançar novidades, é preciso entender se o que você já vende está realmente entregando valor — e se o novo tem espaço real no mercado. Diagnosticar e validar produtos evita desperdício, corrige falhas e direciona investimentos para o que traz resultados de verdade. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Liste todos os produtos e serviços oferecidos atualmente.",
+    "Identifique o volume de vendas e a margem de lucro de cada um.",
+    "Avalie feedbacks de clientes (satisfação, utilidade, design, qualidade).",
+    "Detecte reclamações recorrentes e produtos com baixo desempenho.",
+    "Analise o ciclo de vida de cada item (crescimento, maturidade ou queda).",
+    "Identifique os produtos estratégicos — mesmo que tenham lucro menor, mas atraem clientes para outros itens.",
+    "Use relatórios financeiros e ferramentas como Google Trends, Amazon Best-Sellers e Mercado Livre Tendências para medir demanda real.",
+    "Identifique o problema, desejo ou necessidade que o novo produto resolve.",
+    "Pesquise se existe público disposto a pagar (enquetes, Google Forms, redes sociais).",
+    "Crie uma versão simples (protótipo, amostra ou MVP).",
+    "Teste com um grupo pequeno de clientes reais e colete feedbacks objetivos.",
+    "Ajuste preço, qualidade, embalagem e comunicação com base nos resultados.",
+    "Crie uma lista de espera, pré-venda ou anúncio teste para medir o interesse real.",
+    "Planeje estoque e investimento apenas após a validação do interesse e da margem esperada."
+  ],
+  "setores_relacionados": [
+    "Dono",
+    "Gestão",
+    "Comercial",
+    "Marketing",
+    "Financeiro"
+  ]
+},
+{
+  "id": 8,
+  "titulo": "Lançamento de Produtos e Serviços",
+  "descricao": "Um bom lançamento pode transformar um produto comum em um grande sucesso. Quando a empresa cria expectativa, envolve o público e gera desejo antes do lançamento, as chances de vendas aumentam exponencialmente. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Defina o produto ou serviço a ser lançado (físico, digital ou híbrido).",
+    "Identifique o problema ou desejo que ele resolve.",
+    "Estude o público-alvo: quem compra, onde está e o que valoriza.",
+    "Defina metas reais de vendas (ex.: 100 unidades no primeiro mês).",
+    "Analise concorrentes e mapeie oportunidades de diferenciação.",
+    "Crie um protótipo, amostra ou versão beta.",
+    "Teste com um grupo pequeno de clientes e colete feedback sobre preço, qualidade e apresentação.",
+    "Ajuste antes do lançamento oficial com base nas respostas.",
+    "Monte uma lista de espera (WhatsApp, Telegram, e-mail, Instagram).",
+    "Crie teasers, bastidores e contagem regressiva nas redes.",
+    "Ofereça benefícios para os primeiros compradores (brinde, desconto, acesso VIP).",
+    "Produza conteúdos que eduquem e reforcem a importância do produto.",
+    "Envolva influenciadores ou parceiros estratégicos quando possível.",
+    "Defina a data e comunique em todos os canais.",
+    "Realize um evento online (live) ou físico de revelação.",
+    "Publique vídeos de demonstração e uso real.",
+    "Ative campanhas pagas (Meta Ads, Google Ads, TikTok Ads).",
+    "Use gatilhos de exclusividade, urgência e prova social.",
+    "Monitore métricas de vendas e engajamento em tempo real.",
+    "Compartilhe feedbacks e depoimentos dos primeiros clientes.",
+    "Continue publicando conteúdos sobre benefícios e aplicações do produto.",
+    "Crie campanhas de upsell (produtos complementares) e novas edições."
+  ],
+  "setores_relacionados": [
+    "Dono",
+    "Gestão",
+    "Marketing",
+    "Comercial"
+  ]
+},
+ {
+  "id": 9,
+  "titulo": "Analisar Preços, Custos e Margem de Lucro",
+  "descricao": "Vender muito não significa lucrar. Sem calcular preços corretamente, a empresa pode trabalhar bastante e ainda sair no prejuízo. Preço bem definido mantém a saúde financeira e garante crescimento sustentável. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Liste todos os custos fixos (aluguel, salários, energia, internet, contabilidade, plataformas).",
+    "Liste custos variáveis por item ou serviço (matéria-prima, embalagem, frete, comissões, taxas de gateway).",
+    "Calcule o custo real unitário, incluindo perdas médias e impostos.",
+    "Defina a margem mínima por categoria (ex.: 30–50%).",
+    "Compare com preços de mercado (concorrentes diretos e indiretos) sem copiar.",
+    "Ajuste o preço considerando competitividade e lucro — defina faixas de entrada, core e premium.",
+    "Calcule margem bruta: (Preço – Custo Direto) / Preço.",
+    "Calcule margem líquida: (Lucro Líquido / Receita).",
+    "Identifique itens 'estrela' (alta margem e alta saída) e itens 'iscas' (atraem clientes).",
+    "Ajuste ou descontinue produtos com margem negativa.",
+    "Crie política de descontos (limites por categoria, cupom e prazo) sem corroer margem.",
+    "Acompanhe impostos (Simples, ME, EPP) e taxas (Mercado Pago, Stripe, PagSeguro) em cada venda.",
+    "Revise preços trimestralmente para manter rentabilidade diante de variações de custo."
+  ],
+  "setores_relacionados": [
+    "Dono",
+    "Gestão",
+    "Financeiro",
+    "Comercial"
+  ]
+},
+{
+  "id": 10,
+  "titulo": "Revisar Logística e Fornecedores",
+  "descricao": "Uma boa venda pode se perder em uma entrega atrasada ou em um produto de baixa qualidade do fornecedor. Rever constantemente a logística e a cadeia de suprimentos garante eficiência, reduz custos e mantém a confiança do cliente. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Mapeie o fluxo completo: compra → armazenamento → transporte → entrega.",
+    "Identifique gargalos (atrasos, extravios, erros de embalagem, custos excessivos).",
+    "Avalie tempo médio de entrega e o índice de satisfação do cliente.",
+    "Defina padrões de qualidade e prazos mínimos para cada tipo de pedido.",
+    "Implemente rastreamento e controle de estoque (planilhas, ERP, Google Sheets ou plataformas especializadas).",
+    "Crie planos alternativos em caso de falhas (backup de transportadoras, estoque de segurança, rotas alternativas).",
+    "Liste todos os fornecedores e respectivos contratos vigentes.",
+    "Avalie qualidade, consistência e atendimento de cada parceiro.",
+    "Compare preços, prazos, formas de pagamento e política de trocas.",
+    "Verifique reputação, histórico e certificações (sempre que possível).",
+    "Negocie melhores prazos e descontos por volume.",
+    "Tenha ao menos dois fornecedores para itens críticos e estratégicos.",
+    "Faça revisão anual de contratos e parcerias com base em desempenho e custo-benefício."
+  ],
+  "setores_relacionados": [
+    "Gestão",
+    "Operacional",
+    "Financeiro",
+    "Compras",
+    "Logística"
+  ]
+},
+{
+  "id": 11,
+  "titulo": "Avaliar Riscos e Crises Comuns do Setor",
+  "descricao": "Toda empresa está sujeita a crises: quedas de vendas, falta de insumos, mudanças na lei ou até crises de imagem. Quem se prepara antes, sofre menos impacto e se recupera mais rápido. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Liste os principais riscos do seu setor (financeiros, operacionais, legais, logísticos, tecnológicos, reputacionais).",
+    "Avalie riscos internos (falhas humanas, processos frágeis, dependência de pessoas-chave).",
+    "Mapeie riscos externos (crises econômicas, novas leis, pandemias, desastres, concorrência).",
+    "Classifique cada risco por impacto (baixo, médio, alto) e probabilidade (raro, possível, provável).",
+    "Priorize os riscos mais críticos e que podem afetar diretamente o faturamento ou a reputação.",
+    "Crie protocolos de ação rápida para cenários críticos (queda de vendas, falta de estoque, falhas tecnológicas, perda de equipe).",
+    "Tenha fornecedores alternativos e backups de sistemas essenciais.",
+    "Mantenha reserva financeira de emergência (mínimo: 3 a 6 meses de custos fixos).",
+    "Monitore indicadores de risco: inadimplência, fluxo de caixa, estoque, atrasos e reclamações.",
+    "Treine a equipe regularmente para reagir com calma e eficiência em crises.",
+    "Faça simulações anuais de crise para testar a prontidão da equipe.",
+    "Defina porta-voz oficial da empresa para falar com clientes, imprensa e redes sociais.",
+    "Tenha um plano de comunicação transparente e rápido para preservar a confiança do público.",
+    "Registre todas as ações e aprendizados após cada crise — e transforme em manual interno.",
+    "Revise protocolos e fluxos para evitar repetição dos mesmos erros.",
+    "Após estabilizar, transforme a crise em comunicação positiva de superação e melhoria."
+  ],
+  "setores_relacionados": [
+    "Gestão",
+    "Dono",
+    "Financeiro",
+    "Comunicação",
+    "Operacional"
+  ]
+},
+{
+  "id": 12,
+  "titulo": "Análise do Consumidor",
+  "descricao": "Quem não entende o consumidor, vende no escuro. Analisar o cliente é descobrir como ele pensa, sente, decide e consome. É a base para criar produtos, serviços e campanhas que realmente conectam. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Defina persona(s) com idade, gênero, localização, renda, profissão e estilo de vida.",
+    "Identifique valores e motivações (por que ele compra de você?).",
+    "Mapeie a jornada de compra: descoberta → consideração → decisão → fidelização.",
+    "Liste dores e desejos (o que ele quer resolver ou conquistar).",
+    "Levante objeções comuns (preço, confiança, tempo, entrega).",
+    "Colete feedbacks de clientes atuais (reviews, WhatsApp, pesquisa de satisfação).",
+    "Descubra onde ele pesquisa (Google, Instagram, TikTok, YouTube, indicação, grupos).",
+    "Analise fatores decisivos de compra (preço, status, qualidade, marca, experiência, propósito).",
+    "Observe frequência de compra e ticket médio.",
+    "Avalie nível de fidelidade: recompra, recomendação, engajamento e tempo de relacionamento.",
+    "Estude como ele reage a campanhas (gatilhos, formatos, horários, ofertas).",
+    "Aplique pesquisas simples via Google Forms, Instagram ou WhatsApp.",
+    "Use Google Analytics, CRM ou relatórios de vendas para entender comportamento real.",
+    "Analise comentários e avaliações no Google, redes sociais e marketplaces.",
+    "Observe tendências de consumo em redes, fóruns, grupos e concorrentes.",
+    "Crie um painel interno ('Mapa do Cliente') para atualizar insights periodicamente.",
+    "Reflita sobre em qual 'Era do Consumidor' seu público principal se encaixa e como isso afeta suas estratégias.",
+    "Adapte produtos, comunicações e experiências de acordo com a mentalidade dessa era (personalização, propósito, agilidade)."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Comercial",
+    "Gestão",
+    "Atendimento",
+    "Branding"
+  ]
+},
+{
+  "id": 13,
+  "titulo": "Análise de Clientes — Características, Experiência e os 5 Sentidos",
+  "descricao": "Todo cliente é único, mas existe um padrão de comportamento que pode ser identificado e trabalhado. Analisar quem são os clientes, como se comportam, quais são seus estímulos e como percebem a empresa é o que transforma uma venda em um relacionamento duradouro. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Identifique os principais perfis de cliente (idade, gênero, renda, estilo de vida, interesses).",
+    "Mapeie valores, crenças e motivações que influenciam suas decisões.",
+    "Classifique os clientes por comportamento de compra: impulsivo, racional, comparador, fiel, emocional, etc.",
+    "Observe fatores de decisão: preço, status, conveniência, confiança, reputação.",
+    "Registre padrões de compra: ticket médio, frequência, canais usados e épocas de maior demanda.",
+    "Descubra como o cliente encontra sua marca (Google, redes sociais, indicação).",
+    "Analise o que ele pesquisa e compara antes da decisão.",
+    "Identifique quais gatilhos o fazem comprar (prova social, urgência, empatia, garantia).",
+    "Avalie como ele se sente no pós-venda — se recomenda, volta ou esquece.",
+    "Registre feedbacks de cada etapa da jornada — são o mapa para melhorar produtos, atendimento e marketing.",
+    "Analise os 5 sentidos na experiência do cliente:",
+    "Visão: cores, identidade visual, vitrine, redes sociais e site — o cliente compra com os olhos.",
+    "Audição: música ambiente, tom de voz no atendimento, sons usados em vídeos e campanhas.",
+    "Olfato: fragrância da loja, perfume em embalagens ou ambiente — o cheiro fixa lembranças.",
+    "Tato: textura de produtos, conforto de móveis, embalagem ou uniformes — transmite cuidado e qualidade.",
+    "Paladar: aplicável em alimentos, bebidas, brindes e degustações — experiência completa e emocional.",
+    "Cliente Analítico → Estratégia: forneça informações detalhadas, dados, tabelas e comparativos.",
+    "Cliente Empático → Estratégia: personalize o atendimento, conte histórias e demonstre empatia real.",
+    "Cliente Determinado → Estratégia: seja direto, simplifique o processo de compra e destaque eficiência.",
+    "Cliente Indeciso → Estratégia: ofereça garantias, provas sociais e mostre autoridade.",
+    "Cliente Sociável → Estratégia: mantenha diálogo amigável, crie eventos e grupos de relacionamento.",
+    "Cliente Impulsivo → Estratégia: use escassez, bônus imediatos e apelos visuais.",
+    "Cliente Leal → Estratégia: reconheça sua fidelidade com benefícios e comunicação contínua.",
+    "Cliente Negociador → Estratégia: ofereça pacotes, vantagens por volume e descontos planejados.",
+    "Mantenha registro contínuo dos perfis e percepções para atualizar estratégias de atendimento e marketing."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Atendimento",
+    "Gestão",
+    "Branding",
+    "Comercial"
+  ]
+},
+{
+  "id": 14,
+  "titulo": "Tom de Voz da Marca",
+  "descricao": "O jeito que sua empresa fala é tão importante quanto o que ela vende. O tom de voz é o DNA da sua comunicação — ele cria conexão emocional, gera confiança e faz a marca ser reconhecida mesmo quando o logo não aparece. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Defina os valores, missão e personalidade da marca (ex.: acolhedora, especialista, direta, motivadora).",
+    "Escolha 2 a 3 estilos dominantes que irão guiar toda a comunicação.",
+    "Crie um Guia de Tom de Voz simples e visual com exemplos práticos.",
+    "Padronize o tom de voz em todos os canais (WhatsApp, Instagram, anúncios, atendimento, site, scripts).",
+    "Crie um banco de frases-modelo para respostas rápidas e atendimento humanizado.",
+    "Treine a equipe para aplicar o tom de voz corretamente em diferentes contextos.",
+    "Revise mensagens automáticas (WhatsApp, chat, e-mail, redes sociais) para garantir coerência com o estilo da marca.",
+    "Realize reuniões mensais para ajustar, revisar e corrigir desvios de comunicação.",
+    "Acompanhe comentários e feedbacks do público para avaliar se o tom está gerando a conexão desejada.",
+    "Adapte o tom de voz conforme o contexto (venda, suporte, crise, institucional), mantendo a essência da marca."
+  ],
+  "setores_relacionados": [
+    "Branding",
+    "Marketing",
+    "Atendimento",
+    "Gestão",
+    "Comercial"
+  ]
+},
+{
+  "id": 15,
+  "titulo": "Identidade Visual da Marca",
+  "descricao": "A primeira impressão é visual. Se a identidade da sua marca não transmite confiança, profissionalismo e clareza, o cliente desconfia antes mesmo de ouvir o que você tem a dizer. Uma identidade forte transforma sua empresa em lembrança — e lembrança vira vendas. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Defina uma paleta de cores que represente a personalidade, o propósito e os valores da marca.",
+    "Escolha tipografias coerentes com o posicionamento (para títulos, textos e destaques).",
+    "Crie um logotipo profissional e suas variações: versão horizontal, vertical, monocromática e miniatura (favicon/perfil).",
+    "Desenvolva um Manual de Identidade Visual completo, contendo: paleta oficial (HEX/RGB/CMYK), tipografias, espaçamentos, aplicações corretas, usos proibidos e grid estruturado.",
+    "Padronize materiais digitais como posts, stories, anúncios, site e landing pages.",
+    "Padronize materiais físicos como fachada, cartões de visita, crachás, uniformes, cardápios, etiquetas e embalagens.",
+    "Ajuste embalagens e pontos de contato para garantir consistência visual total.",
+    "Crie um banco de templates internos para manter o padrão visual nas produções do dia a dia.",
+    "Aplique a identidade visual em todos os canais e pontos de interação com o cliente.",
+    "Revise a identidade visual anualmente para manter modernidade sem perder a essência da marca."
+  ],
+  "setores_relacionados": [
+    "Branding",
+    "Marketing",
+    "Design",
+    "Gestão",
+    "Comercial"
+  ]
+},
+{
+  "id": 16,
+  "titulo": "Persona para sua Marca",
+  "descricao": "Não existe marketing eficaz sem saber exatamente para quem você está falando. Criar a persona é dar rosto, nome, rotina, dores e desejos ao seu cliente ideal. Quando isso fica claro, sua comunicação deixa de ser genérica, ganha força emocional e passa a atrair quem realmente tem chance de comprar de você. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Dê um nome fictício à persona (ex.: Ana, 32 anos, empreendedora; João, 45 anos, dono de loja de bairro).",
+    "Defina informações básicas: idade ou faixa etária, gênero (quando fizer sentido), profissão/ocupação, localização e renda média.",
+    "Mapeie o estilo de vida e comportamento: interesses, hobbies, rotina diária, responsabilidades e valores pessoais.",
+    "Identifique dores e desafios: quais problemas tiram o sono dessa pessoa e o que frustra ou limita seus resultados.",
+    "Descreva desejos e objetivos: o que ela quer conquistar e qual transformação busca (pessoal, profissional, financeira, estética, emocional).",
+    "Entenda como ela pesquisa e toma decisões: onde busca informações e quem influencia suas escolhas (amigos, especialistas, conteúdo online).",
+    "Mapeie objeções: medos comuns como preço, qualidade, prazos, insegurança ou falta de confiança na marca.",
+    "Crie conteúdos e campanhas voltados diretamente para essa persona, com exemplos, histórias e linguagem alinhada ao perfil.",
+    "Ajuste o tom de voz da marca para falar como ela fala e sobre o que ela pensa.",
+    "Adapte produtos e serviços — formatos, benefícios, bônus ou condições — para atender melhor às dores e desejos da persona.",
+    "Crie ofertas específicas com planos, pacotes ou soluções voltadas a esse perfil ideal.",
+    "Ajuste página de vendas, Instagram, vitrines, cardápios e anúncios, deixando claro 'para quem é' a sua solução.",
+    "Revise resultados e atualize a persona a cada 6 meses para acompanhar mudanças do mercado e comportamento do público."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Branding",
+    "Gestão",
+    "Comercial",
+    "Atendimento"
+  ]
+},
+{
+  "id": 17,
+  "titulo": "Branding Físico",
+  "descricao": "A marca não vive só no digital. O espaço físico, a fachada, a vitrine, o cheiro, a música, o uniforme da equipe, as embalagens e até o sorriso no atendimento fazem parte da identidade da marca. Se o que o cliente vê presencialmente não combina com o que você promete online, ele sente a incoerência — e isso destrói credibilidade. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Padronize fachada, vitrine e comunicação externa com a identidade visual oficial da marca.",
+    "Aplique a identidade visual em toda a equipe: uniformes, crachás, placas internas e materiais de papelaria.",
+    "Crie ambientação estratégica no espaço físico:",
+    "• Música adequada ao público-alvo.",
+    "• Aroma que reforça a experiência da marca.",
+    "• Iluminação que valoriza produtos e atendimento.",
+    "• Limpeza e organização impecáveis.",
+    "Personalize embalagens, sacolas e etiquetas para reforçar o valor da marca.",
+    "Treine o atendimento presencial para seguir o tom de voz definido pela marca.",
+    "Crie materiais impressos (folders, catálogos, cardápios, orçamentos, cartões) alinhados à identidade visual.",
+    "Organize a exposição de produtos e vitrines com técnica e estratégia de apresentação.",
+    "Revisite periodicamente o ambiente físico para garantir que ele acompanha a evolução da marca e tendências do setor.",
+    "Crie microexperiências memoráveis no ponto físico: água aromatizada, fragrância exclusiva, brinde, embalagem especial ou cartão de agradecimento.",
+    "Garanta coerência total entre o físico e o digital — ambos devem comunicar a mesma personalidade e experiência."
+  ],
+  "setores_relacionados": [
+    "Branding",
+    "Marketing",
+    "Atendimento",
+    "Gestão",
+    "Operacional"
+  ]
+},
+{
+  "id": 18,
+  "titulo": "Branding Digital",
+  "descricao": "Hoje, se a sua marca não existe no digital, ela praticamente não existe na mente do cliente. Branding digital não é só postar — é construir uma presença coerente, estratégica e memorável em todos os pontos de contato online. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Defina uma presença digital estratégica com foco nos canais essenciais: site ou página de apresentação, Google Perfil da Empresa e redes sociais principais (Instagram, Facebook, TikTok, LinkedIn, YouTube — conforme o nicho).",
+    "Aplique a identidade visual e o tom de voz da marca em todos os canais online (foto de perfil, capas, destaques, bio, thumbnails e artes de postagens).",
+    "Otimize os perfis para conversão com botões de contato, links organizados (link único, WhatsApp, agendamento, catálogo) e descrições claras sobre quem você é, o que faz e para quem faz.",
+    "Produza conteúdos relevantes e consistentes:",
+    "• Educativos — dicas, tutoriais, bastidores e perguntas frequentes.",
+    "• De prova — resultados, depoimentos e cases reais.",
+    "• De oferta — promoções, lançamentos e condições especiais.",
+    "Use storytelling para transmitir propósito e valores da marca — conte histórias reais do negócio, dos clientes e dos bastidores.",
+    "Monitore a reputação digital avaliando comentários, mensagens, avaliações no Google e menções espontâneas.",
+    "Crie e siga um calendário de postagens consistente, com frequência mínima definida para cada canal e temas alinhados ao posicionamento da marca.",
+    "Aproveite datas sazonais e campanhas estratégicas para gerar relevância e proximidade com o público.",
+    "Invista em tráfego pago com estratégia, equilibrando campanhas de reconhecimento, captação de leads e conversão direta.",
+    "Meça resultados com métricas digitais: alcance, engajamento (curtidas, comentários, salvamentos, compartilhamentos), cliques e conversões (cadastros, orçamentos, vendas).",
+    "Ajuste rotas constantemente — amplifique o que funciona, corrija o que está fraco e teste novos formatos (vídeo, carrossel, reels, stories, lives, blog, etc.).",
+    "Garanta coerência entre o digital e o físico — tudo deve transmitir a mesma personalidade e experiência de marca."
+  ],
+  "setores_relacionados": [
+    "Branding",
+    "Marketing",
+    "Comercial",
+    "Gestão",
+    "Atendimento"
+  ]
+},
+{
+  "id": 19,
+  "titulo": "Loja Física Própria",
+  "descricao": "Mesmo com o avanço do digital, a loja física ainda é o maior cartão de visitas de uma marca. Ela entrega algo que o online não consegue: a experiência sensorial — onde o cliente pode ver, tocar, sentir, ouvir e até cheirar o produto. Além disso, transmite confiança e autoridade no mercado. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Padronize fachada e vitrine conforme a identidade visual oficial — criativa, atrativa e sempre atualizada.",
+    "Aplique cores, tipografia e elementos de design que reflitam a essência da marca (ex.: vibrantes para moda jovem, neutros para marcas premium).",
+    "Garanta que o uniforme da equipe e as embalagens transmitam profissionalismo e coerência visual.",
+    "Crie ambientação sensorial com os 5 sentidos:",
+    "• Visão: iluminação correta, disposição de produtos e vitrines chamativas.",
+    "• Tato: permita que o cliente interaja com o produto e sinta texturas e acabamentos.",
+    "• Olfato: utilize aromatização personalizada para criar boas memórias.",
+    "• Audição: escolha música ambiente compatível com o público-alvo.",
+    "• Paladar: ofereça degustações quando aplicável (cafés, suplementos, alimentos).",
+    "Treine a equipe para ser uma extensão da marca — atendimento consultivo, empático e alinhado ao tom de voz da empresa.",
+    "Estimule o uso do nome do cliente e aplique gatilhos mentais (escassez, exclusividade, urgência) de forma ética e estratégica.",
+    "Escolha um ponto comercial estratégico com bom fluxo, acesso e estacionamento.",
+    "Realize parcerias locais com salões, academias, clínicas e escritórios para fortalecer o marketing físico.",
+    "Promova eventos presenciais (inaugurações, lançamentos, aniversários da loja).",
+    "Integre o físico ao digital: incentive o cliente a seguir nas redes e participar de grupos de promoções no WhatsApp.",
+    "Invista em marketing local (Google Meu Negócio, panfletos, outdoors, cartazes internos e totens).",
+    "Implemente programas de fidelidade (cartão de pontos, clube VIP, descontos progressivos).",
+    "Crie brindes e mimos personalizados (sacolas reutilizáveis, cartões de agradecimento, presentes em compras acima de um valor).",
+    "Mantenha a vitrine sempre atualizada — mude o tema e o layout no mínimo uma vez por mês.",
+    "Organize o layout interno estrategicamente: produtos de giro rápido em áreas visíveis e os de maior margem próximos ao caixa.",
+    "Invista em tecnologia no ponto de venda: totens de autoatendimento, QR Codes para reviews, pagamentos digitais e telões com campanhas.",
+    "Revise periodicamente o ambiente físico para garantir que ele evolui junto com a marca e com o mercado."
+  ],
+  "setores_relacionados": [
+    "Branding",
+    "Gestão",
+    "Comercial",
+    "Marketing",
+    "Atendimento",
+    "Operacional"
+  ]
+},
+{
+  "id": 20,
+  "titulo": "Fase 3 – Portfólio da Empresa",
+  "descricao": "O portfólio é a vitrine da sua marca. Ele mostra, de forma clara, organizada e profissional, tudo o que sua empresa faz, já fez e é capaz de entregar. Sem um portfólio bem estruturado, o cliente não enxerga valor, não entende seus diferenciais e coloca você na mesma prateleira dos concorrentes comuns. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Crie uma identidade visual padronizada para todos os materiais (cores, tipografia, layout).",
+    "Fotografe e filme profissionalmente produtos, serviços, bastidores, equipe e espaço físico.",
+    "Escreva textos claros, atrativos e persuasivos que expliquem: quem é você, o que faz, para quem faz e quais resultados entrega.",
+    "Desenvolva apresentações institucionais e comerciais com capas profissionais, seções bem organizadas, provas sociais, serviços, planos e diferenciais.",
+    "Organize as redes sociais com identidade coerente e profissional, alinhadas ao portfólio da marca.",
+    "Crie um site, landing page ou loja virtual com estrutura clara, layout profissional, provas sociais e botões de ação.",
+    "Configure e otimize o Google Meu Negócio com fotos profissionais, descrição estratégica, horários, endereço, links e solicitação de avaliações reais.",
+    "Profissionalize os canais de contato: WhatsApp Business, e-mail corporativo e link único personalizado.",
+    "Construa materiais impressos padronizados (cartões de visita, folders, catálogos, etiquetas, sacolas, brindes).",
+    "Reúna provas sociais reais — cases de sucesso, antes e depois, avaliações, depoimentos e prints de conversas reais.",
+    "Crie o portfólio digital final em formato PDF, apresentação (PowerPoint ou Canva) e/ou área no site com cases organizados.",
+    "Mantenha o portfólio sempre atualizado com novos trabalhos, resultados e depoimentos recentes.",
+    "Garanta que toda a comunicação digital e impressa remeta à mesma identidade e mensagem da marca."
+  ],
+  "setores_relacionados": [
+    "Branding",
+    "Marketing",
+    "Gestão",
+    "Comercial",
+    "Design"
+  ]
+},
+{
+  "id": 21,
+  "titulo": "Criação de Imagens para a Marca",
+  "descricao": "Uma imagem comunica mais do que mil palavras — e comunica em um segundo. Se as imagens da sua marca não transmitem qualidade, profissionalismo e emoção, você perde valor antes mesmo de ter a chance de explicar o que faz. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Defina a identidade visual completa da marca (cores, fontes, estilo gráfico e elementos visuais).",
+    "Crie templates padronizados para posts, stories, reels/capas, anúncios e apresentações.",
+    "Padronize imagens de capa e perfil em todos os canais digitais (Instagram, Facebook, YouTube, LinkedIn, WhatsApp Business e site).",
+    "Desenvolva um catálogo visual de produtos ou serviços com estilo fotográfico coerente e uniforme.",
+    "Aplique a marca d’água ou logotipo de forma discreta em todos os materiais oficiais.",
+    "Fotografe produtos e serviços com qualidade profissional — boa iluminação, fundo limpo, ângulos estratégicos e composição harmônica.",
+    "Produza imagens reais do negócio (equipe, bastidores, clientes com autorização e estrutura física).",
+    "Utilize bancos de imagens profissionais apenas como complemento, nunca como base principal da comunicação.",
+    "Crie ilustrações, ícones e artes exclusivas que reforcem o posicionamento e dialoguem com o público-alvo.",
+    "Use elementos sensoriais na estética visual — texturas, paleta emocional e composição que reflitam a personalidade da marca.",
+    "Revise periodicamente o estilo visual para garantir que ele evolui junto com o posicionamento da empresa e tendências do mercado."
+  ],
+  "setores_relacionados": [
+    "Branding",
+    "Design",
+    "Marketing",
+    "Comercial",
+    "Gestão"
+  ]
+},
+{
+  "id": 22,
+  "titulo": "Criação de Vídeos para a Marca",
+  "descricao": "O vídeo é hoje o formato mais poderoso para atrair atenção, gerar conexão emocional e vender. Ele transmite confiança, autoridade e humaniza a marca como nenhum outro conteúdo consegue. Se a sua empresa não produz vídeos, está ficando invisível para o cliente. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Defina o objetivo principal de cada vídeo (atrair, engajar, converter, educar, demonstrar produto ou gerar autoridade).",
+    "Crie roteiros simples com abertura envolvente, conteúdo objetivo e CTA (chamada para ação) clara.",
+    "Alinhe o vídeo à identidade visual e ao tom de voz da marca — cores, legendas, animações, tipografia e molduras consistentes.",
+    "Escolha o formato ideal para o objetivo:",
+    "• Curtos (Reels, Shorts, TikTok) — atenção e descoberta.",
+    "• Médios (anúncios, vídeos explicativos) — conexão e valor.",
+    "• Longos (YouTube, aulas, institucionais) — autoridade e profundidade.",
+    "• Comerciais (site, apresentações) — vendas e institucional.",
+    "Grave em ambiente com boa iluminação natural ou artificial (ring light, softbox, janelas laterais).",
+    "Garanta captação de som limpa e clara (microfone de lapela, shotgun, redução de ruído).",
+    "Monte um cenário coerente com o posicionamento da marca (ambiente profissional, organizado e visualmente coerente).",
+    "Use equipamentos adequados ou um celular com boa câmera (tripé, estabilizador, gravação em 4K).",
+    "Adote linguagem simples, emocional e envolvente — fale olhando para a câmera, com naturalidade e empatia.",
+    "Inclua elementos de prova social — depoimentos, demonstrações, bastidores e antes/depois.",
+    "Edite com cortes dinâmicos, removendo pausas e adicionando zooms leves e transições suaves.",
+    "Aplique a identidade visual completa na edição (logo, cores, legendas, lower thirds, overlays).",
+    "Adapte os vídeos para diferentes formatos de plataforma (9:16 Reels/TikTok/Shorts, 16:9 YouTube/Site, 1:1 Feed).",
+    "Publique nos canais estratégicos — redes sociais, site, landing pages e Google Meu Negócio.",
+    "Acompanhe métricas essenciais: visualizações, tempo de retenção, engajamento, cliques e conversões.",
+    "Reaproveite os melhores trechos em novos formatos (reposts, cortes, compilações).",
+    "Analise o desempenho mensalmente e ajuste os temas e estilos conforme os resultados."
+  ],
+  "setores_relacionados": [
+    "Branding",
+    "Marketing",
+    "Audiovisual",
+    "Comercial",
+    "Gestão"
+  ]
+},
+{
+  "id": 23,
+  "titulo": "Copys, Textos e Legendas",
+  "descricao": "As palavras certas vendem mais que qualquer promoção. Um texto bem escrito desperta desejo, quebra objeções, cria conexão emocional e transforma seguidores em clientes. Copywriting não é escrever bonito — é escrever para gerar ação. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Aplique a fórmula da persuasão (AIDA): Atenção → Interesse → Desejo → Ação.",
+    "Crie títulos curtos, chamativos e curiosos que despertem atenção imediata.",
+    "Foque sempre nos benefícios, não apenas nas características do produto ou serviço.",
+    "Use gatilhos mentais de forma ética e estratégica: prova social, escassez, urgência, autoridade, antecipação e clareza.",
+    "Escreva como se estivesse conversando com a persona, usando o tom ideal para o perfil dela.",
+    "Use palavras simples, diretas e que transmitam emoção e autenticidade.",
+    "Antecipe e quebre objeções antes mesmo que o cliente as verbalize.",
+    "Produza legendas curtas e impactantes para redes sociais, ideais para captar atenção rápida.",
+    "Crie legendas longas com storytelling — histórias reais, bastidores, depoimentos e transformações de clientes.",
+    "Adapte o tom e a linguagem conforme o canal:",
+    "• Instagram → emotivo e dinâmico.",
+    "• WhatsApp → direto e objetivo.",
+    "• Site → institucional e profissional.",
+    "• YouTube → educativo e completo.",
+    "Inclua sempre um CTA (chamada para ação): envie mensagem, clique no link, agende agora, compre hoje, saiba mais.",
+    "Revise ortografia, clareza e fluidez antes de publicar qualquer texto.",
+    "Crie copys específicas para anúncios pagos (Facebook Ads, Instagram Ads, Google Ads, TikTok Ads).",
+    "Produza descrições otimizadas para site e landing pages com foco em SEO, benefícios e CTAs claros.",
+    "Escreva textos para funis de e-mail — captação, nutrição, oferta e pós-venda.",
+    "Padronize descrições de produtos para marketplaces com bullet points, informações técnicas, benefícios e CTA.",
+    "Teste e acompanhe o desempenho das copys (taxa de cliques, engajamento, conversão) e otimize periodicamente."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Branding",
+    "Comercial",
+    "Gestão",
+    "Comunicação"
+  ]
+},
+{
+  "id": 24,
+  "titulo": "Instagram da Marca",
+  "descricao": "O Instagram é a vitrine digital da sua empresa. Para muitos clientes, é o primeiro contato com a marca e o principal fator de decisão. Se o perfil não transmite profissionalismo, organização e valor, o cliente ignora e segue para o concorrente. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Defina um nome claro e fácil de buscar.",
+    "Crie um @username curto, profissional e sem números desnecessários.",
+    "Use uma foto de perfil com o logotipo padronizado (versão miniatura da marca).",
+    "Escreva uma bio objetiva, contendo: quem você é, o que faz, para quem faz, o principal benefício e um CTA (ex.: 'Clique abaixo para falar no WhatsApp').",
+    "Adicione um link único organizado, com botões essenciais (WhatsApp, catálogos, serviços, site, endereço).",
+    "Crie uma identidade visual padronizada para o feed — cores, fontes, estilo de fotos, molduras e estética geral.",
+    "Publique fotos e vídeos reais da equipe, clientes, bastidores, produtos e espaço físico.",
+    "Crie conteúdos educativos e de valor: dicas, curiosidades, tutoriais simples, antes e depois, explicações de processos.",
+    "Produza Reels estratégicos para aumentar alcance orgânico — vídeos rápidos, tendências adaptadas e conteúdos virais.",
+    "Organize destaques com capa e nome profissional: serviços, produtos, depoimentos, dúvidas, promoções, sobre a empresa.",
+    "Responda comentários e directs diariamente, com atenção e tom coerente com a identidade da marca.",
+    "Interaja com perfis de clientes e parceiros — curtindo, comentando e respondendo stories.",
+    "Use stories todos os dias com enquetes, perguntas, bastidores e conteúdos rápidos de valor.",
+    "Incentive clientes a marcarem o perfil com campanhas, reposts ou brindes exclusivos.",
+    "Crie um calendário editorial semanal (3 a 5 posts por semana e 3 a 7 stories por dia).",
+    "Use hashtags estratégicas — nichadas, regionais e setoriais, de forma coerente com o público.",
+    "Invista em anúncios pagos para aumentar seguidores estratégicos, impulsionar promoções, gerar oportunidades no WhatsApp e fortalecer reconhecimento de marca.",
+    "Acompanhe métricas essenciais: alcance, impressões, engajamento, cliques no link, novos seguidores e vendas geradas.",
+    "Revisite mensalmente o perfil para garantir coerência com o posicionamento e a identidade atual da marca."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Branding",
+    "Comercial",
+    "Gestão",
+    "Atendimento"
+  ]
+},
+{
+  "id": 25,
+  "titulo": "Facebook da Marca",
+  "descricao": "O Facebook continua sendo uma das maiores vitrines digitais — especialmente para negócios locais. Além de atrair novos clientes, ele é uma plataforma poderosa para construir comunidade, reforçar credibilidade e rodar anúncios altamente segmentados. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Crie uma página comercial oficial (evite usar perfis pessoais).",
+    "Configure capa profissional e foto de perfil padronizada — capa com identidade visual e logotipo oficial no perfil.",
+    "Preencha todas as informações importantes da empresa: endereço, telefone, WhatsApp, horário de funcionamento, site e descrição clara.",
+    "Ative e configure o botão de ação (CTA): 'Chamar no WhatsApp', 'Enviar mensagem', 'Comprar agora' ou 'Reservar'.",
+    "Ative as avaliações e incentive clientes reais a deixarem feedbacks positivos na página.",
+    "Publique com regularidade (mínimo 3 vezes por semana).",
+    "Use fotos e vídeos reais do negócio: produtos, equipe, bastidores, clientes e espaço físico.",
+    "Crie conteúdos educativos e de valor: dicas, tutoriais, curiosidades e informações relevantes para o público.",
+    "Publique promoções, campanhas e eventos especiais para movimentar a página.",
+    "Reaproveite conteúdos do Instagram, adaptando a linguagem e o formato para o público do Facebook.",
+    "Realize transmissões ao vivo (lives) para aumentar engajamento, gerar proximidade e vender mais — especialmente útil no varejo.",
+    "Crie um grupo vinculado à página (ex.: Clientes VIP, Comunidade de Dicas, Suporte ou Fidelização).",
+    "Incentive comentários e interações em todas as postagens, estimulando engajamento orgânico.",
+    "Responda inbox e mensagens rapidamente — o tempo de resposta influencia o alcance e a percepção de profissionalismo.",
+    "Compartilhe depoimentos, resultados e conquistas dos clientes como prova social.",
+    "Configure o Meta Business Suite para integrar Facebook, Instagram e WhatsApp de forma estratégica.",
+    "Rode campanhas locais com foco em tráfego para o WhatsApp, reconhecimento de marca, promoções e alcance geográfico.",
+    "Segmente anúncios com precisão: por localização, idade, interesses, comportamentos e públicos semelhantes (lookalike).",
+    "Monitore métricas essenciais — alcance, engajamento, cliques, conversões e custo por resultado.",
+    "Revise mensalmente o desempenho das postagens e anúncios para ajustar estratégias conforme os resultados."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Branding",
+    "Comercial",
+    "Gestão",
+    "Atendimento"
+  ]
+},
+{
+  "id": 26,
+  "titulo": "TikTok da Marca",
+  "descricao": "O TikTok é a vitrine criativa que mais cresce no mundo. Aqui, a atenção é imediata e a chance de viralizar é real — mesmo para marcas pequenas. Quando sua empresa transforma produtos, serviços e bastidores em conteúdo autêntico, ela conquista clientes que compram porque se conectaram, não porque foram empurrados por anúncios. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Crie uma conta comercial (Business) para acessar recursos e métricas avançadas.",
+    "Defina uma foto de perfil profissional — logotipo para empresas, rosto para marcas pessoais.",
+    "Escreva uma bio curta, criativa e objetiva, com CTA e link único para WhatsApp, site ou catálogo.",
+    "Escolha um @username simples, memorável e sem símbolos ou números desnecessários.",
+    "Ative o TikTok Analytics para acompanhar métricas de audiência, horários de pico, engajamento e vídeos de melhor performance.",
+    "Produza vídeos curtos (15 a 60 segundos) que mantenham atenção até o final.",
+    "Mostre bastidores e processos reais do negócio — produção, embalagens, atendimento, recebimento de mercadorias.",
+    "Crie conteúdos educacionais rápidos: dicas, curiosidades, hacks e erros comuns do nicho.",
+    "Aproveite trends, músicas e transições populares adaptando-as ao contexto da marca.",
+    "Insira uma frase de impacto nos 3 primeiros segundos do vídeo (ex.: 'Isso vai te ajudar muito se você é…', 'Ninguém te conta isso…').",
+    "Adicione legendas em todos os vídeos — grande parte dos usuários assiste sem áudio.",
+    "Responda comentários em vídeo, aproveitando o alcance orgânico que essa função gera.",
+    "Interaja com perfis do mesmo nicho — duetos, costuras e reações aumentam visibilidade.",
+    "Publique com consistência: pelo menos 5 vezes por semana.",
+    "Use hashtags estratégicas: nichadas (#marketingdigital, #modamasculina), locais (#suaempresa + cidade) e contextuais (#tutorial, #negocios).",
+    "Teste diferentes formatos de vídeo — rápidos, narrados, educativos, bastidores e trends adaptadas.",
+    "Configure o TikTok Ads Manager para campanhas pagas estratégicas.",
+    "Invista em pequenos testes de anúncios (R$10–20/dia) com 3 a 5 criativos diferentes para identificar o melhor desempenho.",
+    "Crie campanhas de tráfego para WhatsApp, site, reconhecimento de marca ou conversão de produtos.",
+    "Monitore métricas essenciais: taxa de retenção, engajamento (curtidas, comentários, compartilhamentos), cliques no link e conversões.",
+    "Reavalie o desempenho semanalmente e otimize vídeos com base no que o público mais interage e compartilha."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Branding",
+    "Comercial",
+    "Gestão",
+    "Comunicação"
+  ]
+},
+{
+  "id": 27,
+  "titulo": "Link Único / Cartão Interativo",
+  "descricao": "Em um mundo de excesso de informações, o cliente precisa de praticidade. O link único ou cartão interativo reúne todos os contatos, redes sociais e produtos em um só lugar. Isso facilita a vida do consumidor e aumenta suas chances de fechar negócios com apenas um clique. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Escolha a plataforma ideal para sua marca — Linktree, mivcast.link, beacons.ai ou cartão digital personalizado.",
+    "Adicione a logo ou foto da empresa para reforçar o reconhecimento visual.",
+    "Escreva uma bio curta e persuasiva, que explique rapidamente quem você é e o que oferece.",
+    "Inclua botões principais: WhatsApp, Instagram, TikTok, Loja Virtual, Localização e Contato.",
+    "Insira um CTA estratégico: 'Fale agora', 'Agende sua consulta' ou 'Compre já'.",
+    "Utilize cores e fontes alinhadas à identidade visual da marca.",
+    "Adicione ícones para facilitar a leitura e deixar o layout mais dinâmico.",
+    "Organize os botões por prioridade — WhatsApp no topo, seguido das redes e site.",
+    "Inclua mini portfólio, vídeo curto de apresentação ou depoimentos.",
+    "Teste a responsividade em celulares (90% dos acessos vêm de dispositivos móveis).",
+    "Coloque o link único na bio de todas as redes sociais: Instagram, TikTok, Facebook, YouTube e Google Meu Negócio.",
+    "Use o link em campanhas de anúncios (WhatsApp Ads, tráfego e localização).",
+    "Envie o link para clientes durante atendimentos e orçamentos via WhatsApp, e-mail ou proposta comercial.",
+    "Imprima QR Code com o link em cartões de visita, embalagens, etiquetas, brindes, mesas, cardápios ou fachada.",
+    "Atualize o link sempre que houver promoções, novos produtos ou serviços.",
+    "Monitore o desempenho de cliques (algumas plataformas oferecem estatísticas detalhadas).",
+    "Crie versões específicas do link para campanhas (ex.: Black Friday, lançamento, evento local).",
+    "Personalize o domínio (ex.: suaempresa.link) para passar ainda mais credibilidade.",
+    "Garanta que o link carregue rápido — evite excesso de botões e imagens pesadas.",
+    "Revise mensalmente o layout e os CTAs para manter o cartão atualizado e eficiente."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Comercial",
+    "Atendimento",
+    "Branding",
+    "Tecnologia"
+  ]
+},
+{
+  "id": 28,
+  "titulo": "Google Meu Negócio (Google Business Profile)",
+  "descricao": "Estar no Google é como estar no maior shopping do mundo. O Google Meu Negócio é o seu cartão de visitas digital, que coloca sua empresa no mapa — literalmente. Ele aumenta visibilidade, gera confiança imediata e atrai clientes prontos para comprar. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Crie ou reivindique o perfil da empresa no Google Meu Negócio.",
+    "Preencha todas as informações corretamente: nome da empresa, endereço, telefone, horário de funcionamento e categoria principal.",
+    "Adicione categorias adicionais que descrevam melhor seus serviços (ex.: restaurante, pizzaria, marketing digital, clínica estética).",
+    "Inclua links importantes: site, WhatsApp, link único, catálogo e redes sociais principais.",
+    "Verifique sua empresa pelo código enviado pelo Google (postal, SMS ou e-mail).",
+    "Adicione logotipo e foto de capa com alta qualidade e boa iluminação.",
+    "Publique fotos reais da empresa: fachada, interior, produtos, equipe e bastidores.",
+    "Adicione vídeos curtos mostrando o ambiente, montagem de pedidos, bastidores ou explicações de serviços.",
+    "Crie postagens semanais com promoções, novidades, eventos, dicas e datas especiais.",
+    "Adicione catálogo completo de produtos e serviços com fotos, descrições e valores (quando aplicável).",
+    "Solicite avaliações reais de clientes satisfeitos após cada compra ou serviço.",
+    "Responda todas as avaliações — agradecendo as positivas e resolvendo as negativas com profissionalismo.",
+    "Atualize horários especiais (feriados, promoções, ajustes de temporada).",
+    "Monitore estatísticas internas: visualizações, chamadas, solicitações de rota, cliques no site e desempenho de fotos.",
+    "Adicione perguntas e respostas frequentes diretamente no perfil (FAQ).",
+    "Mantenha o perfil sempre ativo — o algoritmo do Google prioriza empresas que publicam e atualizam regularmente.",
+    "Verifique se o endereço e telefone estão idênticos em todas as plataformas (site, redes, link único).",
+    "Use postagens com links e botões de ação (Ex.: 'Reservar', 'Ligar', 'Ver mais', 'Comprar agora').",
+    "Utilize a aba 'Mensagens' para responder clientes diretamente pelo Google Maps.",
+    "Incentive clientes a marcar a localização e postar fotos do seu negócio (gera prova social e aumenta relevância local)."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Comercial",
+    "Atendimento",
+    "Gestão",
+    "Branding"
+  ]
+},
+{
+  "id": 29,
+  "titulo": "WhatsApp Profissional",
+  "descricao": "O WhatsApp não é apenas um app de mensagens — é o principal canal de vendas, atendimento e relacionamento no Brasil. Quando usado de forma profissional, transforma conversas em clientes, cria confiança imediata e aumenta o faturamento diário da empresa. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Crie uma conta no WhatsApp Business (nunca use o pessoal).",
+    "Configure o nome profissional da empresa, evitando abreviações e emojis desnecessários.",
+    "Escreva uma descrição objetiva com palavras-chave do seu negócio (ex.: 'Estética facial – Harmonização – Tratamentos avançados').",
+    "Adicione uma foto de perfil com o logotipo oficial em alta qualidade.",
+    "Crie uma capa (quando aplicável) com slogan ou área de atuação principal.",
+    "Defina e ative o horário de atendimento automático conforme a rotina da empresa.",
+    "Utilize número oficial comercial (fixo digital ou celular empresarial).",
+    "Monte um catálogo completo com produtos, serviços, preços, descrições e fotos profissionais.",
+    "Inclua links de pagamento (PIX, cartão, checkout) diretamente nos itens do catálogo.",
+    "Crie etiquetas de organização para gerenciar atendimentos (Novo cliente, Orçamento enviado, Negociação, Pós-venda, Fidelização).",
+    "Configure mensagens automáticas com moderação: boas-vindas, ausência e dúvidas frequentes.",
+    "Crie atalhos personalizados (ex.: /horario, /endereço, /formasdepagamento, /serviços).",
+    "Integre opções de pagamento — PIX, link de checkout, QR Code ou assinatura mensal.",
+    "Integre o WhatsApp com todas as redes e canais digitais: Instagram, Facebook, site, Google Meu Negócio e link único.",
+    "Crie links curtos com CTA claro (ex.: 'Clique e fale com nosso atendimento' ou 'Fale com um especialista agora').",
+    "Use listas de transmissão em vez de grupos — para promoções, novidades, clientes VIP e pós-venda.",
+    "Responda com agilidade (meta: até 5 minutos) durante o horário comercial.",
+    "Mantenha o tom de voz da marca: calmo, prestativo, objetivo e educado.",
+    "Registre pedidos e negociações em planilhas ou CRM interno para acompanhamento.",
+    "Acompanhe métricas internas — volume de mensagens, tempo médio de resposta, taxa de conversão e retorno de clientes."
+  ],
+  "setores_relacionados": [
+    "Atendimento",
+    "Comercial",
+    "Marketing",
+    "Gestão",
+    "Branding"
+  ]
+},
+{
+  "id": 30,
+  "titulo": "Site Institucional Profissional",
+  "descricao": "O site institucional é a sede oficial da sua empresa no mundo digital. Ele transmite credibilidade, centraliza informações e é a prova de que sua marca existe de forma profissional e organizada. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Registre um domínio profissional (.com ou .com.br) para fortalecer a credibilidade da marca.",
+    "Escolha uma hospedagem segura, estável e com bom desempenho de velocidade.",
+    "Crie um design moderno, responsivo e com boa experiência de navegação em todos os dispositivos.",
+    "Aplique o logotipo, as cores e a identidade visual da marca de forma consistente.",
+    "Inclua as páginas essenciais: Home, Sobre, Serviços/Produtos, Portfólio, Blog e Contato.",
+    "Desenvolva textos claros, objetivos e alinhados ao tom de voz da marca.",
+    "Utilize fotos profissionais ou banco de imagens de alta qualidade que transmitam credibilidade.",
+    "Inclua depoimentos reais de clientes para gerar prova social.",
+    "Adicione chamadas para ação (CTAs) estratégicas como 'Solicite um orçamento', 'Fale conosco' ou 'Agende agora'.",
+    "Utilize palavras-chave estratégicas no conteúdo para otimizar a busca orgânica (SEO).",
+    "Configure o Google Analytics e o Google Search Console para monitorar acessos e desempenho.",
+    "Crie um blog com artigos otimizados para SEO, abordando temas relevantes ao público-alvo.",
+    "Adicione links para redes sociais, WhatsApp e outras plataformas de contato.",
+    "Inclua favicon (ícone da aba do navegador) com a marca da empresa.",
+    "Certifique-se de que o site tenha certificado SSL (HTTPS) ativo para segurança e ranqueamento.",
+    "Otimize o tempo de carregamento — imagens leves e scripts otimizados.",
+    "Adicione mapa de localização (Google Maps) na página de contato, se aplicável.",
+    "Inclua formulário de contato funcional e com notificações automáticas para o e-mail da empresa.",
+    "Garanta acessibilidade: contraste adequado, botões grandes e textos legíveis.",
+    "Revise o site trimestralmente para atualizações de conteúdo, links e design."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Branding",
+    "Tecnologia",
+    "Comercial",
+    "Gestão"
+  ]
+},
+{
+  "id": 31,
+  "titulo": "Landing Page (Página de Conversão)",
+  "descricao": "A landing page é diferente de um site: ela tem apenas um foco — gerar ação imediata (cadastro, venda ou contato). É simples, objetiva e pensada para conversão. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Escolha a ferramenta ideal para criação da sua landing page (ex.: WordPress, Nuvemshop, RD Station, Klickpages, ou MivCast LP).",
+    "Defina o objetivo único da página — captura de lead, venda, agendamento ou orçamento.",
+    "Crie uma headline forte, com promessa clara e direta ao ponto.",
+    "Adicione imagem ou vídeo principal que gere conexão emocional e visual imediata.",
+    "Insira um formulário ou botão de ação (CTA) em destaque e de fácil acesso.",
+    "Use textos curtos, diretos e com foco no benefício principal para o cliente.",
+    "Apresente os benefícios em formato de lista (bullet points) para facilitar leitura rápida.",
+    "Inclua provas sociais — depoimentos, números, certificações ou resultados reais.",
+    "Repita o CTA em mais de um ponto da página (início, meio e final).",
+    "Garanta que o design seja limpo, responsivo e com cores alinhadas à identidade visual.",
+    "Instale pixels de rastreamento do Facebook Ads e Google Ads para medir resultados e criar públicos personalizados.",
+    "Aplique gatilhos mentais com moderação — urgência, escassez e autoridade — sempre com ética.",
+    "Realize testes A/B trocando elementos como título, imagem, botão ou CTA para medir impacto.",
+    "Monitore métricas de conversão: taxa de conversão, CTR e custo por lead.",
+    "Otimize o tempo de carregamento (LPs lentas perdem até 40% das conversões).",
+    "Adicione uma seção de perguntas frequentes (FAQ) curta para reduzir objeções.",
+    "Inclua selos de segurança e formas de pagamento (em LPs de venda).",
+    "Use domínio próprio ou subdomínio profissional (ex.: lp.suaempresa.com.br).",
+    "Conecte a LP a ferramentas de automação ou CRM (ex.: RD Station, HubSpot, Notion).",
+    "Revisite e atualize a LP a cada campanha para manter relevância e performance."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Comercial",
+    "Branding",
+    "Tecnologia",
+    "Gestão"
+  ]
+},
+{
+  "id": 32,
+  "titulo": "Marketplaces",
+  "descricao": "Marketplaces são grandes ‘shoppings virtuais’ onde sua empresa pode vender produtos dentro de uma plataforma já consolidada, como Mercado Livre, Shopee, Amazon, Magalu ou Americanas. Eles oferecem tráfego, estrutura e segurança prontos — mas exigem adaptação às regras e taxas de cada plataforma. 💡Dica: Use o Mark.IA (que está no menu lateral) para receber mais ajuda específica para seu negócio.",
+  "checklist": [
+    "Escolha marketplaces compatíveis com o seu nicho de produtos e perfil de público.",
+    "Cadastre produtos com fotos profissionais, descrições completas e títulos claros.",
+    "Defina preços considerando todas as taxas e custos logísticos (frete, embalagem, comissão).",
+    "Organize estoque e logística — ou utilize Fulfillment das plataformas quando disponível.",
+    "Responda rapidamente perguntas e mensagens dos clientes para aumentar relevância no algoritmo.",
+    "Monitore avaliações e mantenha notas altas para reforçar a reputação da loja.",
+    "Acompanhe métricas de desempenho dentro da plataforma: visualizações, conversão e cancelamentos.",
+    "Teste diferentes marketplaces e identifique onde seus produtos têm melhor margem e volume.",
+    "Crie diferenciais de serviço: brindes, embalagens personalizadas e pós-venda atencioso.",
+    "Aproveite campanhas internas de marketing das plataformas para ganhar visibilidade.",
+    "Integre estoque e pedidos com sistemas ERP ou planilhas organizadas.",
+    "Evite depender 100% de um marketplace — diversifique e mantenha presença própria (site ou loja física).",
+    "Revise periodicamente taxas e políticas das plataformas para evitar surpresas.",
+    "Adicione sua marca nas embalagens e notas (dentro das regras) para reforçar identidade.",
+    "Utilize as campanhas de anúncios internos (Ads) de cada marketplace para aumentar alcance.",
+    "Monitore o ROI (retorno sobre investimento) de cada plataforma separadamente.",
+    "Avalie a viabilidade de produtos de giro rápido (Shopee, Mercado Livre) e produtos premium (Amazon, Magalu).",
+    "Prepare fotos e descrições padronizadas para todas as plataformas (padrão profissional de catálogo).",
+    "Inclua sempre garantias, informações de troca e prazos claros para reduzir dúvidas.",
+    "Analise a lucratividade real após todas as taxas, para evitar vender muito e lucrar pouco."
+  ],
+  "setores_relacionados": [
+    "Comercial",
+    "Marketing",
+    "Gestão",
+    "Logística",
+    "E-commerce"
+  ]
+},
+{
+  "id": 33,
+  "titulo": "Conteúdos Físicos (Materiais Impressos)",
+  "descricao": "Mesmo na era digital, os materiais físicos continuam essenciais para reforçar o branding, gerar lembrança e transmitir profissionalismo. Eles são o ponto de contato tangível entre a empresa e o cliente. 💡Dica: Use o Mark.IA (no menu lateral) para receber mais ajuda personalizada sobre branding físico e estratégias de impressão.",
+  "checklist": [
+    "Crie cartões de visita simples, objetivos e com design alinhado à identidade visual da marca.",
+    "Inclua nos cartões: nome da empresa, logotipo, contatos principais e redes sociais.",
+    "Adicione QR Code no cartão de visita para salvar contato direto ou acessar link único.",
+    "Produza folhetos e flyers detalhados para explicar produtos ou serviços de forma clara.",
+    "Distribua flyers em feiras, eventos e pontos de venda estratégicos.",
+    "Use panfletos promocionais para campanhas sazonais, com foco em ofertas e benefícios rápidos.",
+    "Aplique adesivos e etiquetas personalizadas em embalagens, vitrines e brindes.",
+    "Desenvolva catálogos impressos para produtos de ticket médio/alto, especialmente em reuniões comerciais.",
+    "Mantenha coerência visual em todos os materiais impressos (fontes, cores, margens e acabamentos).",
+    "Inclua QR Codes em todos os materiais físicos para conectar ao digital (site, WhatsApp, catálogo, redes sociais).",
+    "Planeje a distribuição estratégica de materiais: eventos, recepções, parceiros locais e brindes.",
+    "Crie brindes personalizados com utilidade real para o público-alvo — eles fortalecem o vínculo emocional.",
+    "Priorize brindes que fiquem no dia a dia do cliente (canecas, squeezes, ecobags, chaveiros).",
+    "Considere brindes sustentáveis (materiais ecológicos, biodegradáveis, kits reutilizáveis).",
+    "Ofereça brindes corporativos em datas especiais (aniversário da empresa, Natal, eventos de fidelização).",
+    "Evite excesso de informações nos impressos — foco em clareza e impacto visual.",
+    "Mantenha estoque atualizado e revise periodicamente os materiais para não distribuir versões antigas.",
+    "Use materiais de qualidade (papel, acabamento, impressão) para reforçar a percepção premium da marca.",
+    "Integre materiais físicos com campanhas digitais (ex.: panfletos com cupom online ou QR para redes sociais).",
+    "Registre fotos dos materiais impressos para portfólio e redes sociais, fortalecendo o branding omnichannel."
+  ],
+  "setores_relacionados": [
+    "Branding",
+    "Marketing",
+    "Comercial",
+    "Design",
+    "Relacionamento"
+  ]
+},
+{
+  "id": 34,
+  "titulo": "Fase 4 – Campanhas",
+  "descricao": "Campanhas bem planejadas criam movimento em torno da marca, atraem novos clientes e mantêm os atuais engajados. Quando a empresa organiza campanhas anuais, promocionais e de conscientização, ela deixa de depender apenas da venda do dia a dia e constrói presença contínua na mente do consumidor. 💡Dica: Use o Mark.IA (no menu lateral) para receber ajuda personalizada na criação do seu calendário anual de campanhas e ideias criativas para o seu nicho.",
+  "checklist": [
+    "Mapeie todas as datas comemorativas do ano — nacionais, locais e específicas do seu nicho.",
+    "Defina as campanhas sazonais principais (ex.: Dia das Mães, Black Friday, Natal, Verão, Inverno, Volta às Aulas).",
+    "Crie campanhas institucionais que reforcem propósito e valores da empresa (ex.: aniversário da marca, cultura interna, impacto social).",
+    "Desenvolva campanhas de conscientização alinhadas ao posicionamento da marca (ex.: Outubro Rosa, Maio Amarelo, sustentabilidade).",
+    "Planeje campanhas promocionais com ofertas, combos, descontos e bônus estratégicos.",
+    "Crie campanhas-relâmpago de 24h a 48h para gerar urgência e aumentar o fluxo de vendas.",
+    "Inclua brindes ou benefícios exclusivos em campanhas especiais (frete grátis, produtos extras, sorteios).",
+    "Desenvolva identidade visual própria para cada campanha (cores, slogans e estilo visual).",
+    "Produza materiais digitais específicos: posts, vídeos, reels, stories, banners e e-mails.",
+    "Produza materiais físicos: faixas, banners, adesivos, decoração temática e panfletos.",
+    "Integre todas as campanhas com os canais de contato: site, loja física, redes sociais, WhatsApp e Google.",
+    "Configure anúncios pagos segmentados por público e região para campanhas estratégicas.",
+    "Crie um calendário anual de campanhas com planejamento mensal e metas específicas.",
+    "Comunique e treine a equipe interna para manter discurso e atendimento alinhados com a campanha vigente.",
+    "Inclua QR Codes ou links curtos nos materiais físicos para conectar com o digital.",
+    "Monitore indicadores de desempenho (alcance, engajamento, vendas, ROI, leads gerados).",
+    "Registre aprendizados e resultados após cada campanha em um relatório interno.",
+    "Replique campanhas que deram certo e aprimore as que tiveram baixo desempenho.",
+    "Avalie o retorno sobre investimento de cada campanha para otimizar recursos futuros.",
+    "Planeje campanhas institucionais e comerciais de forma equilibrada ao longo do ano — marca forte e vendas constantes."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Comercial",
+    "Branding",
+    "Gestão",
+    "Comunicação"
+  ]
+},
+{
+  "id": 35,
+  "titulo": "Campanhas e Calendário Anual de Conteúdos",
+  "descricao": "Campanhas bem planejadas transformam marcas comuns em marcas memoráveis. Organizar um calendário anual de ações garante presença constante na mente do consumidor, com campanhas promocionais, sazonais e de conscientização que unem propósito e resultado. 💡Dica: Use o Mark.IA (no menu lateral) para receber sugestões personalizadas de campanhas e ideias de conteúdo específicas para o seu nicho.",
+  "checklist": [
+    "Mapeie todas as datas comemorativas do ano, nacionais, regionais e específicas do seu setor.",
+    "Crie um calendário anual com campanhas sazonais — ex.: Ano Novo, Páscoa, Dia das Mães, Dia dos Namorados, Black Friday, Natal.",
+    "Inclua campanhas de conscientização relevantes, como Outubro Rosa, Setembro Amarelo, Maio Amarelo e Junho Vermelho.",
+    "Planeje campanhas institucionais e temáticas que reforcem missão, propósito e cultura da empresa.",
+    "Adapte campanhas conforme o nicho — ex.: Dia do Pet, Dia do Café, Dia do Advogado, Dia do Agricultor.",
+    "Integre campanhas locais e regionais — feiras, aniversários da cidade, festas típicas e eventos culturais.",
+    "Defina campanhas promocionais com combos, kits, descontos e condições especiais.",
+    "Crie campanhas-relâmpago (24h/48h) para gerar urgência e picos de vendas.",
+    "Desenvolva campanhas de lançamento de novos produtos ou serviços.",
+    "Produza materiais digitais personalizados: posts, stories, vídeos, reels, banners e e-mails.",
+    "Crie materiais físicos complementares: panfletos, faixas, cartazes e adesivos temáticos.",
+    "Integre campanhas entre físico e digital — ex.: QR Codes, links curtos e cupons compartilhados.",
+    "Defina pilares de conteúdo para manter consistência e criatividade o ano todo: Educacional, Inspiracional, Datas Sazonais, Promoções, Autoridade, Interativo e Relacionamento.",
+    "Inclua conteúdo educacional com dicas, tutoriais, erros comuns e passo a passo para o público.",
+    "Compartilhe conteúdo inspiracional sobre propósito, histórias da empresa e bastidores.",
+    "Use datas comemorativas e divertidas como ganchos de engajamento nas redes sociais.",
+    "Divulgue cases de sucesso, depoimentos e comparativos ‘antes e depois’ para construir autoridade.",
+    "Crie conteúdo interativo — enquetes, quizzes e perguntas para aumentar engajamento.",
+    "Aposte em humanização: mostre pessoas, bastidores, causas sociais e lifestyle da marca.",
+    "Analise resultados após cada campanha (engajamento, vendas e ROI) e registre aprendizados para o próximo ciclo."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Comunicação",
+    "Comercial",
+    "Gestão",
+    "Branding"
+  ]
+},
+{
+  "id": 36,
+  "titulo": "Produto & Apresentação Profissional",
+  "descricao": "Conhecer profundamente o que se vende e apresentar de forma estratégica é a base da boa venda. Não é sobre preço, mas sobre mostrar como o produto ou serviço transforma a vida do cliente e reforça o valor da marca. 💡Dica: Use o Mark.IA (no menu lateral) para criar argumentos de venda personalizados e frases de apresentação adaptadas ao seu público-alvo.",
+  "checklist": [
+    "Estude detalhadamente cada produto ou serviço — características, benefícios e diferenciais competitivos.",
+    "Crie frases curtas e diretas que comuniquem benefícios, como: 'Esse é o mais indicado para quem precisa de [benefício específico]'.",
+    "Vivencie o produto — teste, use ou assista à aplicação para transmitir confiança real na apresentação.",
+    "Saiba responder claramente por que o cliente deve comprar de você e não do concorrente.",
+    "Monte fichas simples com: público ideal, faixa de preço, diferencial e principais objeções.",
+    "Apresente benefícios antes de falar o preço para gerar valor antes de custo.",
+    "Utilize storytelling para envolver o cliente — conte casos reais ou curiosidades sobre o produto.",
+    "Ofereça sempre pelo menos duas opções de produto ou serviço, para que o cliente sinta controle na decisão.",
+    "Mostre prova social, destacando o que é mais vendido, bem avaliado ou mais procurado.",
+    "Permita que o cliente experimente ou interaja com o produto, quando aplicável.",
+    "Use comparações inteligentes: 'Esse é como o modelo premium, mas com custo menor.'",
+    "Adapte o discurso ao perfil do cliente: racional (dados e durabilidade) ou emocional (status e experiência).",
+    "Treine a equipe para manter coerência no discurso de apresentação em todos os canais (presencial e digital).",
+    "Crie materiais visuais de apoio: catálogos, vídeos demonstrativos ou apresentações curtas.",
+    "Inclua storytelling e gatilhos de empatia em posts, vídeos e conversas de venda.",
+    "Use frases que reforcem exclusividade e valor percebido, sem apelar para descontos.",
+    "Aplique o checklist rápido de apresentação: benefício antes do preço, diferencial único, duas opções, prova social e história real.",
+    "Grave vídeos de apresentação do produto para redes sociais e site — ajudam na confiança do cliente.",
+    "Atualize periodicamente o discurso e as fichas de produto conforme feedbacks e tendências de mercado.",
+    "Monitore os produtos/serviços com melhor conversão e replique as estratégias de apresentação bem-sucedidas."
+  ],
+  "setores_relacionados": [
+    "Comercial",
+    "Marketing",
+    "Vendas",
+    "Atendimento",
+    "Gestão"
+  ]
+},
+{
+  "id": 37,
+  "titulo": "Venda Consultiva e Gatilhos de Persuasão Ética",
+  "descricao": "O vendedor moderno não empurra produto — ele escuta, entende e orienta com empatia. A venda consultiva foca em solucionar o problema do cliente, criando confiança, fidelização e valor percebido. 💡Dica: Use o Mark.IA (no menu lateral) para gerar scripts de atendimento personalizados e gatilhos éticos adaptados ao seu público e tipo de produto.",
+  "checklist": [
+    "Pratique escuta ativa: pergunte antes de oferecer qualquer produto ou serviço.",
+    "Use perguntas abertas, como: 'O que você procura hoje?' ou 'Qual é a sua prioridade principal: preço, qualidade ou rapidez?'",
+    "Evite interromper — deixe o cliente falar livremente e demonstre interesse genuíno.",
+    "Repita ou resuma o que o cliente disse para reforçar conexão e mostrar atenção.",
+    "Foque na solução, não no produto. Apresente o que realmente atende à necessidade dele.",
+    "Valide sempre a escolha junto ao cliente: 'Faz sentido para o que você está buscando?'",
+    "Anote preferências, dúvidas e observações para futuras interações.",
+    "Apresente comparativos de forma clara e estratégica: 'Esse é mais econômico, aquele mais completo.'",
+    "Utilize gatilhos mentais de forma ética e natural, sempre com base na verdade do produto.",
+    "Aplique o gatilho da escassez com transparência: 'Últimas unidades disponíveis.'",
+    "Use urgência real, nunca falsa: 'Promoção válida até hoje às 18h.'",
+    "Mostre prova social: 'Esse é o modelo mais procurado pelos nossos clientes nesta semana.'",
+    "Transmita autoridade: 'Esse serviço é referência no mercado e foi reconhecido pela sua durabilidade.'",
+    "Gere exclusividade: 'Essa versão está disponível apenas para clientes cadastrados.'",
+    "Aplique storytelling: conte brevemente a história do produto ou como ele resolveu o problema de outro cliente.",
+    "Use reciprocidade: ofereça uma dica, brinde ou bônus antes de apresentar a oferta.",
+    "Crie antecipação: 'Na próxima semana, teremos uma novidade que complementa esse produto.'",
+    "Use a técnica do sim triplo para fechamento natural — sequência de perguntas afirmativas que conduzem à decisão.",
+    "Empregue a técnica da indicação consultiva: 'Pelo que você mencionou, essa é a opção mais adequada para [problema do cliente].'",
+    "Trate objeções com empatia, reforçando valor: 'Entendo seu ponto. Esse modelo tem uma durabilidade 3x maior, o que reduz o custo a longo prazo.'",
+    "Finalize de forma leve e confiante, sem pressionar o cliente.",
+    "Aplique o checklist rápido: fiz perguntas, personalizei a solução, usei um gatilho ético, validei o atendimento e fechei de forma natural."
+  ],
+  "setores_relacionados": [
+    "Vendas",
+    "Comercial",
+    "Atendimento",
+    "Marketing",
+    "Gestão"
+  ]
+},
+{
+  "id": 38,
+  "titulo": "Atendimento que Encanta e Fideliza",
+  "descricao": "O atendimento é o coração de qualquer negócio. O cliente pode até gostar do produto, mas é o atendimento que faz ele voltar, indicar e lembrar da marca com carinho. 💡Dica: Use o Mark.IA (no menu lateral) para criar roteiros de atendimento personalizados e frases de encantamento adaptadas ao seu público e canal (presencial ou digital).",
+  "checklist": [
+    "Cumprimente o cliente sempre com um sorriso genuíno e energia positiva — a primeira impressão é decisiva.",
+    "Adapte o tom de voz conforme o perfil do cliente: objetivo, acolhedor, descontraído ou técnico.",
+    "Use o nome do cliente sempre que possível para criar conexão e personalização.",
+    "Cumprimente todos os visitantes, mesmo os que apenas observam — toda interação é uma oportunidade.",
+    "Pratique escuta ativa: ouça antes de oferecer e evite interromper.",
+    "Demonstre interesse genuíno em ajudar, não apenas em vender.",
+    "Evite distrações durante o atendimento — mantenha contato visual e atenção total.",
+    "Apresente pelo menos duas alternativas de produto ou serviço para gerar senso de escolha.",
+    "Explique os benefícios de forma simples, direta e alinhada às necessidades do cliente.",
+    "Use frases de encantamento: 'Esse é ideal para quem valoriza conforto e praticidade.' ou 'Posso te mostrar uma novidade que acabou de chegar?'",
+    "Ofereça pequenos gestos que encantam: água, brinde, embalagem diferenciada ou agradecimento personalizado.",
+    "Adapte a experiência de atendimento ao perfil: crianças, idosos, compradores apressados ou indecisos.",
+    "No digital, mantenha respostas rápidas, empáticas e humanizadas — use emojis com moderação e coerência com o tom da marca.",
+    "Feche o atendimento com entusiasmo genuíno: 'Foi um prazer te atender!' ou 'Qualquer dúvida, estou à disposição.'",
+    "Entregue o produto com cuidado e valorização: sacola personalizada, cartão ou embalagem especial.",
+    "Nunca deixe o cliente sair sem sentir que foi valorizado e bem recebido.",
+    "Registre informações importantes do cliente para futuros contatos e pós-venda.",
+    "Implemente um padrão de atendimento (manual ou treinamento) para manter consistência na equipe.",
+    "Reforce a cultura do atendimento encantador em todos os pontos de contato: loja física, WhatsApp, redes sociais e eventos.",
+    "Aplique o checklist rápido: cumprimentei com energia, escutei antes de falar, dei duas opções, usei frase de encantamento e finalizei com entusiasmo."
+  ],
+  "setores_relacionados": [
+    "Atendimento",
+    "Vendas",
+    "Comercial",
+    "Marketing",
+    "Gestão"
+  ]
+},
+{
+  "id": 39,
+  "titulo": "Análise de Clientes e Fatores de Decisão de Compra",
+  "descricao": "Entender o perfil e o comportamento do cliente é essencial para criar experiências personalizadas e estratégias de venda assertivas. Cada tipo de cliente reage de forma diferente a estímulos e decisões de compra — e adaptar o atendimento a isso é o segredo da fidelização. 💡Dica: Use o Mark.IA (no menu lateral) para gerar perfis de clientes ideais e estratégias automáticas de abordagem baseadas em comportamento.",
+  "checklist": [
+    "Identifique o perfil comportamental do cliente logo no início do atendimento — observando postura, perguntas e tom de voz.",
+    "Cliente Analítico: minucioso e orientado por dados — ofereça informações detalhadas, dados técnicos e comparativos objetivos.",
+    "Cliente Empático: valoriza conexões emocionais — demonstre empatia, personalize a abordagem e compartilhe histórias autênticas.",
+    "Cliente Determinado: busca resultados rápidos — seja direto, apresente benefícios concretos e simplifique o processo de compra.",
+    "Cliente Indeciso: inseguro e cauteloso — forneça garantias, mostre depoimentos e reduza riscos percebidos.",
+    "Cliente Sociável: gosta de interação e proximidade — mantenha conversa leve, simpática e promova relacionamento contínuo.",
+    "Cliente Impulsivo: compra pela emoção — use apelos visuais, destaque benefícios imediatos e crie senso de urgência real.",
+    "Cliente Leal: fiel à marca — reconheça sua fidelidade, mantenha qualidade constante e ofereça exclusividades.",
+    "Cliente Negociador: foca no custo-benefício — ofereça pacotes e descontos estratégicos sem comprometer a margem de lucro.",
+    "Treine a equipe para identificar o tipo de cliente nos primeiros minutos do contato, adaptando discurso e ritmo da conversa.",
+    "Crie scripts flexíveis que contemplem abordagens específicas para cada tipo de perfil.",
+    "Monitore quais perfis geram maior conversão e ajuste estratégias de venda de acordo.",
+    "Analise também os principais fatores de decisão de compra e alinhe sua comunicação a eles.",
+    "Preço: ofereça competitividade sem desvalorizar — comunique custo-benefício e durabilidade.",
+    "Qualidade: destaque materiais, processos e resultados — mostre o que diferencia seu produto.",
+    "Reputação da marca: fortaleça o branding e compartilhe avaliações e cases reais.",
+    "Avaliações e recomendações: incentive clientes satisfeitos a deixar depoimentos.",
+    "Experiência do cliente: priorize agilidade, clareza e suporte eficiente.",
+    "Necessidades e valores pessoais: conecte o produto a causas, sustentabilidade ou estilo de vida.",
+    "Promoções e descontos: use campanhas sazonais, combos ou bônus para aumentar conversão.",
+    "Disponibilidade e conveniência: mantenha estoque e ofereça múltiplos canais de compra.",
+    "Estética e design: invista em embalagens, apresentação e fotos de alta qualidade.",
+    "Atualize periodicamente o estudo de perfis e fatores de decisão conforme o mercado evolui."
+  ],
+  "setores_relacionados": [
+    "Vendas",
+    "Comercial",
+    "Atendimento",
+    "Marketing",
+    "Gestão"
+  ]
+},
+{
+  "id": 40,
+  "titulo": "Pós-venda, Relacionamento e Indicações",
+  "descricao": "O pós-venda é o segredo das marcas que crescem de forma sustentável. Continuar presente após a compra transforma clientes em fãs e gera novas vendas através da confiança e das indicações. 💡Dica: Use o Mark.IA (no menu lateral) para criar mensagens automáticas de pós-venda e campanhas de fidelização personalizadas para o seu público.",
+  "checklist": [
+    "Envie uma mensagem de agradecimento personalizada logo após a compra — mencione o nome do cliente e o produto adquirido.",
+    "Use uma linguagem acolhedora e humanizada: 'Oi [nome], muito obrigado pela sua compra! Foi um prazer te atender — qualquer dúvida, conte comigo.'",
+    "Registre o histórico de compra do cliente para personalizar futuras comunicações.",
+    "Realize follow-up entre 3 e 7 dias após a venda: pergunte se está tudo certo com o produto ou serviço.",
+    "Ofereça suporte ou dicas de uso para reforçar confiança e aumentar satisfação.",
+    "Exemplo de follow-up: 'Oi [nome], tudo certo com seu pedido? Posso te mandar algumas dicas para aproveitar ainda mais?'",
+    "Crie listas segmentadas de clientes (novos, recorrentes, VIPs) para comunicações direcionadas.",
+    "Monte um programa de fidelidade simples e eficaz: recompensas, descontos progressivos ou benefícios exclusivos.",
+    "Envie mensagens personalizadas em datas importantes: aniversário, comemoração de compra, feriados especiais.",
+    "Mantenha contato constante com clientes fiéis — lembre-se: relacionamento gera recorrência.",
+    "Crie campanhas de indicação premiada: ofereça brindes, bônus ou descontos para quem indicar novos clientes.",
+    "Exemplo: 'Indique 1 amigo e ganhe um presente especial!' — simples, eficaz e com alto potencial de viralização.",
+    "Agradeça publicamente (com autorização) os clientes que indicarem outras pessoas, reforçando prova social e reconhecimento.",
+    "Use o pós-venda como canal de escuta: peça feedbacks e sugestões sobre produtos e atendimento.",
+    "Aplique melhorias com base nos retornos dos clientes — isso mostra atenção e respeito.",
+    "Integre o pós-venda com canais digitais: WhatsApp Business, CRM e e-mail marketing.",
+    "Automatize lembretes de recompra para produtos ou serviços recorrentes.",
+    "Compartilhe novidades com sua base fiel antes de divulgar ao público geral (exclusividade gera valor).",
+    "Crie uma cultura interna de encantamento: todos da equipe devem entender que o pós-venda é parte do atendimento, não um bônus.",
+    "Aplique o checklist rápido: agradeci, fiz follow-up, fidelizei, criei campanhas de indicação e ouvi o cliente para evoluir continuamente."
+  ],
+  "setores_relacionados": [
+    "Vendas",
+    "Atendimento",
+    "Comercial",
+    "Marketing",
+    "Gestão"
+  ]
+},
+{
+  "id": 41,
+  "titulo": "Marketing no Ponto de Venda",
+  "descricao": "A loja física é um palco vivo da marca. Cada detalhe — da vitrine à música ambiente — influencia a percepção do cliente e pode dobrar as chances de venda. 💡Dica: Use o Mark.IA (no menu lateral) para criar campanhas sazonais e ideias de ambientação visual personalizadas para o seu ponto de venda.",
+  "checklist": [
+    "Mantenha a loja sempre limpa, organizada e bem iluminada — o visual comunica qualidade e cuidado.",
+    "Escolha música ambiente que combine com o perfil do público: alegre, suave ou sofisticada.",
+    "Utilize um aroma agradável e consistente, transformando-o na identidade sensorial da marca.",
+    "Crie espaços instagramáveis — espelhos com frases, murais ou cantinhos de foto — para incentivar compartilhamentos.",
+    "Ofereça pequenos encantos no atendimento presencial: água, balão para crianças, embalagem especial.",
+    "Monte áreas de teste ou interação para que o cliente possa tocar, experimentar e vivenciar os produtos.",
+    "Garanta que a equipe mantenha postura e energia positivas durante todo o atendimento.",
+    "Encerrar a compra com entusiasmo e gratidão: 'Foi ótimo te atender, volte sempre!'",
+    "Padronize materiais de apoio: sacolas, etiquetas, cartões e displays com a identidade da marca.",
+    "Use TV, cartazes ou painéis digitais para divulgar novidades e depoimentos reais de clientes.",
+    "Crie sinalização clara e visualmente organizada — setores bem divididos e cores padronizadas.",
+    "Implemente um 'cantinho da oportunidade' com promoções e últimas peças.",
+    "Atualize a vitrine semanalmente com produtos estratégicos, iluminados e contextualizados com a estação.",
+    "Tematize campanhas e vitrines em datas especiais (Dia das Mães, Natal, Volta às Aulas etc.).",
+    "Use frases de impacto para gerar desejo: 'Chegaram os queridinhos da estação!' ou 'A peça que está dominando as redes.'",
+    "Garanta que a fachada esteja sempre limpa, iluminada e visível de longe.",
+    "Inclua QR Codes para direcionar o cliente para o Instagram, catálogo ou WhatsApp.",
+    "Treine a equipe para explicar as campanhas e reforçar o posicionamento da marca.",
+    "Revise a ambientação e a experiência a cada 45 dias para garantir consistência e inovação."
+  ],
+  "setores_relacionados": [
+    "Vendas",
+    "Atendimento",
+    "Marketing",
+    "Gestão",
+    "Branding"
+  ]
+},
+{
+  "id": 42,
+  "titulo": "Relacionamento, União e Colaboração Interna",
+  "descricao": "Um time unido é o coração de uma loja de sucesso. Quando há cooperação, comunicação clara e respeito, o cliente sente isso no atendimento. 💡Dica: Use o Mark.IA (no menu lateral) para criar dinâmicas semanais de motivação e checklists de alinhamento de equipe personalizados para sua loja.",
+  "checklist": [
+    "Evite fofocas e comentários que geram ruído entre a equipe — mantenha o ambiente leve e respeitoso.",
+    "Resolva divergências em conversas diretas, com empatia e sem exposição pública.",
+    "Realize reuniões rápidas semanais (10 a 15 minutos) para alinhamento de metas e novidades.",
+    "Compartilhe boas práticas e técnicas de venda bem-sucedidas entre colegas.",
+    "Promova rodízio ou divisão justa no atendimento para evitar disputas por clientes.",
+    "Reforce a mentalidade coletiva: 'Todos ganham quando a loja vai bem.'",
+    "Reconheça publicamente atitudes positivas — não só resultados, mas esforço e colaboração.",
+    "Celebre pequenas vitórias: meta batida, elogio de cliente, aumento de ticket médio.",
+    "Crie rituais de motivação: frases do dia, mini dinâmicas ou sorteios entre a equipe.",
+    "Estimule aprendizado contínuo — treine juntas novas técnicas e simulações de atendimento.",
+    "Registre objeções comuns dos clientes e discuta em grupo as melhores respostas.",
+    "Estimule feedbacks construtivos — todos podem aprender uns com os outros.",
+    "Defina um canal interno de comunicação (grupo no WhatsApp Business, mural, planilha compartilhada).",
+    "Promova desafios semanais com foco em união, não apenas competição.",
+    "Alinhe os valores da equipe ao propósito da marca: gentileza, eficiência e encantamento.",
+    "Garanta que todos saibam os diferenciais da marca e falem a mesma linguagem com o cliente.",
+    "Crie um ambiente de pertencimento — incentive ideias e opiniões de todos os membros.",
+    "Monitore o clima organizacional mensalmente, ouvindo a equipe de forma aberta.",
+    "Implemente uma cultura de colaboração, reconhecimento e aprendizado contínuo.",
+    "Estabeleça 30 dias de foco em novos hábitos e reuniões semanais para manter alinhamento e motivação."
+  ],
+  "setores_relacionados": [
+    "Gestão de Pessoas",
+    "Liderança",
+    "Atendimento",
+    "Vendas",
+    "Comercial"
+  ]
+},
+{
+  "id": 43,
+  "titulo": "Crescimento Pessoal e Profissional",
+  "descricao": "O sucesso da empresa começa pelo desenvolvimento de cada pessoa dentro dela. Um vendedor preparado e motivado vende com mais confiança, energia e propósito. 💡Dica: Use o Mark.IA (no menu lateral) para gerar planos de evolução pessoal, trilhas de aprendizado e metas de desenvolvimento profissional para cada colaborador.",
+  "checklist": [
+    "Reserve pelo menos 10 minutos por dia para ler sobre vendas, marketing ou comportamento humano.",
+    "Observe atentamente como os clientes reagem às suas abordagens e anote padrões de comportamento.",
+    "Faça uma autoavaliação diária: 'O que posso melhorar em cada atendimento de hoje?'",
+    "Peça feedback honesto a colegas e líderes — aprendizado vem da troca.",
+    "Treine comunicação verbal e não verbal: tom de voz, postura, sorriso e contato visual.",
+    "Pratique escuta ativa — ouça com atenção e evite interromper o cliente.",
+    "Cuide da aparência profissional e da postura — sua imagem também comunica confiança.",
+    "Cultive empatia: coloque-se no lugar do cliente para entender suas necessidades reais.",
+    "Comece o dia com energia positiva — boa alimentação e sono adequado fazem diferença.",
+    "Use frases motivacionais, músicas ou rituais que te coloquem em estado de foco e entusiasmo.",
+    "Reconheça e celebre pequenas vitórias — cada avanço é um passo para grandes conquistas.",
+    "Defina metas pessoais além das metas da empresa: aprendizado, comportamento e resultados.",
+    "Participe de treinamentos, palestras e cursos — e aplique o que aprender.",
+    "Compartilhe seus aprendizados com colegas — ensinar reforça o conhecimento.",
+    "Experimente novas técnicas de venda e avalie o que funciona melhor para o seu estilo.",
+    "Mantenha curiosidade e vontade de aprender sobre o mercado, clientes e tendências.",
+    "Crie uma rotina de evolução: leitura, prática, reflexão e aplicação.",
+    "Tenha humildade para aprender sempre, mesmo com pessoas mais novas ou de outras áreas.",
+    "Valorize o progresso, não a perfeição — o importante é melhorar um pouco a cada dia.",
+    "Lembre-se: quando você cresce, sua equipe e seus resultados crescem junto."
+  ],
+  "setores_relacionados": [
+    "Desenvolvimento Pessoal",
+    "Vendas",
+    "Gestão de Pessoas",
+    "Liderança",
+    "Treinamento"
+  ]
+},
+{
+  "id": 44,
+  "titulo": "Tom de Voz & Políticas da Empresa",
+  "descricao": "A equipe é o espelho da marca. Quando todos seguem o mesmo padrão de linguagem, postura e comportamento, o cliente sente confiança e percebe profissionalismo. 💡Dica: Use o Mark.IA (no menu lateral) para criar o manual de identidade verbal e comportamental da sua empresa, com mensagens, frases e respostas padronizadas para o seu tipo de público.",
+  "checklist": [
+    "Garanta que todos os colaboradores entendam o propósito, os valores e o posicionamento da marca — isso orienta o comportamento.",
+    "Mantenha uniforme ou dress code limpo, alinhado e coerente com a identidade da empresa.",
+    "Cuide da higiene pessoal e da apresentação — imagem transmite credibilidade.",
+    "Evite uso de celular durante o atendimento e mantenha foco total no cliente.",
+    "Use linguagem profissional, educada e sem gírias ou expressões informais em excesso.",
+    "Seja pontual em todos os horários e compromissos — pontualidade é respeito.",
+    "Cumprimente todos os clientes com sorriso real e energia positiva.",
+    "Nunca deixe o cliente esperando sem resposta, tanto no físico quanto no digital.",
+    "Substitua frases negativas por alternativas positivas e empáticas:",
+    "❌ 'Não tem' → ✅ 'Posso verificar outra opção parecida para você?'",
+    "❌ 'Não sei' → ✅ 'Vou confirmar e já te retorno com a melhor resposta.'",
+    "Mantenha empatia e calma em situações de conflito — resolver com elegância é parte da marca.",
+    "Encerrar o atendimento com gratidão e entusiasmo: 'Foi um prazer te atender, volte sempre!'",
+    "Adote um tom de voz acolhedor e humano — o cliente precisa sentir que está falando com pessoas, não robôs.",
+    "Seja claro e objetivo — evite enrolar ou confundir com informações desnecessárias.",
+    "Mantenha sempre uma postura positiva, falando mais sobre soluções do que sobre problemas.",
+    "Trate o cliente pelo nome sempre que possível — personalização gera conexão.",
+    "Respeite colegas e gestores, mantendo comunicação direta e profissional.",
+    "Evite levar problemas pessoais para o ambiente de trabalho.",
+    "Siga as orientações da liderança, mas mantenha abertura para contribuir com ideias e melhorias.",
+    "Resolva conflitos internamente — nunca na frente de clientes ou parceiros.",
+    "Documente as políticas internas da empresa: atendimento, comportamento, redes sociais, uso de uniforme e canais de comunicação.",
+    "Reforce essas diretrizes em reuniões semanais para manter alinhamento constante.",
+    "Crie um manual rápido de conduta com frases-chave, respostas padrão e orientações de postura.",
+    "Revise as políticas a cada 6 meses — a cultura deve evoluir junto com a marca."
+  ],
+  "setores_relacionados": [
+    "Gestão de Pessoas",
+    "Atendimento",
+    "Liderança",
+    "Cultura Organizacional",
+    "Comunicação"
+  ]
+},
+{
+  "id": 45,
+  "titulo": "Tráfego e Divulgações",
+  "descricao": "Não adianta ter uma marca incrível se ninguém a vê. O tráfego — orgânico e pago — é o combustível que leva clientes até você. 💡Dica: Use o Mark.IA (no menu lateral) para gerar planos de mídia e estratégias de anúncios personalizados conforme seu público e região.",
+  "checklist": [
+    "Crie um cronograma semanal de posts, vídeos e stories com base nos pilares de conteúdo da marca.",
+    "Publique Reels, Shorts e TikToks mostrando bastidores reais, depoimentos e resultados.",
+    "Escreva legendas estratégicas com foco em educação, utilidade e conexão emocional.",
+    "Aplique técnicas de SEO no site, blog e nas postagens do Google para aparecer em buscas locais.",
+    "Atualize o perfil do Google Meu Negócio semanalmente com fotos, novidades e posts.",
+    "Incentive clientes a deixarem avaliações reais e responda todas com empatia.",
+    "Realize lives, enquetes e caixinhas de perguntas para aumentar o engajamento diário.",
+    "Fortaleça o relacionamento contínuo pelo WhatsApp — listas VIP, grupos e atendimento humanizado.",
+    "Defina o objetivo claro de cada campanha paga: reconhecimento, engajamento, leads ou vendas.",
+    "Crie campanhas no Meta Ads (Facebook e Instagram) com imagens e copys otimizadas.",
+    "Utilize Google Ads para atrair clientes prontos para comprar — campanhas de pesquisa, display e YouTube.",
+    "Teste parcerias com microinfluenciadores locais e influenciadores estratégicos do nicho.",
+    "Desenvolva anúncios com CTA direto para o WhatsApp, facilitando o contato e fechamento rápido.",
+    "Segmente o público por interesse, comportamento, idade e localização — anúncios genéricos não convertem.",
+    "Acompanhe métricas de desempenho: CPA (Custo por Aquisição), CTR (Taxa de Cliques) e ROI (Retorno sobre Investimento).",
+    "Escale apenas campanhas que entregam resultado real — siga a regra 20/80 (20% dos anúncios trazem 80% dos resultados).",
+    "Adicione QR Codes em cartões, embalagens e materiais impressos para conectar o físico ao digital.",
+    "Crie vídeos curtos explicativos para rodar na TV da loja, WhatsApp e redes sociais.",
+    "Produza materiais físicos das campanhas (banners, displays, etiquetas e cartazes promocionais).",
+    "Monte listas de transmissão VIP com novidades e promoções semanais para fidelizar clientes.",
+    "Transforme clientes satisfeitos em divulgadores com programas de indicação e fidelidade.",
+    "Crie campanhas de depoimentos em destaque — vídeos, posts ou stories com clientes reais.",
+    "Planeje integrações entre campanhas offline e online (por exemplo: evento físico + post digital).",
+    "Reavalie mensalmente o desempenho de cada canal e ajuste as estratégias conforme resultados."
+  ],
+  "setores_relacionados": [
+    "Marketing",
+    "Vendas",
+    "Publicidade",
+    "Gestão de Mídia",
+    "Comunicação"
+  ]
+},
+{
+  "id": 46,
+  "titulo": "Tráfego Orgânico Físico",
+  "descricao": "O tráfego físico é o coração da presença local. É onde o cliente vê, sente e se conecta emocionalmente com a marca. Cada vitrine, som e cheiro é uma oportunidade de gerar lembrança e desejo. 💡Dica: Use o Mark.IA (no menu lateral) para criar o mapa de ativação local da sua marca — identificando pontos de alto fluxo, parcerias e experiências estratégicas para aumentar visitas presenciais.",
+  "checklist": [
+    "Atualize a vitrine e a fachada com temas sazonais e histórias visuais (storytelling de campanha).",
+    "Garanta iluminação forte à noite e limpeza impecável diariamente.",
+    "Mude os produtos de destaque da vitrine pelo menos uma vez por mês.",
+    "Use quadros, cavaletes ou placas criativas com mensagens de valor e convite para entrar.",
+    "Inclua placas direcionais em ruas próximas ('A 100m', 'Entre e conheça').",
+    "Organize o layout da loja destacando zonas quentes (entrada) e best-sellers.",
+    "Monte ilhas de lançamentos e áreas de experimentação de produtos.",
+    "Mantenha sinalização clara e provadores acolhedores.",
+    "Adote planograma inteligente: produtos na altura dos olhos e combinações de cross-selling.",
+    "Crie ambientação sensorial com aroma assinatura, música coerente e materiais táteis.",
+    "Permita degustação ou teste sempre que possível — interação gera desejo.",
+    "Crie parcerias com comércios locais (cafés, salões, academias) para troca de exposição.",
+    "Distribua materiais em condomínios, empresas e escolas (com autorização).",
+    "Promova eventos presenciais como lançamentos, desfiles, VIP Day e aniversários da loja.",
+    "Monte um ponto instagramável (fotopoint) com QR para marcação da marca.",
+    "Ofereça brindes e embalagens reutilizáveis com QR Code e link único da empresa.",
+    "Distribua cartões de indicação física com benefícios (indique e ganhe).",
+    "Estimule parcerias com síndicos, taxistas e motoristas de app com materiais personalizados.",
+    "Adesive discretamente veículos da marca e mantenha uniformes padronizados.",
+    "Treine a equipe para atendimento encantador — usar o nome do cliente e scripts alinhados ao tom da marca.",
+    "Inclua cartões de agradecimento com QR Code para avaliação ou redes sociais.",
+    "Envie releases simples para rádios, jornais e portais locais destacando novidades e ações sociais.",
+    "Participe de campanhas comunitárias e eventos beneficentes com presença física da marca.",
+    "Use QR Codes únicos em vitrines, panfletos e balcões para mensurar origem do tráfego.",
+    "Implemente cupons diferentes por parceiro/local para rastrear resultados.",
+    "Faça contagem manual de entradas e acompanhe taxa de conversão (vendas ÷ visitantes).",
+    "Acompanhe ticket médio e resultados por evento, vitrine e horário.",
+    "Estenda o horário de funcionamento em datas estratégicas e crie 'happy hours' de ofertas.",
+    "Mantenha vitrine atualizada — nunca deixe campanhas antigas expostas.",
+    "Sincronize campanhas físicas com digitais para aumentar o impacto das ações.",
+    "Em negócios de serviço (clínicas, estética, oficinas), destaque profissionalismo, limpeza e parcerias locais.",
+    "Use folders, manuais e cartões físicos como reforço visual e de autoridade.",
+    "Crie um calendário mensal de ativações físicas (mini eventos, vitrines temáticas, colaborações locais)."
+  ],
+  "setores_relacionados": [
+    "Marketing Local",
+    "Varejo",
+    "Experiência do Cliente",
+    "Eventos",
+    "Branding Físico"
+  ]
+},
+{
+  "id": 47,
+  "titulo": "Tráfego Orgânico Digital",
+  "descricao": "O tráfego orgânico é o motor de crescimento sustentável da marca. Ele atrai clientes de forma natural, sem depender de anúncios, através de conteúdo relevante, presença digital e relacionamento. 💡Dica: Use o Mark.IA (no menu lateral) para planejar seu calendário de conteúdo e gerar ideias automáticas para manter consistência e alcance orgânico nas redes.",
+  "checklist": [
+    "Publique conteúdo constante nas redes sociais (mínimo 3x por semana) com variedade de temas: produtos, bastidores, dicas e depoimentos.",
+    "Mostre a rotina real da empresa — equipe, processos, recebimento de mercadorias, dia a dia.",
+    "Crie conteúdos úteis e educativos que solucionem dúvidas e ajudem o cliente a tomar decisões.",
+    "Reforce prova social com prints, depoimentos e reposts de clientes reais.",
+    "Use hashtags estratégicas relacionadas ao seu setor e cidade para alcançar o público local.",
+    "Invista em vídeos curtos (Reels, Shorts, TikToks) — são o formato com maior alcance orgânico.",
+    "Promova enquetes, perguntas e comparativos ('qual você escolheria?') para incentivar interação.",
+    "Crie listas de transmissão no WhatsApp segmentadas por tipo de cliente (VIP, novidades, promoções).",
+    "Monte grupos temáticos para clientes fiéis e interessados em novidades exclusivas.",
+    "Atualize diariamente o status do WhatsApp com produtos, bastidores e promoções.",
+    "Peça autorização para enviar novidades por mensagem e mantenha a frequência equilibrada.",
+    "Mantenha um blog simples no site com artigos rápidos e práticos (ex: 'Como escolher o presente ideal').",
+    "Crie guias, checklists ou e-books gratuitos para captar leads e educar o público.",
+    "Participe de lives, podcasts ou parcerias digitais para fortalecer autoridade.",
+    "Atualize o Google Meu Negócio semanalmente com fotos reais e postagens novas.",
+    "Incentive clientes a deixarem avaliações no Google — responda todas de forma cordial.",
+    "Otimize descrições do site e da loja com palavras-chave locais (ex: 'salão de beleza em [cidade]').",
+    "Crie conteúdos otimizados para SEO local — úteis e bem escritos.",
+    "Reposte clientes que marcam a marca e agradeça publicamente as interações.",
+    "Promova desafios, sorteios e campanhas que gerem engajamento orgânico real.",
+    "Crie séries de conteúdo fixas, como 'Dica da Semana' ou 'Produto Destaque'.",
+    "Responda rapidamente todos os comentários e directs com atenção e personalização.",
+    "Realize parcerias com microinfluenciadores locais — engajamento é mais importante que número.",
+    "Compartilhe conquistas e marcos da empresa (aniversário, recordes, novidades).",
+    "Use storytelling para contar histórias da marca, dos clientes e dos produtos de forma emocional.",
+    "Mantenha consistência — o tráfego orgânico cresce com frequência e constância, não com ações isoladas.",
+    "Analise semanalmente as métricas orgânicas (alcance, engajamento, seguidores e cliques).",
+    "Ajuste a estratégia com base nos conteúdos que mais geram interação e salvamentos.",
+    "Integre o tráfego digital com o físico — incentive clientes da loja a seguir as redes e vice-versa."
+  ],
+  "setores_relacionados": [
+    "Marketing Digital",
+    "Conteúdo",
+    "Comunicação",
+    "Branding",
+    "Relacionamento com Clientes"
+  ]
+},
+{
+  "id": 48,
+  "titulo": "Tráfego Pago (Google Ads)",
+  "descricao": "O Google Ads é a ferramenta que coloca sua marca na frente de quem já está procurando o que você oferece. Quando configurado com estratégia e mensuração correta, transforma intenção em vendas previsíveis. 💡Dica: Use o Mark.IA (no menu lateral) para gerar automaticamente campanhas com palavras-chave, anúncios e públicos recomendados para seu negócio.",
+  "checklist": [
+    "Instale e configure corretamente o Google Analytics 4 (GA4) e o Google Tag Manager.",
+    "Defina e acompanhe conversões reais: compras, leads qualificados, ligações, mensagens e visitas à loja.",
+    "Determine um objetivo de performance: CAC alvo (para serviços) ou ROAS alvo (para e-commerce).",
+    "Crie landing pages otimizadas para mobile, com carregamento rápido e CTA claro.",
+    "Apresente sua oferta e diferenciais de forma objetiva, com prova social visível (reviews, fotos, cases).",
+    "Para e-commerce: estruture campanhas Search (marca + genéricos), Performance Max e remarketing.",
+    "Para serviços locais: foque em buscas geolocalizadas ('em [cidade]'), extensões de chamada e localização.",
+    "Para B2B e produtos de ticket alto: use Search, DSA, YouTube e Discovery para educar o mercado.",
+    "Separe campanhas por intenção: Marca, Genéricas e Concorrentes.",
+    "Use correspondência exata e de frase para palavras principais e teste ampla inteligente com volume.",
+    "Limite grupos de anúncios a 3–5 palavras com mesma intenção para manter relevância.",
+    "Crie lista de palavras negativas e atualize continuamente (termos genéricos, vagas, gratuitos, etc.).",
+    "Monte anúncios responsivos (RSAs) com 10–15 títulos e 4 descrições testando CTAs e propostas.",
+    "Ative todas as extensões possíveis: sitelinks, destaques, preços, chamadas, promoções e local.",
+    "Teste títulos e descrições que incluam diferenciais reais: garantia, entrega, avaliações e resultados.",
+    "Inicie com estratégia de lances 'Maximize Conversions' até coletar dados.",
+    "Após 2 semanas, migre para tCPA (leads) ou tROAS (vendas) para otimizar por resultado.",
+    "Garanta orçamento suficiente para gerar 20–30 cliques por dia em cada campanha principal.",
+    "Evite alterações constantes que reiniciam o aprendizado do algoritmo.",
+    "Para Performance Max (e-commerce): otimize o feed no Merchant Center com títulos, GTIN e imagens profissionais.",
+    "Estruture PMax por categorias e adicione sinais de audiência e listas de remarketing.",
+    "Monitore Search Insights da PMax e adicione palavras negativas conforme necessário.",
+    "Crie públicos personalizados: visitantes 30/60/90 dias, abandono de carrinho e lista de clientes (Customer Match).",
+    "Monte sequência de remarketing em três etapas: benefício → objeção → oferta.",
+    "Desenvolva landing pages com headline de benefício, prova social acima da dobra e CTA repetido.",
+    "Priorize velocidade e clareza — cada segundo de carregamento reduz conversão.",
+    "Inclua selos de segurança, garantias e políticas claras para gerar confiança.",
+    "Acompanhe métricas de performance: CTR, CPC, taxa de conversão, CPA, ROAS.",
+    "Analise termos de pesquisa semanalmente e otimize anúncios e páginas com base em dados reais.",
+    "Crie relatórios mensais comparando investimento, resultados e ROI para decisões assertivas."
+  ],
+  "setores_relacionados": [
+    "Marketing Digital",
+    "Publicidade",
+    "E-commerce",
+    "Gestão de Mídia",
+    "Análise de Dados"
+  ]
+},
+{
+  "id": 49,
+  "titulo": "Tráfego Pago (Meta Ads – Facebook & Instagram)",
+  "descricao": "Meta Ads é a vitrine digital da marca — onde o público passa tempo, se inspira e decide comprar. Com uma boa estrutura de funil, criativos autênticos e mensuração correta, ele transforma atenção em vendas. 💡Dica: Use o Mark.IA (no menu lateral) para gerar automaticamente ideias de anúncios, públicos e criativos para Meta Ads, otimizando tempo e aumentando resultados.",
+  "checklist": [
+    "Instalar e validar o Pixel Meta no site, loja virtual ou landing page.",
+    "Ativar eventos principais: View Content, Add to Cart, Initiate Checkout, Purchase e Leads.",
+    "Verificar o domínio no Business Manager e garantir a integração com o catálogo (para e-commerce).",
+    "Organizar todas as páginas, contas e permissões dentro do Business Manager.",
+    "Definir oferta clara antes de anunciar: produto estrela, serviço principal, combo ou diferencial competitivo.",
+    "Estruturar campanhas em funil completo (topo, meio e fundo).",
+    "Topo do funil: campanhas de Reconhecimento, Alcance e Tráfego com criativos amplos e emocionais.",
+    "Usar públicos de interesses amplos, lookalikes de compradores e segmentação por localização.",
+    "Criar Reels curtos (6–15 segundos), vídeos dinâmicos e fotos vibrantes com foco em benefício.",
+    "Meio do funil: campanhas de Engajamento e Mensagens (WhatsApp e Direct).",
+    "Públicos: engajados dos últimos 30/60/180 dias, visitantes do site e visualizadores de vídeos.",
+    "Criativos: depoimentos, comparativos, bastidores e demonstrações do produto ou serviço.",
+    "Fundo do funil: campanhas de Conversão com foco em vendas diretas e remarketing.",
+    "Públicos: abandono de carrinho, iniciadores de checkout e visitantes recorrentes.",
+    "Criativos: ofertas diretas, urgência (últimas unidades, frete grátis) e reviews reais.",
+    "Usar segmentações de interesse e lookalikes de clientes, leads e engajados em 95% dos vídeos.",
+    "Criar públicos locais com raio geográfico para lojas físicas.",
+    "Implementar remarketing para visitantes, engajados e quem interagiu com posts, directs ou vídeos.",
+    "Usar vídeos curtos (5–20s), com legendas grandes e demonstrações reais.",
+    "Explorar formatos: carrossel comparativo, antes e depois, ou lista de benefícios ('3 motivos para escolher').",
+    "Produzir conteúdo UGC (depoimentos reais, influenciadores locais, clientes usando o produto).",
+    "Estruturar copy com abertura (dor/desejo), corpo (benefício + prova) e fechamento (CTA).",
+    "Usar tipos de anúncio adequados: catálogo dinâmico (e-commerce), lead ads (serviços), mensagens (WhatsApp) e Reels Ads.",
+    "Iniciar com orçamento de R$20 a R$50/dia por campanha principal.",
+    "Manter campanhas por pelo menos 7 dias antes de editar, para respeitar o período de aprendizado.",
+    "Usar CBO (otimização de orçamento no nível da campanha) para melhor distribuição automática.",
+    "Monitorar métricas-chave: CTR (>1%), CPM, CPC, CPA e ROAS.",
+    "Pausar anúncios com CTR baixo e duplicar os vencedores semanalmente.",
+    "Atualizar públicos e criativos mensalmente, sempre testando novas variações.",
+    "Evitar erros comuns: falta de pixel, apenas 1 criativo ativo, segmentação restrita ou oferta genérica.",
+    "Medir resultados semanalmente: gasto, conversões e retorno real sobre investimento (ROAS)."
+  ],
+  "setores_relacionados": [
+    "Marketing Digital",
+    "Publicidade",
+    "E-commerce",
+    "Gestão de Mídia",
+    "Vendas Online"
+  ]
+},
+{
+  "id": 50,
+  "titulo": "Tráfego Pago (Marketplaces Ads)",
+  "descricao": "Anunciar dentro de marketplaces é investir onde o cliente já está pronto para comprar. Com fotos profissionais, títulos otimizados e anúncios estratégicos, seus produtos ganham destaque e escalam vendas. 💡Dica: Use o Mark.IA (no menu lateral) para gerar automaticamente títulos otimizados, descrições e sugestões de palavras-chave para cada marketplace.",
+  "checklist": [
+    "Garanta fotos profissionais dos produtos (fundo branco + imagens lifestyle).",
+    "Otimize os títulos com palavras-chave reais de busca (ex.: 'tênis casual masculino confortável').",
+    "Escreva descrições completas, destacando benefícios, características, medidas e garantias.",
+    "Mantenha preço competitivo e coerente com o mercado e categoria.",
+    "Busque e incentive avaliações positivas — elas elevam ranqueamento e conversão.",
+    "Organize estoque e garanta envios rápidos (Full, FBA ou logística própria).",
+    "Monitore reputação e mantenha status verde nas plataformas.",
+    "Crie anúncios patrocinados para produtos estrela (maior margem e procura).",
+    "Teste produtos de ticket médio com orçamento inicial menor para coleta de dados.",
+    "Reinvista parte do faturamento gerado no próprio marketplace para acelerar crescimento.",
+    "Use relatórios internos para descobrir quais anúncios trazem melhor ACoS e ROAS.",
+    "No Mercado Livre: use Product Ads (busca e destaque) e Display Ads para posições premium.",
+    "Na Amazon: use Sponsored Products (palavras-chave), Sponsored Brands (marca) e Sponsored Display (remarketing).",
+    "Na Shopee: configure Busca Patrocinada e Descoberta Patrocinada para aumentar visibilidade.",
+    "Em Magalu/Americanas: participe de campanhas sazonais (Black Friday, Dia das Mães, Natal).",
+    "Aplique investimento proporcional ao desempenho — evite dividir orçamento igualmente entre todos os produtos.",
+    "Acompanhe termos de busca semanalmente e adicione palavras negativas quando possível.",
+    "Atualize títulos e descrições com base nas buscas mais usadas pelos clientes.",
+    "Monitore CPC e ACoS diariamente e pause campanhas de baixo desempenho.",
+    "Melhore fotos e títulos de produtos com CTR baixo e teste novas versões.",
+    "Crie kits e combos para aumentar ticket médio e melhorar ROI.",
+    "Aproveite sazonalidades (Páscoa, Namorados, Black Friday, Natal) com campanhas específicas.",
+    "Ofereça frete rápido e cupons promocionais — são diferenciais de decisão.",
+    "Use vídeos curtos e imagens lifestyle para mostrar o produto em uso real.",
+    "Adicione garantias e políticas de devolução claras — aumentam confiança.",
+    "Acompanhe métricas-chave: CTR, conversão, ACoS, ROAS, Buy Box e posição no ranking.",
+    "Analise preço vs. concorrência e ajuste diariamente se necessário.",
+    "Evite anunciar produtos com baixo estoque — pode prejudicar reputação e nota da loja.",
+    "Não invista em anúncios antes de otimizar fotos e descrições — isso reduz CPC e aumenta conversão.",
+    "Revise relatórios semanalmente e mantenha campanhas ativas em períodos de alto tráfego."
+  ],
+  "setores_relacionados": [
+    "E-commerce",
+    "Marketing Digital",
+    "Gestão de Mídia",
+    "Vendas Online",
+    "Marketplace Performance"
+  ]
+},
+{
+  "id": 51,
+  "titulo": "Tráfego Pago (Marcas & Influenciadores Pagos)",
+  "descricao": "Investir em parcerias pagas com influenciadores ou marcas é a forma mais rápida de ampliar alcance e gerar confiança. É ‘alugar’ atenção qualificada e transformar a credibilidade de outros em crescimento da sua marca. 💡Dica: Use o Mark.IA (no menu lateral) para identificar influenciadores locais e criar propostas automáticas de parceria com base no seu público e objetivo.",
+  "checklist": [
+    "Defina o objetivo da campanha: reconhecimento, engajamento, geração de leads ou vendas diretas.",
+    "Escolha influenciadores ou marcas que compartilhem o mesmo público-alvo, mas não sejam concorrentes diretos.",
+    "Monte campanhas colaborativas (co-branding): eventos, lançamentos, kits combinados e conteúdos conjuntos.",
+    "Crie cupons cruzados e promoções compartilhadas entre marcas parceiras.",
+    "Participe de eventos, feiras e ativações locais com presença física conjunta.",
+    "Use conteúdos co-criados (Reels, vídeos, fotos) para fortalecer a presença digital das duas marcas.",
+    "Classifique influenciadores por categoria: Nano (1k–10k), Micro (10k–100k), Médio/Grande (100k+).",
+    "Defina o modelo de parceria: publipost, pacote mensal, comissão por venda, experiência ou kit PR.",
+    "Avalie o público do influenciador: cidade, faixa etária, gênero e interesses.",
+    "Exija mídia kit atualizado com dados de engajamento, alcance e conversões médias.",
+    "Priorize influenciadores com engajamento real (≥2% a 3%) e público compatível com sua persona.",
+    "Verifique histórico de conduta e evite perfis com polêmicas ou incoerências de imagem.",
+    "Defina entregas claras: número de stories, posts, reels e lives incluídos.",
+    "Estabeleça calendário de publicações com datas e horários definidos.",
+    "Determine se o conteúdo poderá ser reaproveitado em anúncios (direito de uso).",
+    "Solicite relatório de métricas após a campanha (alcance, engajamento, cliques e conversões).",
+    "Escolha formato de conteúdo conforme objetivo: stories (proximidade), reels (descoberta), feed (autoridade).",
+    "Ofereça liberdade criativa para o influenciador — autenticidade gera conversão.",
+    "Incentive storytelling: rotina real, uso do produto, bastidores e depoimentos genuínos.",
+    "Peça conteúdos UGC (gerados pelo influenciador) para usar em campanhas pagas da marca.",
+    "Acompanhe métricas: alcance, engajamento, cliques, cupons usados e vendas geradas.",
+    "Calcule o ROI da campanha comparando custo total com receita rastreada (por cupom ou link).",
+    "Negocie pagamento de forma justa: fixo, comissão por venda ou modelo híbrido.",
+    "Inclua cláusulas de conduta e confidencialidade para proteger a imagem da marca.",
+    "Reposte o conteúdo gerado nos seus canais oficiais (com autorização).",
+    "Mantenha relacionamento contínuo com influenciadores de melhor desempenho.",
+    "Crie sequências de campanhas em vez de ações únicas (consistência > impacto isolado).",
+    "Evite escolher influenciadores apenas pelo número de seguidores.",
+    "Evite campanhas sem objetivo ou rastreamento de resultados (cupom, link ou analytics).",
+    "Evite pagar caro sem análise de engajamento real e compatibilidade de público."
+  ],
+  "setores_relacionados": [
+    "Marketing de Influência",
+    "Branding",
+    "Publicidade",
+    "E-commerce",
+    "Gestão de Mídia"
+  ]
+},
+{
+  "id": 52,
+  "titulo": "Evolução e Inovação",
+  "descricao": "A evolução contínua é o combustível que mantém a empresa viva, competitiva e relevante. Inovar não é apenas criar algo novo — é melhorar o que já existe, todos os dias. 💡Dica: Use o Mark.IA (no menu lateral) para gerar planos de melhoria contínua e monitorar o progresso da empresa mês a mês, com base nos indicadores do método MARK-APP.",
+  "checklist": [
+    "Realizar revisões mensais e trimestrais de estratégia, analisando vendas, conversão, tráfego e atendimento.",
+    "Revisar todas as fases do método MARK-APP e identificar pontos de melhoria contínua.",
+    "Verificar se as metas do trimestre foram atingidas e planejar correções.",
+    "Criar ajustes simples e ações práticas para o mês seguinte, mantendo agilidade na execução.",
+    "Manter um painel de indicadores atualizado e visível para toda a equipe.",
+    "Atualizar scripts de atendimento e vendas a cada 60–90 dias.",
+    "Revisar materiais comerciais, portfólio e apresentações visuais da marca.",
+    "Planejar campanhas trimestrais de marketing, incluindo temas sazonais e institucionais.",
+    "Testar novos formatos de mídia (Reels, lives, podcasts, comunidades, e-books, newsletters).",
+    "Analisar o desempenho de redes sociais, anúncios e canais de tráfego pago e orgânico.",
+    "Monitorar concorrentes e adaptar boas práticas com agilidade e criatividade.",
+    "Pesquisar com clientes o que pode ser melhorado ou criado de novo.",
+    "Manter rotina de lançamentos: novos produtos, kits, versões e serviços complementares.",
+    "Acompanhar tendências de mercado e tecnologias que otimizam operação e experiência.",
+    "Testar novos fornecedores e materiais que tragam diferenciais e inovação.",
+    "Atualizar embalagens, identidade visual e experiência sensorial da marca.",
+    "Revisar periodicamente a vitrine digital e física — layout, fotos e organização.",
+    "Implementar programas de fidelidade, clubes de benefícios ou comunidades exclusivas.",
+    "Usar automações inteligentes (CRM, WhatsApp Business, e-mail segmentado) para manter contato ativo.",
+    "Oferecer diferenciais que surpreendam: brindes, embalagens premium, entregas rápidas, experiências exclusivas.",
+    "Melhorar continuamente todos os pontos de contato: WhatsApp, site, redes, loja física e pós-venda.",
+    "Treinar a equipe regularmente em vendas, atendimento, marketing e gestão.",
+    "Incentivar ideias internas e premiar as melhores sugestões de inovação.",
+    "Revisar processos internos e implementar melhorias trimestrais.",
+    "Definir padrões claros de postura, comunicação e execução para manter consistência.",
+    "Criar cultura de aprendizado contínuo com feedbacks, reuniões rápidas e foco em evolução.",
+    "Ver a inovação como rotina, não como evento pontual.",
+    "Equilibrar otimização diária (eficiência) com experimentação (novas ideias).",
+    "Registrar aprendizados e aplicar imediatamente em produtos e processos.",
+    "Celebrar conquistas e reconhecer publicamente avanços da equipe — grandes ou pequenos."
+  ],
+  "setores_relacionados": [
+    "Gestão Empresarial",
+    "Inovação",
+    "Marketing Estratégico",
+    "Desenvolvimento Organizacional",
+    "Liderança"
+  ]
+},
+ {
+  "id": 53,
+  "titulo": "Conclusão da Consultoria",
+  "descricao": "Encerramos o método MARK-APP com um plano completo de Branding, Marketing, Vendas e Gestão de Evolução Contínua. Mais do que ferramentas, este é um guia de mentalidade empresarial: crescer é consequência de aplicar, ajustar e melhorar todos os dias. 💡Dica: Use o Mark.IA para gerar lembretes mensais automáticos de revisão das fases e manter o ciclo de evolução ativo.",
+  "checklist": [
+    "Chegamos ao final desta consultoria de Branding & Marketing. Aqui, estruturamos estratégias que vão desde a base do posicionamento e identidade da marca, passando pela atração de clientes (orgânica e paga), pela experiência de vendas e atendimento, até a fase de evolução e inovação contínua.",
+    "Mais do que técnicas, o que construímos juntos é uma mentalidade de gestão e crescimento. O objetivo não é executar ações isoladas, mas criar disciplina, rotina e cultura de evolução — onde cada colaborador, cada cliente e cada detalhe da operação reforçam o propósito e os resultados da empresa.",
+    "✨ Pontos-chave que ficam como bússola:",
+    "• A marca precisa ser clara e coerente em todos os canais.",
+    "• O cliente deve sentir-se encantado em cada ponto de contato.",
+    "• O time comercial é o coração da operação — motivação, treinamento e união viram resultados visíveis.",
+    "• Marketing é feito de constância e consistência: sem atalhos, com propósito e presença diária.",
+    "• Inovação é sobrevivência: testar, ajustar e evoluir mês a mês mantém a marca viva e competitiva.",
+    "🚀 Mensagem final:",
+    "Agora, a evolução depende da prática diária. O conhecimento está estruturado — o próximo passo é agir com disciplina, criatividade e coragem.",
+    "Cada campanha, venda e melhoria de atendimento é um tijolo no crescimento sustentável da empresa.",
+    "💡 'A consultoria não termina aqui. Ela continua em cada decisão, atendimento e aprendizado aplicado. Crescer é consequência de praticar.'"
+  ],
+  "setores_relacionados": [
+    "Gestão Empresarial",
+    "Branding",
+    "Marketing Estratégico",
+    "Liderança",
+    "Desenvolvimento Organizacional"
+  ]
+ }
 ]
