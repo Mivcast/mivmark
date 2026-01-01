@@ -2864,6 +2864,26 @@ def painel_admin_cursos():
 
     st.title("📚 Painel de Cursos")
 
+    # -------------------------------------------------
+    # Helpers
+    # -------------------------------------------------
+    def _headers_or_stop():
+        headers = get_headers()
+        if not headers.get("Authorization"):
+            st.error("Token de login não encontrado. Faça login novamente.")
+            st.stop()
+        return headers
+
+    def _show_http_error(prefix: str, r: httpx.Response):
+        try:
+            j = r.json()
+            detail = j.get("detail") or j
+            st.error(f"{prefix} ({r.status_code}): {detail}")
+        except Exception:
+            st.error(f"{prefix} ({r.status_code}): {r.text}")
+
+    headers = _headers_or_stop()
+
     # =========================
     # Modo Edição de Curso
     # =========================
@@ -2871,54 +2891,70 @@ def painel_admin_cursos():
         st.subheader("✏️ Editar Curso")
 
         curso = st.session_state["curso_editando"]
+        curso_id = curso.get("id")
 
-        titulo = st.text_input("Título", value=curso.get("titulo") or "")
-        descricao = st.text_area("Descrição", value=curso.get("descricao") or "")
-        capa_url = st.text_input("URL da Capa", value=curso.get("capa_url") or "")
-        categoria = st.text_input("Categoria", value=curso.get("categoria") or "")
-        gratuito = st.checkbox("Gratuito", value=bool(curso.get("gratuito", True)))
+        titulo = st.text_input("Título", value=curso.get("titulo") or "", key=f"edit_curso_titulo_{curso_id}")
+        descricao = st.text_area("Descrição", value=curso.get("descricao") or "", key=f"edit_curso_desc_{curso_id}")
+        capa_url = st.text_input("URL da Capa", value=curso.get("capa_url") or "", key=f"edit_curso_capa_{curso_id}")
+        categoria = st.text_input("Categoria", value=curso.get("categoria") or "", key=f"edit_curso_cat_{curso_id}")
+        gratuito = st.checkbox("Gratuito", value=bool(curso.get("gratuito", True)), key=f"edit_curso_grat_{curso_id}")
 
         preco_val = float(curso.get("preco") or 0.0)
-        preco = st.number_input("Preço", value=preco_val, min_value=0.0, step=0.01, disabled=gratuito)
+        preco = st.number_input(
+            "Preço",
+            value=preco_val,
+            min_value=0.0,
+            step=0.01,
+            disabled=gratuito,
+            key=f"edit_curso_preco_{curso_id}",
+        )
 
-        destaque = st.checkbox("Destaque", value=bool(curso.get("destaque", False)))
+        destaque = st.checkbox("Destaque", value=bool(curso.get("destaque", False)), key=f"edit_curso_dest_{curso_id}")
         ordem_curso = st.number_input(
             "Ordem de exibição",
             min_value=1,
             step=1,
             value=int(curso.get("ordem") or 1),
-            key="edit_ordem_curso"
+            key=f"edit_curso_ordem_{curso_id}",
         )
 
         col_a, col_b = st.columns(2)
 
         with col_a:
-            if st.button("💾 Salvar Alterações", use_container_width=True):
-                payload = {
-                    "titulo": titulo,
-                    "descricao": descricao,
-                    "capa_url": capa_url,
-                    "categoria": categoria,
-                    "gratuito": bool(gratuito),
-                    "preco": float(preco) if not gratuito else None,
-                    "destaque": bool(destaque),
-                    "ordem": int(ordem_curso),
-                    "ativo": True,
-                }
-                try:
-                    r = httpx.put(f"{API_URL}/cursos/{curso['id']}", json=payload, timeout=30)
-                    if r.status_code == 200:
-                        st.success("Curso atualizado com sucesso!")
-                        st.session_state["modo_edicao"] = False
-                        st.session_state["curso_editando"] = None
-                        st.rerun()
-                    else:
-                        st.error(f"Erro ao atualizar curso ({r.status_code}): {r.text}")
-                except Exception as e:
-                    st.error(f"Erro ao conectar com servidor: {e}")
+            if st.button("💾 Salvar Alterações", use_container_width=True, key=f"btn_salvar_curso_edit_{curso_id}"):
+                if not titulo.strip():
+                    st.warning("Informe o título do curso.")
+                else:
+                    payload = {
+                        "titulo": titulo.strip(),
+                        "descricao": descricao or "",
+                        "capa_url": capa_url or "",
+                        "categoria": categoria or "",
+                        "gratuito": bool(gratuito),
+                        "preco": (float(preco) if not gratuito else None),
+                        "destaque": bool(destaque),
+                        "ordem": int(ordem_curso),
+                        "ativo": True,
+                    }
+                    try:
+                        r = httpx.put(
+                            f"{API_URL}/cursos/admin/curso/{curso_id}",  # ✅ endpoint correto do backend
+                            json=payload,
+                            headers=headers,                             # ✅ Bearer token
+                            timeout=30
+                        )
+                        if r.status_code == 200:
+                            st.success("Curso atualizado com sucesso!")
+                            st.session_state["modo_edicao"] = False
+                            st.session_state["curso_editando"] = None
+                            st.rerun()
+                        else:
+                            _show_http_error("Erro ao atualizar curso", r)
+                    except Exception as e:
+                        st.error(f"Erro ao conectar com servidor: {e}")
 
         with col_b:
-            if st.button("❌ Cancelar", use_container_width=True):
+            if st.button("❌ Cancelar", use_container_width=True, key=f"btn_cancelar_curso_edit_{curso_id}"):
                 st.session_state["modo_edicao"] = False
                 st.session_state["curso_editando"] = None
                 st.rerun()
@@ -2939,28 +2975,33 @@ def painel_admin_cursos():
     destaque_novo = st.checkbox("Destacar no topo", value=False, key="novo_destaque")
     ordem_novo = st.number_input("Ordem de exibição do curso", min_value=1, step=1, value=1, key="novo_ordem")
 
-    if st.button("Salvar mention: Curso", key="btn_salvar_curso"):
+    if st.button("💾 Salvar Curso", key="btn_salvar_curso", use_container_width=True):
         if not titulo_novo.strip():
             st.warning("Informe o título do curso.")
         else:
             payload = {
-                "titulo": titulo_novo,
-                "descricao": descricao_novo,
-                "capa_url": capa_nova,
-                "categoria": categoria_nova,
+                "titulo": titulo_novo.strip(),
+                "descricao": descricao_novo or "",
+                "capa_url": capa_nova or "",
+                "categoria": categoria_nova or "",
                 "gratuito": bool(gratuito_novo),
-                "preco": float(preco_novo) if not gratuito_novo else None,
+                "preco": (float(preco_novo) if not gratuito_novo else None),
                 "destaque": bool(destaque_novo),
                 "ordem": int(ordem_novo),
                 "ativo": True,
             }
             try:
-                r = httpx.post(f"{API_URL}/cursos/admin/curso", json=payload, timeout=30)
+                r = httpx.post(
+                    f"{API_URL}/cursos/admin/curso",
+                    json=payload,
+                    headers=headers,  # ✅ Bearer token
+                    timeout=30
+                )
                 if r.status_code == 200:
                     st.success("Curso cadastrado com sucesso!")
                     st.rerun()
                 else:
-                    st.error(f"Erro ao salvar curso ({r.status_code}): {r.text}")
+                    _show_http_error("Erro ao salvar curso", r)
             except Exception as e:
                 st.error(f"Erro ao salvar curso: {e}")
 
@@ -2970,9 +3011,9 @@ def painel_admin_cursos():
     # Carrega lista de cursos (para aula/edição)
     # =========================
     try:
-        resp_cursos = httpx.get(f"{API_URL}/cursos/", timeout=30)
+        resp_cursos = httpx.get(f"{API_URL}/cursos/", headers=headers, timeout=30)
         if resp_cursos.status_code != 200:
-            st.warning("Não foi possível carregar lista de cursos.")
+            _show_http_error("Não foi possível carregar lista de cursos", resp_cursos)
             cursos = []
         else:
             cursos = resp_cursos.json() or []
@@ -2988,7 +3029,10 @@ def painel_admin_cursos():
     if not cursos:
         st.info("Cadastre um curso primeiro para adicionar aulas.")
     else:
-        nomes_cursos = {f"{c.get('titulo','Sem título')} (ID {c.get('id')})": c.get("id") for c in cursos}
+        nomes_cursos = {
+            f"{c.get('titulo','Sem título')} (ID {c.get('id')})": c.get("id")
+            for c in cursos
+        }
         curso_escolhido = st.selectbox("Curso", list(nomes_cursos.keys()), key="sel_curso_add_aula")
         id_curso_aula = int(nomes_cursos[curso_escolhido])
 
@@ -2997,24 +3041,29 @@ def painel_admin_cursos():
         video = st.text_input("Link do vídeo (YouTube)", key="add_video_aula")
         ordem_aula = st.number_input("Ordem", step=1, value=1, key="add_ordem_aula")
 
-        if st.button("Salvar Aula", key="btn_salvar_aula"):
+        if st.button("💾 Salvar Aula", key="btn_salvar_aula", use_container_width=True):
             if not titulo_aula.strip():
                 st.warning("Informe o título da aula.")
             else:
                 payload = {
                     "curso_id": id_curso_aula,
-                    "titulo": titulo_aula,
-                    "descricao": descricao_aula,
-                    "video_url": video,
+                    "titulo": titulo_aula.strip(),
+                    "descricao": descricao_aula or "",
+                    "video_url": video or "",
                     "ordem": int(ordem_aula),
                 }
                 try:
-                    r = httpx.post(f"{API_URL}/cursos/admin/aula", json=payload, timeout=30)
+                    r = httpx.post(
+                        f"{API_URL}/cursos/admin/aula",
+                        json=payload,
+                        headers=headers,  # ✅ Bearer token
+                        timeout=30
+                    )
                     if r.status_code == 200:
                         st.success("Aula salva com sucesso!")
                         st.rerun()
                     else:
-                        st.error(f"Erro ao salvar aula ({r.status_code}): {r.text}")
+                        _show_http_error("Erro ao salvar aula", r)
                 except Exception as e:
                     st.error(f"Erro ao salvar aula: {e}")
 
@@ -3028,7 +3077,10 @@ def painel_admin_cursos():
     if not cursos:
         st.info("Cadastre um curso primeiro.")
     else:
-        nomes_cursos_ed = {f"{c.get('titulo','Sem título')} (ID {c.get('id')})": c.get("id") for c in cursos}
+        nomes_cursos_ed = {
+            f"{c.get('titulo','Sem título')} (ID {c.get('id')})": c.get("id")
+            for c in cursos
+        }
         curso_escolhido_ed = st.selectbox(
             "Escolha o curso para gerenciar aulas",
             list(nomes_cursos_ed.keys()),
@@ -3037,7 +3089,7 @@ def painel_admin_cursos():
         id_curso_ed = int(nomes_cursos_ed[curso_escolhido_ed])
 
         try:
-            r = httpx.get(f"{API_URL}/cursos/{id_curso_ed}", timeout=30)
+            r = httpx.get(f"{API_URL}/cursos/{id_curso_ed}", headers=headers, timeout=30)
             if r.status_code == 200:
                 curso_detalhe = r.json()
                 aulas = curso_detalhe.get("aulas", []) or []
@@ -3072,28 +3124,32 @@ def painel_admin_cursos():
                                 key=f"ordem_aula_{aula_id}",
                             )
 
-                            if st.button("💾 Salvar alterações desta aula", key=f"salvar_aula_{aula_id}"):
-                                payload = {
-                                    "titulo": novo_titulo,
-                                    "descricao": nova_desc,
-                                    "video_url": nova_video,
-                                    "ordem": int(nova_ordem),
-                                }
-                                try:
-                                    r_upd = httpx.put(
-                                        f"{API_URL}/cursos/admin/aula/{aula_id}",
-                                        json=payload,
-                                        timeout=30
-                                    )
-                                    if r_upd.status_code == 200:
-                                        st.success("Aula atualizada com sucesso!")
-                                        st.rerun()
-                                    else:
-                                        st.error(f"Erro ao atualizar aula ({r_upd.status_code}): {r_upd.text}")
-                                except Exception as e:
-                                    st.error(f"Erro ao atualizar aula: {e}")
+                            if st.button("💾 Salvar alterações desta aula", key=f"salvar_aula_{aula_id}", use_container_width=True):
+                                if not novo_titulo.strip():
+                                    st.warning("Informe o título da aula.")
+                                else:
+                                    payload = {
+                                        "titulo": novo_titulo.strip(),
+                                        "descricao": nova_desc or "",
+                                        "video_url": nova_video or "",
+                                        "ordem": int(nova_ordem),
+                                    }
+                                    try:
+                                        r_upd = httpx.put(
+                                            f"{API_URL}/cursos/admin/aula/{aula_id}",
+                                            json=payload,
+                                            headers=headers,  # ✅ Bearer token
+                                            timeout=30
+                                        )
+                                        if r_upd.status_code == 200:
+                                            st.success("Aula atualizada com sucesso!")
+                                            st.rerun()
+                                        else:
+                                            _show_http_error("Erro ao atualizar aula", r_upd)
+                                    except Exception as e:
+                                        st.error(f"Erro ao atualizar aula: {e}")
             else:
-                st.error(f"Não foi possível carregar as aulas desse curso ({r.status_code}).")
+                _show_http_error("Não foi possível carregar as aulas desse curso", r)
         except Exception as e:
             st.error(f"Erro ao buscar curso e aulas: {e}")
 
@@ -3107,8 +3163,12 @@ def painel_admin_cursos():
     if not cursos:
         st.warning("Não há cursos para listar.")
     else:
-        for curso in cursos:
-            with st.expander(f"{curso.get('ordem') or '-'} • {curso.get('titulo','Sem título')} (ID {curso.get('id')})"):
+        # Ordena por ordem/título para ficar consistente no admin
+        cursos_ordenados = sorted(cursos, key=lambda c: (c.get("ordem") or 9999, c.get("titulo") or ""))
+
+        for curso in cursos_ordenados:
+            cid = curso.get("id")
+            with st.expander(f"{curso.get('ordem') or '-'} • {curso.get('titulo','Sem título')} (ID {cid})"):
                 st.markdown(f"**Categoria:** {curso.get('categoria') or '-'}")
                 st.markdown(f"**Gratuito:** {'Sim' if curso.get('gratuito') else 'Não'}")
 
@@ -3121,10 +3181,11 @@ def painel_admin_cursos():
                 st.markdown(f"**Destaque:** {'Sim' if curso.get('destaque') else 'Não'}")
                 st.markdown(f"**Ativo:** {'Sim' if curso.get('ativo', True) else 'Não'}")
 
-                if st.button(f"✏️ Editar Curso {curso.get('id')}", key=f"editar_{curso.get('id')}"):
+                if st.button(f"✏️ Editar Curso {cid}", key=f"editar_{cid}", use_container_width=True):
                     st.session_state["curso_editando"] = curso
                     st.session_state["modo_edicao"] = True
                     st.rerun()
+
 
 
 
