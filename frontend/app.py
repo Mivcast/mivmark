@@ -3648,9 +3648,15 @@ def tela_checkout(curso_id):
     # 1) Busca curso
     # ---------------------------------------------------------
     try:
-        r = httpx.get(f"{API_URL}/cursos/{curso_id}", headers=get_headers(), timeout=30)
-        r.raise_for_status()
+        r = httpx.get(f"{API_URL}/cursos/{curso_id}/preview", headers=get_headers(), timeout=30)
+        if r.status_code != 200:
+            st.error("Curso não encontrado.")
+            if st.button("⬅️ Voltar para Cursos", key="voltar_cursos_checkout_erro"):
+                st.session_state.pop("curso_checkout", None)
+                st.rerun()
+            return
         curso = r.json()
+
     except Exception as e:
         st.error(f"Erro ao buscar curso. ({e})")
         return
@@ -3841,23 +3847,70 @@ def tela_checkout(curso_id):
 
 
 def tela_detalhe_curso(curso_id: int):
-    # Busca dados do curso na API
-    try:
-        r = httpx.get(f"{API_URL}/cursos/{curso_id}", headers=get_headers())
-        if r.status_code != 200:
-            st.error("Curso não encontrado.")
-            return
-        curso = r.json()
-    except Exception as e:
-        st.error(f"Erro ao buscar curso: {e}")
-        return
-
-    # Estamos "espiando" se o estado ativo for curso_espiar
+    # ==========================
+    # Detecta modo atual
+    # ==========================
     esta_espiando = (
         st.session_state.get("curso_espiar") == curso_id
         and st.session_state.get("curso_liberado") != curso_id
     )
 
+    endpoint = (
+        f"{API_URL}/cursos/{curso_id}/preview"
+        if esta_espiando
+        else f"{API_URL}/cursos/{curso_id}"
+    )
+
+    # ==========================
+    # Busca dados do curso
+    # ==========================
+    try:
+        r = httpx.get(endpoint, headers=get_headers())
+
+        # Se tentou acessar completo e veio 403 -> manda para checkout e limpa estados para não travar
+        if r.status_code == 403 and not esta_espiando:
+            st.warning("Você ainda não tem acesso a este curso. Pagamento não identificado.")
+            st.session_state["curso_checkout"] = curso_id
+            st.session_state.pop("curso_liberado", None)
+            st.session_state.pop("curso_espiar", None)
+            st.rerun()
+            return
+
+        if r.status_code != 200:
+            st.error("Curso não encontrado.")
+
+            # Não prender: limpar estados relacionados a esse curso
+            if st.session_state.get("curso_espiar") == curso_id:
+                st.session_state.pop("curso_espiar", None)
+            if st.session_state.get("curso_liberado") == curso_id:
+                st.session_state.pop("curso_liberado", None)
+
+            # Também é comum estar preso em checkout por acidente
+            if st.session_state.get("curso_checkout") == curso_id:
+                st.session_state.pop("curso_checkout", None)
+
+            st.rerun()
+            return
+
+        curso = r.json()
+
+    except Exception as e:
+        st.error(f"Erro ao buscar curso: {e}")
+
+        # Não prender: limpar estados
+        if st.session_state.get("curso_espiar") == curso_id:
+            st.session_state.pop("curso_espiar", None)
+        if st.session_state.get("curso_liberado") == curso_id:
+            st.session_state.pop("curso_liberado", None)
+        if st.session_state.get("curso_checkout") == curso_id:
+            st.session_state.pop("curso_checkout", None)
+
+        st.rerun()
+        return
+
+    # ==========================
+    # Cabeçalho do curso
+    # ==========================
     st.title(curso.get("titulo", "Curso"))
 
     if curso.get("capa_url"):
@@ -3868,17 +3921,20 @@ def tela_detalhe_curso(curso_id: int):
 
     aulas = curso.get("aulas") or []
 
-    # ================== MODO ESPIAR / SAIBA MAIS ==================
+    # ==========================
+    # MODO ESPIAR / PREVIEW
+    # ==========================
     if esta_espiando:
         st.markdown("---")
         st.subheader("📚 O que você vai aprender")
 
         if aulas:
-            for aula in sorted(aulas, key=lambda a: a["ordem"]):
+            for aula in sorted(aulas, key=lambda a: a.get("ordem", 0)):
+                titulo_aula = aula.get("titulo") or "Aula"
                 desc = (aula.get("descricao") or "").strip()
                 if len(desc) > 120:
                     desc = desc[:120] + "..."
-                st.markdown(f"- **{aula['titulo']}** – {desc}")
+                st.markdown(f"- **{titulo_aula}** – {desc}")
         else:
             st.info("As aulas deste curso ainda serão adicionadas.")
 
@@ -3886,33 +3942,53 @@ def tela_detalhe_curso(curso_id: int):
         col1, col2 = st.columns([2, 1])
 
         with col1:
-            if st.button("▶️ Acessar curso completo"):
-                # troca do modo ESPIAR para ACESSAR (curso_liberado)
-                st.session_state["curso_liberado"] = curso_id
-                st.session_state.pop("curso_espiar", None)
-                st.rerun()
+            if st.button("▶ Acessar curso completo", key="preview_acessar"):
+                try:
+                    rr = httpx.get(f"{API_URL}/cursos/{curso_id}", headers=get_headers())
+
+                    if rr.status_code == 403:
+                        st.warning("Você ainda não tem acesso a este curso. Pagamento não identificado.")
+                        st.session_state["curso_checkout"] = curso_id
+                        st.session_state.pop("curso_espiar", None)
+                        st.rerun()
+                        return
+
+                    if rr.status_code == 200:
+                        st.session_state["curso_liberado"] = curso_id
+                        st.session_state.pop("curso_espiar", None)
+                        st.rerun()
+                        return
+
+                    st.error("Não foi possível acessar o curso agora.")
+
+                except Exception as e:
+                    st.error(f"Erro ao validar acesso: {e}")
 
         with col2:
-            if st.button("⬅️ Voltar para Cursos"):
+            if st.button("⬅️ Voltar para Cursos", key="voltar_preview"):
                 st.session_state.pop("curso_espiar", None)
                 st.rerun()
+                return
 
-        # Em modo espiar não mostramos os vídeos
+        # Em modo espiar, não mostra vídeos
         return
 
-    # ================== MODO ACESSO COMPLETO ==================
+    # ==========================
+    # MODO ACESSO COMPLETO
+    # ==========================
     st.markdown("---")
     st.subheader("📊 Progresso no Curso")
 
     aulas_concluidas = []
     try:
         p = httpx.get(f"{API_URL}/cursos/progresso", headers=get_headers())
-        aulas_concluidas = p.json().get("aulas_concluidas", [])
+        if p.status_code == 200:
+            aulas_concluidas = (p.json() or {}).get("aulas_concluidas", []) or []
     except Exception:
         pass
 
     total_aulas = len(aulas)
-    feitas = len([a for a in aulas if a["id"] in aulas_concluidas])
+    feitas = len([a for a in aulas if a.get("id") in aulas_concluidas])
 
     if total_aulas > 0:
         st.progress(feitas / total_aulas)
@@ -3923,49 +3999,47 @@ def tela_detalhe_curso(curso_id: int):
     st.markdown("---")
     st.subheader("🎥 Aulas do Curso")
 
-    aulas_ordenadas = sorted(aulas, key=lambda a: a["ordem"])
+    aulas_ordenadas = sorted(aulas, key=lambda a: a.get("ordem", 0))
 
-    # Grade de 1 coluna
-    cols = None
-    for idx, aula in enumerate(aulas_ordenadas):
-        if idx % 1 == 0:
-            cols = st.columns(1)
-        col = cols[idx % 1]
+    for aula in aulas_ordenadas:
+        aula_id = aula.get("id")
+        titulo_aula = aula.get("titulo") or "Aula"
+        concluida = (aula_id in aulas_concluidas) if aula_id is not None else False
 
-        concluida = aula["id"] in aulas_concluidas
+        st.markdown(f"#### {titulo_aula} {'✔️' if concluida else ''}")
 
-        with col:
-            st.markdown(f"#### {aula['titulo']} {'✔️' if concluida else ''}")
+        descricao = (aula.get("descricao") or "").strip()
+        if descricao:
+            st.write(descricao)
 
-            # Descrição opcional
-            descricao = (aula.get("descricao") or "").strip()
-            if descricao:
-                st.write(descricao)
+        video_url = (aula.get("video_url") or "").strip()
+        if video_url:
+            st.video(video_url)
 
-            # Vídeo opcional – só mostra se tiver URL válida
-            video_url = (aula.get("video_url") or "").strip()
-            if video_url:
-                st.video(video_url)
-
+        if aula_id is not None:
             if not concluida:
-                if st.button("✅ Marcar como concluída", key=f"concluir_{aula['id']}"):
+                if st.button("✅ Marcar como concluída", key=f"concluir_{aula_id}"):
                     httpx.post(
-                        f"{API_URL}/cursos/aula/{aula['id']}/concluir",
+                        f"{API_URL}/cursos/aula/{aula_id}/concluir",
                         headers=get_headers(),
                     )
                     st.success("Aula marcada como concluída!")
                     st.rerun()
+                    return
             else:
                 st.success("✔️ Aula já concluída")
 
+        st.markdown("---")
 
-    st.markdown("---")
-    if st.button("⬅️ Voltar para Cursos"):
-        # aqui está o ponto que estava te “prendendo”
+    # ==========================
+    # Voltar (limpa estados para não prender)
+    # ==========================
+    if st.button("⬅️ Voltar para Cursos", key="voltar_curso_completo"):
         st.session_state.pop("curso_checkout", None)
         st.session_state.pop("curso_espiar", None)
         st.session_state.pop("curso_liberado", None)
         st.rerun()
+        return
 
 
 

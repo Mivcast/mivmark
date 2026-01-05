@@ -18,13 +18,22 @@ def get_headers():
 # =========================
 
 
-def _carregar_curso(curso_id: int):
+def _carregar_curso(curso_id: int, preview: bool = False):
     try:
-        r = httpx.get(f"{API_URL}/cursos/{curso_id}", headers=get_headers())
+        url = f"{API_URL}/cursos/{curso_id}/preview" if preview else f"{API_URL}/cursos/{curso_id}"
+        r = httpx.get(url, headers=get_headers())
+
+        if r.status_code == 403:
+            return {"_bloqueado": True, "_status": 403, "_detail": r.json().get("detail") if r.headers.get("content-type","").startswith("application/json") else "Bloqueado"}
+
         if r.status_code != 200:
             st.error("Curso não encontrado.")
             return None
-        return r.json()
+
+        data = r.json()
+        data["_bloqueado"] = False
+        return data
+
     except Exception as e:
         st.error(f"Erro ao buscar curso: {e}")
         return None
@@ -92,6 +101,15 @@ def _grade_aulas(aulas, aulas_concluidas, permitir_concluir: bool):
 
 def _tela_curso_completo(curso_id: int):
     curso = _carregar_curso(curso_id)
+
+    # ✅ se backend bloqueou, manda pro checkout
+    if curso and curso.get("_bloqueado"):
+        st.warning("Você ainda não tem acesso a este curso. Pagamento não identificado.")
+        st.session_state["curso_checkout"] = curso_id
+        st.session_state.pop("curso_liberado", None)
+        st.session_state.pop("curso_espiar", None)
+        st.rerun()
+
     if not curso:
         return
 
@@ -132,7 +150,7 @@ def _tela_curso_preview(curso_id: int):
     Tela de ESPIAR / SAIBA MAIS.
     Mostra descrição, algumas aulas e um CTA para acessar/comprar.
     """
-    curso = _carregar_curso(curso_id)
+    curso = _carregar_curso(curso_id, preview=True)
     if not curso:
         return
 
@@ -169,6 +187,16 @@ def _tela_curso_preview(curso_id: int):
 
     with col1:
         if st.button("▶️ Acessar curso completo", key="preview_acessar"):
+            # tenta carregar o curso completo (rota protegida)
+            resp = _carregar_curso(curso_id, preview=False)
+
+            if resp and resp.get("_bloqueado"):
+                st.warning("Você ainda não tem acesso a este curso. Pagamento não identificado.")
+                st.session_state["curso_checkout"] = curso_id
+                st.session_state.pop("curso_espiar", None)
+                st.rerun()
+
+            # liberado
             st.session_state["curso_liberado"] = curso_id
             st.session_state.pop("curso_espiar", None)
             st.rerun()
@@ -289,9 +317,14 @@ def tela_cursos():
 
             if liberado:
                 if st.button("▶️ Acessar", key=f"acessar_{curso_id}"):
+                    resp = _carregar_curso(curso_id, preview=False)
+                    if resp and resp.get("_bloqueado"):
+                        st.warning("Você ainda não tem acesso a este curso. Pagamento não identificado.")
+                        st.session_state["curso_checkout"] = curso_id
+                        st.rerun()
                     st.session_state["curso_liberado"] = curso_id
-                    st.session_state.pop("curso_espiar", None)
                     st.rerun()
+
             else:
                 if st.button("💳 Comprar", key=f"comprar_{curso_id}"):
                     st.session_state["curso_checkout"] = curso_id
@@ -311,13 +344,24 @@ def tela_checkout(curso_id: int):
     st.title("💳 Finalizar Compra")
 
     try:
-        r = httpx.get(f"{API_URL}/cursos/{curso_id}", headers=get_headers())
+        # ✅ checkout SEMPRE usa preview
+        r = httpx.get(f"{API_URL}/cursos/{curso_id}/preview", headers=get_headers())
+
         if r.status_code != 200:
             st.error("Curso não encontrado.")
+            # ✅ não prender: limpar estado e permitir voltar
+            if st.button("⬅️ Voltar para Cursos", key="voltar_cursos_checkout_erro"):
+                st.session_state.pop("curso_checkout", None)
+                st.rerun()
             return
+
         curso = r.json()
+
     except Exception as e:
         st.error(f"Erro ao buscar curso: {e}")
+        if st.button("⬅️ Voltar para Cursos", key="voltar_cursos_checkout_exc"):
+            st.session_state.pop("curso_checkout", None)
+            st.rerun()
         return
 
     preco = float(curso.get("preco") or 0.0)

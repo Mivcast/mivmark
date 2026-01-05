@@ -215,12 +215,50 @@ def listar_cursos(db: Session = Depends(get_db)):
     )
 
 
+def usuario_tem_acesso_ao_curso(db: Session, usuario_id: int, curso: Curso) -> bool:
+    if curso.gratuito:
+        return True
+    ja = db.query(CompraCurso).filter_by(usuario_id=usuario_id, curso_id=curso.id).first()
+    return ja is not None
+
 @router.get("/{curso_id}", response_model=CursoSchema)
-def detalhes_curso(curso_id: int, db: Session = Depends(get_db)):
-    curso = db.query(Curso).filter(Curso.id == curso_id).first()
+def detalhes_curso(
+    curso_id: int,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_logado),
+):
+    curso = db.query(Curso).filter(Curso.id == curso_id, Curso.ativo == True).first()
     if not curso:
         raise HTTPException(status_code=404, detail="Curso não encontrado.")
+
+    if not usuario_tem_acesso_ao_curso(db, usuario.id, curso):
+        raise HTTPException(status_code=403, detail="Curso não liberado. Pagamento não identificado.")
+
     return curso
+
+
+
+@router.get("/{curso_id}/preview", response_model=CursoSchema)
+def detalhes_curso_preview(
+    curso_id: int,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_logado),
+):
+    curso = db.query(Curso).filter(Curso.id == curso_id, Curso.ativo == True).first()
+    if not curso:
+        raise HTTPException(status_code=404, detail="Curso não encontrado.")
+
+    # Converte para schema e remove video_url de TODAS as aulas (apenas vitrine)
+    data = CursoSchema.from_orm(curso).model_dump()  # pydantic v2
+    # se estiver em pydantic v1: data = CursoSchema.from_orm(curso).dict()
+
+    aulas = data.get("aulas") or []
+    for a in aulas:
+        a["video_url"] = None  # nunca manda vídeo no preview
+
+    data["aulas"] = aulas
+    return data
+
 
 
 # =========================================================
