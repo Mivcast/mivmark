@@ -383,6 +383,25 @@ def atualizar_curso_admin(
     db.refresh(curso)
     return {"mensagem": "Curso atualizado com sucesso!", "id": curso.id}
 
+@router.get("/admin/cursos", response_model=List[CursoSchema])
+def listar_cursos_admin(
+    incluir_inativos: bool = Query(default=True),
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_logado),
+):
+    _so_admin(usuario)
+
+    q = db.query(Curso)
+
+    # Se quiser ver só ativos no admin, passe incluir_inativos=false
+    if not incluir_inativos:
+        q = q.filter(Curso.ativo == True)
+
+    return (
+        q.order_by(func.coalesce(Curso.ordem, 999999), Curso.id.asc())
+        .all()
+    )
+
 
 @router.post("/admin/aula")
 def criar_aula(
