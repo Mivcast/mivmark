@@ -265,7 +265,19 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
     if not usuario:
         return {"ok": True, "warning": "usuario_nao_encontrado", "pagamento_id": pagamento.id}
 
-    kind = (ref.get("kind") or "plano").lower()  # se não vier, assume plano
+    # Define "kind" automaticamente quando o external_reference não manda kind=...
+    kind = (ref.get("kind") or "").lower().strip()
+
+    if not kind:
+        # Se veio curso_id, então é curso
+        if isinstance(ref.get("curso_id"), int):
+            kind = "curso"
+        # Se veio plano_id, então é plano
+        elif isinstance(ref.get("plano_id"), int):
+            kind = "plano"
+        else:
+            # fallback
+            kind = "plano"
 
     # ---- PLANO
     if kind == "plano":
