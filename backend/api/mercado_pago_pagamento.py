@@ -18,6 +18,7 @@ from backend.models.planos import Plano
 from backend.utils.email_utils import enviar_email
 from backend.models.curso import Curso, CompraCurso
 
+from backend.api.auth import get_usuario_logado 
 
 router = APIRouter(prefix="/mercado_pago", tags=["Mercado Pago"])
 
@@ -393,6 +394,155 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
             "compra_id": compra.id,
             "preco_pago": compra.preco_pago,
         }
+
+
+
+
+@router.post("/reprocessar")
+async def reprocessar_pagamento_mp(
+    payment_id: str,
+    usuario: Usuario = Depends(get_usuario_logado),
+    db: Session = Depends(get_db),
+):
+    # ✅ Só admin pode usar
+    if not getattr(usuario, "is_admin", False) and (getattr(usuario, "tipo_usuario", "") != "Admin"):
+        raise HTTPException(status_code=403, detail="Apenas admin pode reprocessar pagamentos.")
+
+    # consulta pagamento no MP e reutiliza a lógica do webhook
+    mp = await _mp_get_payment(str(payment_id))
+
+    status = (mp.get("status") or "").lower()
+    external_reference = mp.get("external_reference") or ""
+    preference_id = mp.get("preference_id") or None
+
+    ref = _parse_external_reference(external_reference)
+
+    # localiza pagamento no banco
+    pagamento = None
+    pag_id = ref.get("pag_id")
+    if isinstance(pag_id, int):
+        pagamento = db.query(Pagamento).filter(Pagamento.id == pag_id).first()
+
+    if not pagamento and hasattr(Pagamento, "mp_payment_id"):
+        pagamento = db.query(Pagamento).filter(Pagamento.mp_payment_id == str(payment_id)).first()
+
+    if not pagamento and external_reference and hasattr(Pagamento, "mp_external_reference"):
+        pagamento = db.query(Pagamento).filter(Pagamento.mp_external_reference == external_reference).first()
+
+    if not pagamento:
+        return {
+            "ok": False,
+            "warning": "pagamento_nao_encontrado_no_banco",
+            "payment_id": payment_id,
+            "status": status,
+            "external_reference": external_reference,
+        }
+
+    # Atualiza campos MP se existirem
+    if hasattr(pagamento, "mp_payment_id"):
+        pagamento.mp_payment_id = str(payment_id)
+    if hasattr(pagamento, "mp_status"):
+        pagamento.mp_status = status
+    if hasattr(pagamento, "mp_external_reference"):
+        pagamento.mp_external_reference = external_reference
+    if hasattr(pagamento, "mp_preference_id"):
+        pagamento.mp_preference_id = str(preference_id) if preference_id else None
+
+    if status != "approved":
+        pagamento.status = status
+        db.commit()
+        return {"ok": True, "status": status, "pagamento_id": pagamento.id}
+
+    # Se aprovado, marca e libera
+    pagamento.status = "aprovado"
+    db.commit()
+    db.refresh(pagamento)
+
+    usuario_pag = db.query(Usuario).filter(Usuario.id == pagamento.usuario_id).first()
+    if not usuario_pag:
+        return {"ok": False, "warning": "usuario_nao_encontrado", "pagamento_id": pagamento.id}
+
+    # ✅ determina kind automaticamente
+    kind = (ref.get("kind") or "").lower().strip()
+    if not kind:
+        if isinstance(ref.get("plano_id"), int):
+            kind = "plano"
+        elif isinstance(ref.get("curso_id"), int):
+            kind = "curso"
+        else:
+            kind = "plano"
+
+    # ---- PLANO
+    if kind == "plano":
+        periodo = (ref.get("periodo") or "mensal").lower()
+        plano_id = ref.get("plano_id")
+
+        plano_nome = None
+        if isinstance(plano_id, int):
+            p = db.query(Plano).filter(Plano.id == plano_id).first()
+            if p and p.nome:
+                plano_nome = p.nome
+
+        if not plano_nome:
+            plano_nome = getattr(usuario_pag, "plano_atual", None) or "Plano"
+
+        if hasattr(usuario_pag, "tipo_usuario"):
+            usuario_pag.tipo_usuario = "Cliente"
+        if hasattr(usuario_pag, "plano_atual"):
+            usuario_pag.plano_atual = plano_nome
+
+        expira = datetime.utcnow() + (timedelta(days=365) if periodo == "anual" else timedelta(days=30))
+        for campo in ("plano_expira_em", "plano_expira", "expira_em"):
+            if hasattr(usuario_pag, campo):
+                setattr(usuario_pag, campo, expira)
+                break
+
+        db.commit()
+        return {"ok": True, "liberado": "plano", "usuario_id": usuario_pag.id, "plano": plano_nome}
+
+    # ---- CURSO
+    if kind == "curso":
+        from backend.models.curso import Curso, CompraCurso  # import local para evitar conflito
+
+        curso_id = ref.get("curso_id")
+        if not isinstance(curso_id, int):
+            return {"ok": False, "warning": "curso_id_invalido", "ref": ref}
+
+        curso = db.query(Curso).filter(Curso.id == curso_id).first()
+        if not curso:
+            return {"ok": False, "warning": "curso_nao_encontrado", "curso_id": curso_id}
+
+        ja = (
+            db.query(CompraCurso)
+            .filter(CompraCurso.usuario_id == usuario_pag.id, CompraCurso.curso_id == curso_id)
+            .first()
+        )
+        if ja:
+            return {"ok": True, "liberado": "curso", "curso_id": curso_id, "observacao": "compra_ja_existia"}
+
+        preco_pago = None
+        try:
+            if mp.get("transaction_details") and mp["transaction_details"].get("total_paid_amount") is not None:
+                preco_pago = float(mp["transaction_details"]["total_paid_amount"])
+            elif mp.get("transaction_amount") is not None:
+                preco_pago = float(mp["transaction_amount"])
+        except Exception:
+            preco_pago = None
+
+        compra = CompraCurso(
+            usuario_id=usuario_pag.id,
+            curso_id=curso_id,
+            preco_pago=preco_pago if preco_pago is not None else 0.0,
+            data_compra=datetime.utcnow(),
+        )
+        db.add(compra)
+        db.commit()
+        db.refresh(compra)
+
+        return {"ok": True, "liberado": "curso", "usuario_id": usuario_pag.id, "curso_id": curso_id, "compra_id": compra.id}
+
+    return {"ok": True, "status": "approved_sem_kind", "pagamento_id": pagamento.id, "ref": ref}
+
 
 
 
