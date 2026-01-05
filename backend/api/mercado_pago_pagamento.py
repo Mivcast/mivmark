@@ -17,6 +17,7 @@ from backend.models import Pagamento, Usuario
 from backend.models.planos import Plano
 from backend.utils.email_utils import enviar_email
 from backend.models.curso import Curso, CompraCurso
+from backend.models.curso import PagamentoCurso
 
 from backend.api.auth import get_usuario_logado 
 
@@ -215,11 +216,20 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
 
     # tenta localizar pagamento no banco
     pagamento = None
-
-    # 1) por pag_id (preferencial)
     pag_id = ref.get("pag_id")
+
+    # 1️⃣ Curso
     if isinstance(pag_id, int):
-        pagamento = db.query(Pagamento).filter(Pagamento.id == pag_id).first()
+        pagamento = db.query(PagamentoCurso).filter(
+            PagamentoCurso.id == pag_id
+        ).first()
+
+    # 2️⃣ Plano (somente se NÃO for curso)
+    if not pagamento and isinstance(pag_id, int):
+        pagamento = db.query(Pagamento).filter(
+            Pagamento.id == pag_id
+        ).first()
+
 
     # 2) fallback: por mp_payment_id (se existir no model)
     if not pagamento and hasattr(Pagamento, "mp_payment_id"):
@@ -258,7 +268,7 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
     # -------------------------
     # APPROVED -> LIBERAÇÃO
     # -------------------------
-    pagamento.status = "aprovado"
+    pagamento.status = "pago"
     db.commit()
     db.refresh(pagamento)
 
@@ -454,7 +464,7 @@ async def reprocessar_pagamento_mp(
         return {"ok": True, "status": status, "pagamento_id": pagamento.id}
 
     # Se aprovado, marca e libera
-    pagamento.status = "aprovado"
+    pagamento.status = "pago"
     db.commit()
     db.refresh(pagamento)
 
