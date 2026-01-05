@@ -16,6 +16,7 @@ from backend.database import get_db
 from backend.models import Pagamento, Usuario
 from backend.models.planos import Plano
 from backend.utils.email_utils import enviar_email
+from backend.models.curso import Curso, CompraCurso
 
 
 router = APIRouter(prefix="/mercado_pago", tags=["Mercado Pago"])
@@ -309,23 +310,78 @@ async def mercado_pago_webhook(request: Request, db: Session = Depends(get_db)):
             "pagamento_id": pagamento.id,
         }
 
-    # ---- CURSO (se você quiser liberar aqui também no futuro)
+
+    # ---- CURSO
     if kind == "curso":
+        curso_id = ref.get("curso_id")
+
+        if not isinstance(curso_id, int):
+            return {
+                "ok": True,
+                "warning": "curso_id_invalido_ou_ausente",
+                "usuario_id": usuario.id,
+                "pagamento_id": pagamento.id,
+                "external_reference": external_reference,
+            }
+
+        # Confirma se o curso existe (e opcionalmente se está ativo)
+        curso = db.query(Curso).filter(Curso.id == curso_id).first()
+        if not curso:
+            return {
+                "ok": True,
+                "warning": "curso_nao_encontrado",
+                "curso_id": curso_id,
+                "usuario_id": usuario.id,
+                "pagamento_id": pagamento.id,
+            }
+
+        # Idempotência: não duplica compra se webhook repetir
+        ja = (
+            db.query(CompraCurso)
+            .filter(CompraCurso.usuario_id == usuario.id, CompraCurso.curso_id == curso_id)
+            .first()
+        )
+        if ja:
+            return {
+                "ok": True,
+                "liberado": "curso",
+                "usuario_id": usuario.id,
+                "curso_id": curso_id,
+                "pagamento_id": pagamento.id,
+                "observacao": "compra_ja_existia",
+            }
+
+        # Tenta pegar valor pago
+        preco_pago = None
+        try:
+            # mais comum
+            if mp.get("transaction_details") and mp["transaction_details"].get("total_paid_amount") is not None:
+                preco_pago = float(mp["transaction_details"]["total_paid_amount"])
+            elif mp.get("transaction_amount") is not None:
+                preco_pago = float(mp["transaction_amount"])
+        except Exception:
+            preco_pago = None
+
+        compra = CompraCurso(
+            usuario_id=usuario.id,
+            curso_id=curso_id,
+            preco_pago=preco_pago if preco_pago is not None else 0.0,
+            data_compra=datetime.utcnow(),
+        )
+        db.add(compra)
+        db.commit()
+        db.refresh(compra)
+
         return {
             "ok": True,
             "liberado": "curso",
             "usuario_id": usuario.id,
+            "curso_id": curso_id,
             "pagamento_id": pagamento.id,
-            "external_reference": external_reference,
-            "observacao": "Plugar aqui a liberação do curso conforme seu modelo (ex: tabela curso_compras).",
+            "compra_id": compra.id,
+            "preco_pago": compra.preco_pago,
         }
 
-    return {
-        "ok": True,
-        "status": "approved_sem_kind",
-        "pagamento_id": pagamento.id,
-        "external_reference": external_reference,
-    }
 
 
 @router.get("/__ping")
