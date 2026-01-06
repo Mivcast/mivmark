@@ -415,7 +415,10 @@ async def reprocessar_pagamento_mp(
     db: Session = Depends(get_db),
 ):
     # ✅ Só admin pode usar
-    if not getattr(usuario, "is_admin", False) and (getattr(usuario, "tipo_usuario", "") != "Admin"):
+    tipo = (getattr(usuario, "tipo_usuario", "") or "").strip().lower()
+    is_admin_flag = bool(getattr(usuario, "is_admin", False))
+
+    if (not is_admin_flag) and (tipo != "admin"):
         raise HTTPException(status_code=403, detail="Apenas admin pode reprocessar pagamentos.")
 
     # consulta pagamento no MP e reutiliza a lógica do webhook
