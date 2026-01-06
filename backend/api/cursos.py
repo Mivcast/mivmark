@@ -221,6 +221,21 @@ def usuario_tem_acesso_ao_curso(db: Session, usuario_id: int, curso: Curso) -> b
     ja = db.query(CompraCurso).filter_by(usuario_id=usuario_id, curso_id=curso.id).first()
     return ja is not None
 
+
+@router.get("/minhas-compras")
+def minhas_compras(
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_logado),
+):
+    ids = (
+        db.query(CompraCurso.curso_id)
+        .filter(CompraCurso.usuario_id == usuario.id)
+        .all()
+    )
+    curso_ids = [row[0] for row in ids]  # row é tupla (curso_id,)
+    return {"curso_ids": curso_ids}
+
+
 @router.get("/{curso_id}", response_model=CursoSchema)
 def detalhes_curso(
     curso_id: int,

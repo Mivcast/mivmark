@@ -3521,8 +3521,7 @@ def tela_cursos():
 
     cursos = sorted(cursos, key=lambda c: (c.get("ordem") or 9999, c.get("titulo") or ""))
 
-    cursos_liberados = set(st.session_state.get("cursos_liberados", []))
-    cursos_comprados = set(st.session_state.get("comprados", []))
+    cursos_comprados = _carregar_cursos_comprados_ids()
 
     # Separar meus cursos vs disponíveis
     meus_cursos = []
@@ -3530,7 +3529,7 @@ def tela_cursos():
 
     for curso in cursos:
         curso_id = curso["id"]
-        liberado = bool(curso.get("gratuito")) or (curso_id in cursos_liberados) or (curso_id in cursos_comprados)
+        liberado = bool(curso.get("gratuito")) or (curso_id in cursos_comprados)
 
         if liberado:
             meus_cursos.append(curso)
@@ -3619,6 +3618,15 @@ def tela_cursos():
             card_curso(curso, liberado=False)
 
 
+def _carregar_cursos_comprados_ids() -> set:
+    try:
+        r = httpx.get(f"{API_URL}/cursos/minhas-compras", headers=get_headers(), timeout=30)
+        if r.status_code == 200:
+            data = r.json() or {}
+            return set(data.get("curso_ids", []))
+    except Exception:
+        pass
+    return set()
 
 
 def tela_checkout(curso_id):
