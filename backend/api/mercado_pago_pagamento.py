@@ -414,46 +414,85 @@ async def reprocessar_pagamento_mp(
     usuario: Usuario = Depends(get_usuario_logado),
     db: Session = Depends(get_db),
 ):
-    # ✅ Só admin pode usar
+    """
+    Reprocessa um pagamento do Mercado Pago (somente admin), reconcilia com o banco
+    e executa a liberação (plano/curso) com base na external_reference.
+
+    PONTOS IMPORTANTES:
+    - Sempre tenta localizar o pagamento pelo pag_id da external_reference (quando existir).
+    - Se não achar, tenta por codigo_externo / mp_payment_id / mp_external_reference (se existirem no model).
+    - Sempre "amarra" o payment_id do MP no pagamento do banco (codigo_externo/mp_payment_id),
+      evitando o erro 'pagamento_nao_encontrado_no_banco' no futuro.
+    """
+
+    # =========================
+    # 1) Permissão (somente admin)
+    # =========================
     tipo = (getattr(usuario, "tipo_usuario", "") or "").strip().lower()
     is_admin_flag = bool(getattr(usuario, "is_admin", False))
 
     if (not is_admin_flag) and (tipo != "admin"):
         raise HTTPException(status_code=403, detail="Apenas admin pode reprocessar pagamentos.")
 
-    # consulta pagamento no MP e reutiliza a lógica do webhook
+    # =========================
+    # 2) Consulta MP
+    # =========================
     mp = await _mp_get_payment(str(payment_id))
 
-    status = (mp.get("status") or "").lower()
-    external_reference = mp.get("external_reference") or ""
+    status = (mp.get("status") or "").strip().lower()
+    external_reference = (mp.get("external_reference") or "").strip()
     preference_id = mp.get("preference_id") or None
 
     ref = _parse_external_reference(external_reference)
 
-    # localiza pagamento no banco
+    # =========================
+    # 3) Localiza pagamento no banco
+    #    (prioridade: pag_id -> codigo_externo/mp_payment_id -> mp_external_reference)
+    # =========================
     pagamento = None
+
     pag_id = ref.get("pag_id")
     if isinstance(pag_id, int):
         pagamento = db.query(Pagamento).filter(Pagamento.id == pag_id).first()
 
-    if not pagamento and hasattr(Pagamento, "mp_payment_id"):
-        pagamento = db.query(Pagamento).filter(Pagamento.mp_payment_id == str(payment_id)).first()
+    # tenta por payment_id em campos conhecidos
+    if not pagamento:
+        if hasattr(Pagamento, "codigo_externo"):
+            pagamento = db.query(Pagamento).filter(Pagamento.codigo_externo == str(payment_id)).first()
 
-    if not pagamento and external_reference and hasattr(Pagamento, "mp_external_reference"):
-        pagamento = db.query(Pagamento).filter(Pagamento.mp_external_reference == external_reference).first()
+    if not pagamento:
+        if hasattr(Pagamento, "mp_payment_id"):
+            pagamento = db.query(Pagamento).filter(Pagamento.mp_payment_id == str(payment_id)).first()
+
+    # tenta por external_reference em campo conhecido
+    if (not pagamento) and external_reference:
+        if hasattr(Pagamento, "mp_external_reference"):
+            pagamento = (
+                db.query(Pagamento)
+                .filter(Pagamento.mp_external_reference == external_reference)
+                .first()
+            )
 
     if not pagamento:
         return {
             "ok": False,
             "warning": "pagamento_nao_encontrado_no_banco",
-            "payment_id": payment_id,
+            "payment_id": str(payment_id),
             "status": status,
             "external_reference": external_reference,
+            "ref": ref,
         }
 
-    # Atualiza campos MP se existirem
-    if hasattr(pagamento, "mp_payment_id"):
+    # =========================
+    # 4) Atualiza/amarra dados do MP no pagamento (ESSENCIAL)
+    # =========================
+    # Sempre vincula o payment_id do MP no pagamento (para nunca mais "perder" o vínculo).
+    if hasattr(pagamento, "codigo_externo"):
+        pagamento.codigo_externo = str(payment_id)
+    elif hasattr(pagamento, "mp_payment_id"):
         pagamento.mp_payment_id = str(payment_id)
+
+    # Campos auxiliares (se existirem)
     if hasattr(pagamento, "mp_status"):
         pagamento.mp_status = status
     if hasattr(pagamento, "mp_external_reference"):
@@ -461,13 +500,27 @@ async def reprocessar_pagamento_mp(
     if hasattr(pagamento, "mp_preference_id"):
         pagamento.mp_preference_id = str(preference_id) if preference_id else None
 
+    # =========================
+    # 5) Se não aprovado, salva status e finaliza
+    # =========================
     if status != "approved":
         pagamento.status = status
         db.commit()
-        return {"ok": True, "status": status, "pagamento_id": pagamento.id}
+        return {
+            "ok": True,
+            "status": status,
+            "pagamento_id": pagamento.id,
+            "acao": "somente_atualizou_status",
+        }
 
-    # Se aprovado, marca e libera
+    # =========================
+    # 6) Se aprovado, marca como pago e segue para liberação
+    # =========================
     pagamento.status = "pago"
+    # opcional: preencher confirmado_em se existir
+    if hasattr(pagamento, "confirmado_em") and getattr(pagamento, "confirmado_em", None) is None:
+        pagamento.confirmado_em = datetime.utcnow()
+
     db.commit()
     db.refresh(pagamento)
 
@@ -475,25 +528,31 @@ async def reprocessar_pagamento_mp(
     if not usuario_pag:
         return {"ok": False, "warning": "usuario_nao_encontrado", "pagamento_id": pagamento.id}
 
-    # ✅ determina kind automaticamente
-    kind = (ref.get("kind") or "").lower().strip()
+    # =========================
+    # 7) Determina o "kind" (plano/curso) a partir da referência
+    # =========================
+    kind = (ref.get("kind") or "").strip().lower()
+
     if not kind:
         if isinstance(ref.get("plano_id"), int):
             kind = "plano"
         elif isinstance(ref.get("curso_id"), int):
             kind = "curso"
         else:
+            # fallback conservador (mantém comportamento anterior)
             kind = "plano"
 
-    # ---- PLANO
+    # =========================
+    # 8) Liberação de PLANO
+    # =========================
     if kind == "plano":
-        periodo = (ref.get("periodo") or "mensal").lower()
+        periodo = (ref.get("periodo") or "mensal").strip().lower()
         plano_id = ref.get("plano_id")
 
         plano_nome = None
         if isinstance(plano_id, int):
             p = db.query(Plano).filter(Plano.id == plano_id).first()
-            if p and p.nome:
+            if p and getattr(p, "nome", None):
                 plano_nome = p.nome
 
         if not plano_nome:
@@ -511,19 +570,29 @@ async def reprocessar_pagamento_mp(
                 break
 
         db.commit()
-        return {"ok": True, "liberado": "plano", "usuario_id": usuario_pag.id, "plano": plano_nome}
+        return {
+            "ok": True,
+            "liberado": "plano",
+            "usuario_id": usuario_pag.id,
+            "plano": plano_nome,
+            "periodo": periodo,
+            "pagamento_id": pagamento.id,
+        }
 
-    # ---- CURSO
+    # =========================
+    # 9) Liberação de CURSO
+    # =========================
     if kind == "curso":
-        from backend.models.curso import Curso, CompraCurso  # import local para evitar conflito
+        # import local para evitar conflito
+        from backend.models.curso import Curso, CompraCurso
 
         curso_id = ref.get("curso_id")
         if not isinstance(curso_id, int):
-            return {"ok": False, "warning": "curso_id_invalido", "ref": ref}
+            return {"ok": False, "warning": "curso_id_invalido", "ref": ref, "pagamento_id": pagamento.id}
 
         curso = db.query(Curso).filter(Curso.id == curso_id).first()
         if not curso:
-            return {"ok": False, "warning": "curso_nao_encontrado", "curso_id": curso_id}
+            return {"ok": False, "warning": "curso_nao_encontrado", "curso_id": curso_id, "pagamento_id": pagamento.id}
 
         ja = (
             db.query(CompraCurso)
@@ -531,30 +600,50 @@ async def reprocessar_pagamento_mp(
             .first()
         )
         if ja:
-            return {"ok": True, "liberado": "curso", "curso_id": curso_id, "observacao": "compra_ja_existia"}
+            return {
+                "ok": True,
+                "liberado": "curso",
+                "curso_id": curso_id,
+                "usuario_id": usuario_pag.id,
+                "observacao": "compra_ja_existia",
+                "pagamento_id": pagamento.id,
+            }
 
-        preco_pago = None
+        # tenta capturar valor pago do MP
+        preco_pago = 0.0
         try:
             if mp.get("transaction_details") and mp["transaction_details"].get("total_paid_amount") is not None:
                 preco_pago = float(mp["transaction_details"]["total_paid_amount"])
             elif mp.get("transaction_amount") is not None:
                 preco_pago = float(mp["transaction_amount"])
         except Exception:
-            preco_pago = None
+            preco_pago = 0.0
 
         compra = CompraCurso(
             usuario_id=usuario_pag.id,
             curso_id=curso_id,
-            preco_pago=preco_pago if preco_pago is not None else 0.0,
+            preco_pago=preco_pago,
             data_compra=datetime.utcnow(),
         )
         db.add(compra)
         db.commit()
         db.refresh(compra)
 
-        return {"ok": True, "liberado": "curso", "usuario_id": usuario_pag.id, "curso_id": curso_id, "compra_id": compra.id}
+        return {
+            "ok": True,
+            "liberado": "curso",
+            "usuario_id": usuario_pag.id,
+            "curso_id": curso_id,
+            "compra_id": compra.id,
+            "pagamento_id": pagamento.id,
+            "preco_pago": preco_pago,
+        }
 
+    # =========================
+    # 10) Fallback
+    # =========================
     return {"ok": True, "status": "approved_sem_kind", "pagamento_id": pagamento.id, "ref": ref}
+
 
 
 
