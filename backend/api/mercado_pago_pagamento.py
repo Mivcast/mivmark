@@ -19,6 +19,7 @@ from backend.utils.email_utils import enviar_email
 from backend.models.curso import Curso, CompraCurso
 from backend.models.curso import PagamentoCurso
 
+
 from backend.api.auth import get_usuario_logado 
 
 router = APIRouter(prefix="/mercado_pago", tags=["Mercado Pago"])
@@ -465,7 +466,7 @@ async def reprocessar_pagamento_mp(
 
     if kind == "curso":
         # Ajuste estes imports para o seu projeto, se necessário
-        from backend.models.pagamento_curso import PagamentoCurso  # <-- seu model da tabela pagamentos_cursos
+        from backend.models import Pagamento
         PagModel = PagamentoCurso
 
         if isinstance(pag_id, int):
